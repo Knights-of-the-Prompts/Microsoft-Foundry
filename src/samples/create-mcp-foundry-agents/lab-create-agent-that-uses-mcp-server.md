@@ -60,6 +60,7 @@ Common examples that work:
 2. **Set up Azure credentials:**
    ```bash
    az login --use-device-code
+   az account set --subscription <YOUR_SUBSCRIPTION_ID>
    ```
    Ensure you're logged into the same Azure account that has access to your AI Foundry resources.
 

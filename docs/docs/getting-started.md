@@ -79,6 +79,7 @@ You need to authenticate with Azure so the agent app can access the Azure AI Age
 
 ```powershell
 az login --use-device-code
+az account set --subscription <YOUR_SUBSCRIPTION_ID>
 ```
 
 > NOTE
