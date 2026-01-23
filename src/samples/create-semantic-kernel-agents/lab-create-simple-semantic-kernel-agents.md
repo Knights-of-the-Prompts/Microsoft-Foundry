@@ -44,26 +44,26 @@ import asyncio
 import os
 from semantic_kernel.agents import ChatCompletionAgent
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
+from azure.identity import DefaultAzureCredential
 import dotenv
 
 # Load environment variables from a .env file (if present)
 dotenv.load_dotenv()  
 
 async def main():
-    # Get Azure OpenAI endpoint, API key, and deployment name from environment variables
+    # Get Azure OpenAI endpoint and deployment name from environment variables
     endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-    api_key = os.environ.get("AZURE_OPENAI_API_KEY")
     deployment = os.environ.get("AGENT_MODEL_DEPLOYMENT_NAME")
 
     # Check if all required environment variables are set
-    if not all([endpoint, api_key, deployment]):
-        raise ValueError("Make sure AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
+    if not all([endpoint, deployment]):
+        raise ValueError("Make sure AZURE_OPENAI_ENDPOINT and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
 
-    # Create an agent that can chat using Azure OpenAI
+    # Create an agent that can chat using Azure OpenAI with DefaultAzureCredential (more secure)
     agent = ChatCompletionAgent(
         service=AzureChatCompletion(
             endpoint=endpoint,
-            api_key=api_key,
+            ad_token_provider=DefaultAzureCredential(),
             deployment_name=deployment,
         ),
         name="SK-Assistant",  # Name of the agent
@@ -104,6 +104,7 @@ from pydantic import BaseModel  # For structured data models
 from semantic_kernel.agents import ChatCompletionAgent  # Agent class
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, OpenAIChatPromptExecutionSettings  # Azure OpenAI connectors
 from semantic_kernel.functions import kernel_function, KernelArguments  # For creating plugins and function calls
+from azure.identity import DefaultAzureCredential  # For secure Azure authentication
 
 # Load environment variables from a .env file (if present)
 dotenv.load_dotenv()
@@ -133,12 +134,11 @@ class MenuItem(BaseModel):
 async def main():
     # Get Azure OpenAI configuration from environment variables
     endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-    api_key = os.environ.get("AZURE_OPENAI_API_KEY")
     deployment = os.environ.get("AGENT_MODEL_DEPLOYMENT_NAME")
 
     # Check if all required environment variables are set
-    if not all([endpoint, api_key, deployment]):
-        raise ValueError("Make sure AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
+    if not all([endpoint, deployment]):
+        raise ValueError("Make sure AZURE_OPENAI_ENDPOINT and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
 
     # Configure structured output format (tells the agent to respond in MenuItem format)
     settings = OpenAIChatPromptExecutionSettings()
@@ -148,7 +148,7 @@ async def main():
     agent = ChatCompletionAgent(
         service=AzureChatCompletion(
             endpoint=endpoint,
-            api_key=api_key,
+            ad_token_provider=DefaultAzureCredential(),
             deployment_name=deployment,
         ),
         name="SK-Assistant",
@@ -187,6 +187,7 @@ import dotenv  # For loading .env files
 import logging  # For logging agent activity
 from semantic_kernel.agents import ChatCompletionAgent, ChatHistoryAgentThread  # Agent classes
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion, OpenAIChatCompletion  # LLM connectors
+from azure.identity import DefaultAzureCredential  # For secure Azure authentication
 
 # Load environment variables from a .env file (if present)
 dotenv.load_dotenv()
@@ -197,12 +198,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 # Get Azure OpenAI configuration from environment variables
 # These variables must be set in your .env file
 endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
-api_key = os.environ.get("AZURE_OPENAI_API_KEY")
 deployment = os.environ.get("AGENT_MODEL_DEPLOYMENT_NAME")
 
 # Check if all required environment variables are set
-if not all([endpoint, api_key, deployment]):
-    raise ValueError("Make sure AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
+if not all([endpoint, deployment]):
+    raise ValueError("Make sure AZURE_OPENAI_ENDPOINT and AGENT_MODEL_DEPLOYMENT_NAME are set as environment variables.")
 
 # Subclass for logging per agent. This class logs the name of the agent for each task.
 class LoggingChatCompletionAgent(ChatCompletionAgent):
@@ -214,7 +214,7 @@ class LoggingChatCompletionAgent(ChatCompletionAgent):
 billing_agent = LoggingChatCompletionAgent(
     service=AzureChatCompletion(
         endpoint=endpoint,
-        api_key=api_key,
+        ad_token_provider=DefaultAzureCredential(),
         deployment_name=deployment,
     ),
     name="BillingAgent",
@@ -225,7 +225,7 @@ billing_agent = LoggingChatCompletionAgent(
 refund_agent = LoggingChatCompletionAgent(
     service=AzureChatCompletion(
         endpoint=endpoint,
-        api_key=api_key,
+        ad_token_provider=DefaultAzureCredential(),
         deployment_name=deployment,
     ),
     name="RefundAgent",
@@ -236,7 +236,7 @@ refund_agent = LoggingChatCompletionAgent(
 triage_agent = LoggingChatCompletionAgent(
     service=AzureChatCompletion(
         endpoint=endpoint,
-        api_key=api_key,
+        ad_token_provider=DefaultAzureCredential(),
         deployment_name=deployment,
     ),
     name="TriageAgent",

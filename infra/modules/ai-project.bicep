@@ -1,4 +1,4 @@
-// Creates an Azure AI Foundry project as a child resource
+// Creates an Azure AI Project resource (Microsoft.MachineLearningServices workspace)
 
 @description('Azure region of the deployment')
 param location string
@@ -15,29 +15,29 @@ param aiProjectFriendlyName string = aiProjectName
 @description('Project description')
 param aiProjectDescription string = 'Azure AI Foundry project'
 
-@description('Resource ID of the parent AI Foundry resource')
-param aiFoundryId string
+@description('Resource ID of the parent AI Hub resource')
+param aiHubId string
 
-// Extract the AI Foundry account name from the resource ID
-var aiFoundryAccountName = last(split(aiFoundryId, '/'))
-
-resource aiFoundry 'Microsoft.CognitiveServices/accounts@2024-10-01' existing = {
-  name: aiFoundryAccountName
-}
-
-resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
+resource aiProject 'Microsoft.MachineLearningServices/workspaces@2024-10-01-preview' = {
   name: aiProjectName
-  parent: aiFoundry
   location: location
   tags: tags
   identity: {
     type: 'SystemAssigned'
   }
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+  }
+  kind: 'Project'
   properties: {
-    displayName: aiProjectFriendlyName
+    friendlyName: aiProjectFriendlyName
     description: aiProjectDescription
+    hubResourceId: aiHubId
   }
 }
 
 output aiProjectId string = aiProject.id
 output aiProjectName string = aiProject.name
+output aiProjectPrincipalId string = aiProject.identity.principalId
+output aiProjectWorkspaceId string = aiProject.properties.workspaceId

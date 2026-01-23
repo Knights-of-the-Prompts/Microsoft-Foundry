@@ -111,6 +111,28 @@ MODEL_DEPLOYMENT_NAME=gpt-4o # or your custom GPT-4o deployment name
 DEEP_RESEARCH_MODEL_DEPLOYMENT_NAME=o3-deep-research # or your custom Deep Research model deployment name
 ```
 
+### Automated Setup (Recommended)
+
+**Alternatively**, you can use the automated setup script to configure your `.env` file automatically from your existing Azure deployment:
+
+```bash
+cd /workspaces/Azure-AI-Foundry/src/workshop
+python3 setup_env.py
+```
+
+This interactive script will:
+1. Verify your Azure CLI login status
+2. Confirm your Azure subscription
+3. Let you select a resource group from a list
+4. Automatically discover your AI Foundry resources, projects, and model deployments
+5. Update your `.env` file with the correct values
+
+The script uses your existing Azure CLI authentication (from `az login`) and requires no additional credentials.
+
+### Manual Setup
+
+If you prefer to configure the `.env` file manually or if the automated script doesn't work for your setup, follow the instructions below.
+
 ## Where to find the values for the .env file
 To get the AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP_NAME, go to the Azure portal, select your Resource Group, and copy the **Subscription ID** and **Resource Group Name**:
 ![alt text](../../media/image-start6.png)

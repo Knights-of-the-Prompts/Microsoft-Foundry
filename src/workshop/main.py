@@ -4,7 +4,6 @@ import logging
 import os
 
 from azure.ai.projects import AIProjectClient
-from azure.ai.agents import AgentsClient
 from azure.ai.agents.models import (
     Agent,
     AgentThread,
@@ -50,6 +49,8 @@ try:
             endpoint=PROJECT_ENDPOINT,
             credential=DefaultAzureCredential(),
         )
+        # Access agents through AIProjectClient (correct for SDK 2.0)
+        agents_client = project_client.agents
         print(f"Using full project endpoint: {PROJECT_ENDPOINT}")
     else:
         # Method 2: Base endpoint approach
@@ -60,6 +61,7 @@ try:
             resource_group_name=AZURE_RESOURCE_GROUP_NAME,
             project_name=AZURE_PROJECT_NAME,
         )
+        agents_client = project_client.agents
         print(f"Using base endpoint with project details: {PROJECT_ENDPOINT}")
 except Exception as e:
     print(f"Error creating project client: {e}")
@@ -68,6 +70,7 @@ except Exception as e:
         endpoint=PROJECT_ENDPOINT,
         credential=DefaultAzureCredential(),
     )
+    agents_client = project_client.agents
     print("Using fallback client configuration")
 
 functions = AsyncFunctionTool(
@@ -76,7 +79,7 @@ functions = AsyncFunctionTool(
     }
 )
 
-# INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
+INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
 # INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
 # INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
 
@@ -85,7 +88,7 @@ async def add_agent_tools():
     """Add tools for the agent."""
 
     # # Add the functions tool
-    # toolset.add(functions)
+    toolset.add(functions)
 
     # # Add the code interpreter tool
     # code_interpreter = CodeInterpreterTool()
@@ -131,19 +134,18 @@ async def initialize() -> tuple[Agent, AgentThread]:
 
         # Create agent and thread without closing the context manager
         print("Creating agent...")
-        agent = project_client.agents.create_agent(
+        agent = agents_client.create_agent(
             model=API_DEPLOYMENT_NAME,
             name="Contoso Sales AI Agent",
             instructions=instructions,
             toolset=toolset,
             temperature=TEMPERATURE,
-            headers={"x-ms-enable-preview": "true"},
         )
         print(f"Created agent, ID: {agent.id}")
 
         # Create thread
         print("Creating thread...")
-        thread = project_client.agents.threads.create()
+        thread = agents_client.threads.create()
         print(f"Created thread, ID: {thread.id}")
 
         return agent, thread
@@ -157,7 +159,7 @@ async def initialize() -> tuple[Agent, AgentThread]:
 async def cleanup(agent: Agent, thread: AgentThread) -> None:
     """Cleanup the resources."""
     try:
-        project_client.agents.delete_agent(agent.id)
+        agents_client.delete_agent(agent.id)
         print(f"Deleted agent: {agent.id}")
     except Exception as e:
         print(f"Error deleting agent: {e}")
@@ -170,8 +172,8 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
     try:
         print(f"Creating message in thread {thread_id}...")
         
-        # Create message using project_client directly
-        message = project_client.agents.messages.create(
+        # Create message using agents_client
+        message = agents_client.messages.create(
             thread_id=thread_id,
             role="user",
             content=content,
@@ -180,7 +182,7 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
 
         print(f"Creating run for agent {agent.id}...")
         # Create and poll run
-        run = project_client.agents.runs.create(
+        run = agents_client.runs.create(
             thread_id=thread.id,
             agent_id=agent.id,
         )
@@ -196,7 +198,7 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
             iteration += 1
             
             try:
-                run = project_client.agents.runs.get(thread_id=thread.id, run_id=run.id)
+                run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
                 print(f"Run status: {run.status} (iteration {iteration})")
             except Exception as e:
                 print(f"Error getting run status: {e}")
@@ -225,7 +227,7 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
                     # Submit the tool outputs
                     if tool_outputs:
                         print("Submitting tool outputs...")
-                        run = project_client.agents.runs.submit_tool_outputs(
+                        run = agents_client.runs.submit_tool_outputs(
                             thread_id=thread.id,
                             run_id=run.id,
                             tool_outputs=tool_outputs
@@ -246,13 +248,16 @@ async def post_message(thread_id: str, content: str, agent: Agent, thread: Agent
         elif run.status == "completed":
             # Get the last message from the agent
             try:
-                response = project_client.agents.messages.get_last_message_by_role(
-                    thread_id=thread_id,
-                    role=MessageRole.AGENT,
-                )
-                if response:
-                    print("\nAgent response:")
-                    print("\n".join(t.text.value for t in response.text_messages))
+                messages = agents_client.messages.list(thread_id=thread_id)
+                # Get the first message (most recent) from assistant
+                if messages.data:
+                    for msg in messages.data:
+                        if msg.role == "assistant":
+                            print("\nAgent response:")
+                            for content in msg.content:
+                                if hasattr(content, 'text') and hasattr(content.text, 'value'):
+                                    print(content.text.value)
+                            break
                 else:
                     print("No response message found")
                 

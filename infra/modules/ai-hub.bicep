@@ -1,4 +1,4 @@
-// Creates an Azure AI resource with proxied endpoints for the Azure AI services provider
+// Creates an Azure AI Hub resource (Microsoft.MachineLearningServices workspace)
 
 @description('Azure region of the deployment')
 param location string
@@ -33,13 +33,18 @@ param aiServicesId string
 @description('Resource ID of the AI Services endpoint')
 param aiServicesTarget string
 
-resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
+resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01-preview' = {
   name: aiHubName
   location: location
   tags: tags
   identity: {
     type: 'SystemAssigned'
   }
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+  }
+  kind: 'Hub'
   properties: {
     // organization
     friendlyName: aiHubFriendlyName
@@ -51,18 +56,14 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
     applicationInsights: applicationInsightsId
     containerRegistry: containerRegistryId
   }
-  kind: 'hub'
 
-  resource aiServicesConnection 'connections@2024-01-01-preview' = {
+  resource aiServicesConnection 'connections@2024-10-01-preview' = {
     name: '${aiHubName}-connection-AzureOpenAI'
     properties: {
       category: 'AzureOpenAI'
       target: aiServicesTarget
-      authType: 'ApiKey'
+      authType: 'AAD'
       isSharedToAll: true
-      credentials: {
-        key: '${listKeys(aiServicesId, '2021-10-01').key1}'
-      }
       metadata: {
         ApiType: 'Azure'
         ResourceId: aiServicesId
@@ -71,4 +72,6 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
   }
 }
 
-output aiHubID string = aiHub.id
+output aiHubId string = aiHub.id
+output aiHubName string = aiHub.name
+output aiHubPrincipalId string = aiHub.identity.principalId
