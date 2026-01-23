@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "11404869284418067628"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiProjectName": {
+      "type": "string",
+      "metadata": {
+        "description": "Project name"
+      }
+    },
+    "aiProjectFriendlyName": {
+      "type": "string",
+      "defaultValue": "[parameters('aiProjectName')]",
+      "metadata": {
+        "description": "Project display name"
+      }
+    },
+    "aiProjectDescription": {
+      "type": "string",
+      "defaultValue": "Microsoft Foundry project",
+      "metadata": {
+        "description": "Project description"
+      }
+    },
+    "aiHubId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the parent AI Hub resource"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[parameters('aiProjectName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "kind": "Project",
+      "properties": {
+        "friendlyName": "[parameters('aiProjectFriendlyName')]",
+        "description": "[parameters('aiProjectDescription')]",
+        "hubResourceId": "[parameters('aiHubId')]"
+      }
+    }
+  ],
+  "outputs": {
+    "aiProjectId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiProjectName'))]"
+    },
+    "aiProjectName": {
+      "type": "string",
+      "value": "[parameters('aiProjectName')]"
+    },
+    "aiProjectPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiProjectName')), '2024-10-01-preview', 'full').identity.principalId]"
+    },
+    "aiProjectWorkspaceId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiProjectName')), '2024-10-01-preview').workspaceId]"
+    }
+  }
+}

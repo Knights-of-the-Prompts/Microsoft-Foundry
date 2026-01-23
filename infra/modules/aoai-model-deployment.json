@@ -1,0 +1,102 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "16972505981065707427"
+    }
+  },
+  "parameters": {
+    "openAIAccountId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of a Microsoft Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI)."
+      }
+    },
+    "deploymentName": {
+      "type": "string",
+      "defaultValue": "gpt-4o",
+      "metadata": {
+        "description": "Deployment name."
+      }
+    },
+    "modelName": {
+      "type": "string",
+      "defaultValue": "gpt-4o",
+      "metadata": {
+        "description": "Model name."
+      }
+    },
+    "modelVersion": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Model version."
+      }
+    },
+    "versionUpgradeOption": {
+      "type": "string",
+      "defaultValue": "OnceNewDefaultVersionAvailable",
+      "allowedValues": [
+        "OnceNewDefaultVersionAvailable",
+        "OnceCurrentVersionExpired",
+        "NoAutoUpgrade"
+      ],
+      "metadata": {
+        "description": "Version upgrade option."
+      }
+    },
+    "raiPolicyName": {
+      "type": "string",
+      "defaultValue": "Microsoft.DefaultV2",
+      "metadata": {
+        "description": "RAI policy name."
+      }
+    },
+    "capacity": {
+      "type": "int",
+      "defaultValue": 30,
+      "minValue": 1
+    }
+  },
+  "variables": {
+    "openAIAccountName": "[last(split(parameters('openAIAccountId'), '/'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts/deployments",
+      "apiVersion": "2025-06-01",
+      "name": "[format('{0}/{1}', variables('openAIAccountName'), parameters('deploymentName'))]",
+      "sku": {
+        "name": "GlobalStandard",
+        "capacity": "[parameters('capacity')]"
+      },
+      "properties": {
+        "model": {
+          "name": "[parameters('modelName')]",
+          "format": "OpenAI",
+          "version": "[if(not(empty(parameters('modelVersion'))), parameters('modelVersion'), null())]"
+        },
+        "versionUpgradeOption": "[parameters('versionUpgradeOption')]",
+        "currentCapacity": "[parameters('capacity')]",
+        "raiPolicyName": "[parameters('raiPolicyName')]"
+      }
+    }
+  ],
+  "outputs": {
+    "deploymentName": {
+      "type": "string",
+      "value": "[parameters('deploymentName')]"
+    },
+    "modelNameOut": {
+      "type": "string",
+      "value": "[parameters('modelName')]"
+    },
+    "endpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('openAIAccountName')), '2024-10-01').endpoint]"
+    }
+  }
+}

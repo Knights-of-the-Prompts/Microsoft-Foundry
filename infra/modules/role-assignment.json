@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "9538123221312837742"
+    }
+  },
+  "parameters": {
+    "principalId": {
+      "type": "string",
+      "metadata": {
+        "description": "Principal ID to assign the role to"
+      }
+    },
+    "roleDefinitionId": {
+      "type": "string",
+      "metadata": {
+        "description": "Role definition ID"
+      }
+    },
+    "aiServicesName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the AI Services resource"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.CognitiveServices/accounts/{0}', parameters('aiServicesName'))]",
+      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), parameters('principalId'), parameters('roleDefinitionId'))]",
+      "properties": {
+        "principalId": "[parameters('principalId')]",
+        "roleDefinitionId": "[parameters('roleDefinitionId')]",
+        "principalType": "ServicePrincipal"
+      }
+    }
+  ],
+  "outputs": {
+    "roleAssignmentId": {
+      "type": "string",
+      "value": "[extensionResourceId(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), parameters('principalId'), parameters('roleDefinitionId')))]"
+    }
+  }
+}

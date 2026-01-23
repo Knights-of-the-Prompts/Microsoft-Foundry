@@ -1,0 +1,155 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "17439730633900133086"
+    }
+  },
+  "parameters": {
+    "budgetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Budget name"
+      }
+    },
+    "budgetAmount": {
+      "type": "int",
+      "defaultValue": 500,
+      "metadata": {
+        "description": "Budget amount in USD"
+      }
+    },
+    "alertEmails": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Email addresses to receive budget alerts"
+      }
+    },
+    "budgetCategory": {
+      "type": "string",
+      "defaultValue": "Cost",
+      "allowedValues": [
+        "Cost",
+        "Usage"
+      ],
+      "metadata": {
+        "description": "Budget category"
+      }
+    },
+    "timeGrain": {
+      "type": "string",
+      "defaultValue": "Monthly",
+      "allowedValues": [
+        "Monthly",
+        "Quarterly",
+        "Annually"
+      ],
+      "metadata": {
+        "description": "Time grain for the budget"
+      }
+    },
+    "startDate": {
+      "type": "string",
+      "defaultValue": "[utcNow('yyyy-MM-01')]",
+      "metadata": {
+        "description": "Start date for the budget (YYYY-MM-DD format)"
+      }
+    },
+    "endDate": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "End date for the budget (YYYY-MM-DD format) - optional"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2021-10-01",
+      "name": "[parameters('budgetName')]",
+      "properties": {
+        "timePeriod": {
+          "startDate": "[parameters('startDate')]",
+          "endDate": "[if(not(empty(parameters('endDate'))), parameters('endDate'), null())]"
+        },
+        "timeGrain": "[parameters('timeGrain')]",
+        "amount": "[parameters('budgetAmount')]",
+        "category": "[parameters('budgetCategory')]",
+        "notifications": {
+          "Alert80": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 80,
+            "contactEmails": "[parameters('alertEmails')]",
+            "contactRoles": [
+              "Owner",
+              "Contributor"
+            ],
+            "thresholdType": "Percentage"
+          },
+          "Alert90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "contactEmails": "[parameters('alertEmails')]",
+            "contactRoles": [
+              "Owner",
+              "Contributor"
+            ],
+            "thresholdType": "Percentage"
+          },
+          "Alert100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "contactEmails": "[parameters('alertEmails')]",
+            "contactRoles": [
+              "Owner",
+              "Contributor"
+            ],
+            "thresholdType": "Percentage"
+          },
+          "ForecastAlert120": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 120,
+            "contactEmails": "[parameters('alertEmails')]",
+            "contactRoles": [
+              "Owner",
+              "Contributor"
+            ],
+            "thresholdType": "Forecasted"
+          }
+        },
+        "filter": {
+          "and": [
+            {
+              "dimensions": {
+                "name": "ResourceGroupName",
+                "operator": "In",
+                "values": [
+                  "[resourceGroup().name]"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "budgetId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Consumption/budgets', parameters('budgetName'))]"
+    },
+    "budgetName": {
+      "type": "string",
+      "value": "[parameters('budgetName')]"
+    }
+  }
+}

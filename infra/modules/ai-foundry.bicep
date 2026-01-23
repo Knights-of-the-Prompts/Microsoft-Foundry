@@ -49,7 +49,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
     disableLocalAuth: disableLocalAuth
     allowProjectManagement: true
     apiProperties: {
-      // API properties can be extended here for specific requirements
+      statisticsEnabled: false
     }
     networkAcls: {
       defaultAction: 'Allow'
@@ -63,3 +63,6 @@ output aiFoundryId string = aiFoundry.id
 output aiFoundryName string = aiFoundry.name
 output aiFoundryEndpoint string = aiFoundry.properties.endpoint
 output aiFoundryPrincipalId string = aiFoundry.identity.principalId
+output aiFoundryCustomSubDomain string = aiFoundry.properties.customSubDomainName
+output aiProjectEndpoint string = 'https://${aiFoundry.properties.customSubDomainName}.services.ai.azure.com/api/projects'
+output aiInferenceEndpoint string = 'https://${aiFoundry.properties.customSubDomainName}.services.ai.azure.com/models'

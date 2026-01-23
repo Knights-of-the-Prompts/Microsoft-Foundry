@@ -1,0 +1,137 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "16183850725707261797"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiHubName": {
+      "type": "string",
+      "metadata": {
+        "description": "AI hub name"
+      }
+    },
+    "aiHubFriendlyName": {
+      "type": "string",
+      "defaultValue": "[parameters('aiHubName')]",
+      "metadata": {
+        "description": "AI hub display name"
+      }
+    },
+    "aiHubDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "AI hub description"
+      }
+    },
+    "applicationInsightsId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the application insights resource for storing diagnostics logs"
+      }
+    },
+    "containerRegistryId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the container registry resource for storing docker images"
+      }
+    },
+    "keyVaultId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the key vault resource for storing connection strings"
+      }
+    },
+    "storageAccountId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the storage account resource for storing experimentation outputs"
+      }
+    },
+    "aiServicesId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the AI Services resource"
+      }
+    },
+    "aiServicesTarget": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the AI Services endpoint"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces/connections",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[format('{0}/{1}', parameters('aiHubName'), format('{0}-connection-AzureOpenAI', parameters('aiHubName')))]",
+      "properties": {
+        "category": "AzureOpenAI",
+        "target": "[parameters('aiServicesTarget')]",
+        "authType": "AAD",
+        "isSharedToAll": true,
+        "metadata": {
+          "ApiType": "Azure",
+          "ResourceId": "[parameters('aiServicesId')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces",
+      "apiVersion": "2024-10-01-preview",
+      "name": "[parameters('aiHubName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "kind": "Hub",
+      "properties": {
+        "friendlyName": "[parameters('aiHubFriendlyName')]",
+        "description": "[parameters('aiHubDescription')]",
+        "keyVault": "[parameters('keyVaultId')]",
+        "storageAccount": "[parameters('storageAccountId')]",
+        "applicationInsights": "[parameters('applicationInsightsId')]",
+        "containerRegistry": "[parameters('containerRegistryId')]"
+      }
+    }
+  ],
+  "outputs": {
+    "aiHubId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName'))]"
+    },
+    "aiHubName": {
+      "type": "string",
+      "value": "[parameters('aiHubName')]"
+    },
+    "aiHubPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiHubName')), '2024-10-01-preview', 'full').identity.principalId]"
+    }
+  }
+}

@@ -62,3 +62,5 @@ output aiServicesId string = aiServices.id
 output aiServicesName string = aiServices.name
 output aiServicesEndpoint string = aiServices.properties.endpoint
 output aiServicesPrincipalId string = aiServices.identity.principalId
+output aiProjectEndpoint string = 'https://${aiServices.properties.customSubDomainName}.services.ai.azure.com/api/projects'
+output aiInferenceEndpoint string = 'https://${aiServices.properties.customSubDomainName}.services.ai.azure.com/models'

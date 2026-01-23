@@ -19,6 +19,9 @@
         },
         "deployBudgetAlert": {
             "value": false
+        },
+        "disableLocalAuth": {
+            "value": true
         }
     }
 }

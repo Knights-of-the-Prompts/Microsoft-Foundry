@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aiFoundryName": {
+            "value": "aiagents"
+        },
+        "aiFoundryFriendlyName": {
+            "value": "Agent Workshop AI Foundry resource"
+        },
+        "aiFoundryDescription": {
+            "value": "This is an example AI Foundry resource for use in Microsoft Foundry."
+        },
+        "location": {
+            "value": "eastus"
+        },
+        "tags": {
+            "value": {
+                "environment": "workshop",
+                "project": "microsoft-foundry"
+            }
+        },
+        "aiProjectName": {
+            "value": "workshop-project"
+        },
+        "aiProjectDisplayName": {
+            "value": "Agent Workshop Project"
+        },
+        "aiProjectDescription": {
+            "value": "Agent Workshop for Microsoft Foundry"
+        },
+        "budgetAmount": {
+            "value": 500
+        },
+        "budgetAlertEmails": {
+            "value": []
+        },
+        "deployBudgetAlert": {
+            "value": false
+        },
+        "disableLocalAuth": {
+            "value": true
+        }
+    }
+}

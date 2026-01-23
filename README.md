@@ -2,8 +2,20 @@
     <img src="media/kotp-readme-frontier.png" width="100%" alt="Microsoft Foundry">
 </div>
 
-> **📢 Repository Updated | January 2026**  
-> This repository has been updated to align with the latest Microsoft Foundry best practices, including migration to `Microsoft.MachineLearningServices` resource provider, Azure AI Projects SDK 2.0, and identity-based authentication (AAD) replacing API keys.
+> **� REPOSITORY MODERNIZATION IN PROGRESS | January 2026** 🚧
+> 
+> **⚠️ IMPORTANT NOTICE**: This repository is currently being upgraded to align with the latest Microsoft Foundry architecture and SDK patterns. During this transition period:
+> - ❌ **The repository may not function correctly**
+> - 🔄 **Breaking infrastructure changes are being implemented**  
+> - 📅 **Expected completion: Late February 2026**
+> 
+> **What's Changing?**
+> - ✨ Modern CognitiveServices architecture (replacing MachineLearningServices Hub/Project)
+> - 🔐 Keyless authentication with Entra ID (DefaultAzureCredential)
+> - 🎯 Simplified infrastructure (60% less complexity)
+> - 🚀 Latest azure-ai-projects SDK patterns
+> 
+> 👉 **See [CHANGELOG.md](CHANGELOG.md) for detailed migration information**
 
 # **Welcome to the "Build Agents with Microsoft Foundry" workshop repo!** 🎉
 
@@ -125,54 +137,34 @@ If you are interested in organizing a hackathon using this repository, check out
 - **Cost Control Policies Guide**: 📊 Understand the cost control policies implemented to manage and monitor expenses during the hackathon. [Read more here](infra/policies/README.md).
 ---
 
-## 📝 Changelog
+## 📝 Recent Changes - January 2026
 
-### January 2026 - Major Infrastructure & SDK Update
+### 🔄 Major Infrastructure Modernization
 
-**🔄 Breaking Changes**
-- **Infrastructure Migration**: Migrated from `Microsoft.CognitiveServices/accounts/projects` to `Microsoft.MachineLearningServices/workspaces` (AI Hub + AI Project pattern)
-  - Updated [main.bicep](infra/main.bicep) to use AI Hub architecture
-  - Created [ai-services.bicep](infra/modules/ai-services.bicep) for AI Services resource
-  - Updated [ai-hub.bicep](infra/modules/ai-hub.bicep) to API version `2024-10-01-preview`
-  - Refactored [ai-project.bicep](infra/modules/ai-project.bicep) to use `kind: 'Project'` with `hubResourceId`
-  - Added [role-assignment.bicep](infra/modules/role-assignment.bicep) for identity-based access
-- **SDK Compatibility**: Updated to Azure AI Projects SDK 2.0.0b3
-  - New API patterns: `PromptAgentDefinition`, `create_version()`, `get_openai_client()`
-  - Replaced Threads API with Conversations API
-  - Updated FunctionTool initialization syntax
+**Key Changes**:
+- **New Architecture**: Migrated from MachineLearningServices Hub/Project to modern CognitiveServices-based Microsoft Foundry
+- **Simplified Infrastructure**: Removed 4 dependent resources (Storage, KeyVault, AppInsights, Container Registry) - now just 2 core resources
+- **Keyless Authentication**: Entra ID (DefaultAzureCredential) is now the default - no more API key management
+- **Modern Endpoints**: 
+  - Project endpoint: `https://{resource}.services.ai.azure.com/api/projects/{project}`
+  - Inference endpoint: `https://{resource}.services.ai.azure.com/models`
+- **SDK Alignment**: Ready for azure-ai-projects SDK (Python/JS/.NET)
 
-**🔐 Security Enhancements**
-- Replaced API key authentication with Azure AD (DefaultAzureCredential)
-- Updated AI Hub connections to use `authType: 'AAD'` instead of API keys
-- Updated Semantic Kernel samples to use managed identity authentication
+**Impact**:
+- ⚠️ **Breaking change** - requires fresh deployment
+- ✅ 34% smaller templates (1246 → 823 lines)
+- ✅ Best practice security (keyless auth)
+- ✅ Aligned with Microsoft Foundry roadmap
 
-**✨ New Features**
-- Created [setup_env.py](src/workshop/setup_env.py) - Automated environment configuration script
-  - Retrieves configuration from existing Azure deployments
-  - Azure CLI integration with timeout handling
-  - Graceful fallback mechanisms
-- Added [.env.sample](src/workshop/.env.sample) template file
-- Created [main_v2.py](src/workshop/main_v2.py) demonstrating Azure AI Projects SDK 2.0 patterns
+**Files Updated**:
+- `infra/main.bicep` - Complete rewrite with modern architecture
+- `infra/modules/ai-foundry.bicep` - NEW: Microsoft Foundry resource
+- `infra/modules/ai-foundry-project.bicep` - NEW: Project as child resource
+- `infra/main.parameters.json` - Updated parameter structure
+- `docs/docs/getting-started.md` - Updated Azure CLI login commands
 
-**📚 Documentation Updates**
-- Updated [getting-started.md](docs/docs/getting-started.md) with automated setup instructions
-- Enhanced Semantic Kernel samples with DefaultAzureCredential examples
+**Migration Guide**: See [CHANGELOG.md](CHANGELOG.md) for detailed migration steps and breaking changes.
 
-**🗑️ Removed**
-- Removed o3-deep-research model deployment (commented out in bicep templates)
-- Deprecated old `ai-foundry.bicep` module (replaced by ai-services.bicep)
-
-**⚙️ Technical Details**
-- Resource API versions updated to `2024-10-01-preview` (MachineLearningServices)
-- AI Services uses `2024-10-01` API version
-- Role-based access control for AI Project → AI Services communication
-- Proper resource hierarchy: AI Services → AI Hub → AI Project
-
-**🔗 Migration Path**
-For existing deployments, a full redeployment is required:
-1. Back up current `.env` configuration
-2. Run `az deployment group create` with updated bicep templates
-3. Update `.env` with new project workspace ID
-4. Test with `main_v2.py` to verify SDK 2.0 compatibility
+**Old Architecture Backup**: Available in `infra/main-old-hub-architecture.bicep`
 
 ---

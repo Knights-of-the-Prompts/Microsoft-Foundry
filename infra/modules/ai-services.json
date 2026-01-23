@@ -1,0 +1,134 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "12069764278309465342"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServicesName": {
+      "type": "string",
+      "metadata": {
+        "description": "AI Services resource name"
+      }
+    },
+    "aiServicesFriendlyName": {
+      "type": "string",
+      "defaultValue": "[parameters('aiServicesName')]",
+      "metadata": {
+        "description": "AI Services display name"
+      }
+    },
+    "aiServicesDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "AI Services description"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "S0",
+      "allowedValues": [
+        "S0"
+      ],
+      "metadata": {
+        "description": "The SKU name for the AI Services resource"
+      }
+    },
+    "publicNetworkAccess": {
+      "type": "string",
+      "defaultValue": "Enabled",
+      "allowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "Whether public network access is allowed"
+      }
+    },
+    "customSubDomainName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Custom subdomain name for the AI Services resource"
+      }
+    },
+    "disableLocalAuth": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Whether to disable local authentication"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2024-10-01",
+      "name": "[parameters('aiServicesName')]",
+      "location": "[parameters('location')]",
+      "tags": "[union(parameters('tags'), createObject('displayName', parameters('aiServicesFriendlyName'), 'description', parameters('aiServicesDescription')))]",
+      "kind": "AIServices",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]"
+      },
+      "properties": {
+        "customSubDomainName": "[if(not(empty(parameters('customSubDomainName'))), parameters('customSubDomainName'), parameters('aiServicesName'))]",
+        "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+        "disableLocalAuth": "[parameters('disableLocalAuth')]",
+        "apiProperties": {
+          "statisticsEnabled": false
+        },
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "ipRules": [],
+          "virtualNetworkRules": []
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "aiServicesId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName'))]"
+    },
+    "aiServicesName": {
+      "type": "string",
+      "value": "[parameters('aiServicesName')]"
+    },
+    "aiServicesEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2024-10-01').endpoint]"
+    },
+    "aiServicesPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2024-10-01', 'full').identity.principalId]"
+    },
+    "aiProjectEndpoint": {
+      "type": "string",
+      "value": "[format('https://{0}.services.ai.azure.com/api/projects', reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2024-10-01').customSubDomainName)]"
+    },
+    "aiInferenceEndpoint": {
+      "type": "string",
+      "value": "[format('https://{0}.services.ai.azure.com/models', reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2024-10-01').customSubDomainName)]"
+    }
+  }
+}

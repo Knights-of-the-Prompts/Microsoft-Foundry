@@ -44,7 +44,7 @@ TOP_P = 0.1
 sales_data = SalesData()
 utilities = Utilities()
 
-# INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
+INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
 # INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
 # INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
 
@@ -90,7 +90,7 @@ async def get_tools():
     tools = []
     
     # Function tool (always enabled for this workshop)
-    # tools.append(function_tool)
+    tools.append(function_tool)
     
     # # Code interpreter tool
     # if "code_interpreter" in INSTRUCTIONS_FILE:
