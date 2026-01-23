@@ -1,4 +1,4 @@
-@description('Resource ID of an Azure AI Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI).')
+@description('Resource ID of a Microsoft Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI).')
 param openAIAccountId string
 
 @description('Deployment name.')

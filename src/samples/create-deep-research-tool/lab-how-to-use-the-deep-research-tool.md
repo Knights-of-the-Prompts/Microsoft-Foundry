@@ -1,9 +1,9 @@
 <div align="center">
-    <img src="../../../media/image-deepresearch1.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+    <img src="../../../media/image-deepresearch1.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 # Deep Research Introduction
-Before diving into the Deep Research tool, it's important to understand its capabilities, prerequisites, and how to effectively utilize it within your Azure AI Foundry projects. 
+Before diving into the Deep Research tool, it's important to understand its capabilities, prerequisites, and how to effectively utilize it within your Microsoft Foundry projects. 
 
 ## Model Details
 - **Model Name**: o3-deep-research  
@@ -21,10 +21,10 @@ Before diving into the Deep Research tool, it's important to understand its capa
     - Deep research model  
     - GPT model resources  
 - Set up your environment in the **West US** and **Norway East** regions.
-- Grounding with Bing Search tool resource for connecting to your Azure AI Foundry project. 
+- Grounding with Bing Search tool resource for connecting to your Microsoft Foundry project. 
 - Capgemini network limitations: The **Bing Grounding API is blocked on the Capgemini network via Zscaler** (at this moment). To use the Deep Research tool, you will need to connect to a different compute environment that allows access to the Bing Search API. Using Codespaces or another non-Capgemini device is recommended.
 
-> IMPORTANT !!! This means that in order to use the Deep Research tool, you need to have access to the o3-deep-research model and set up the necessary Azure resources in one of the supported regions. As the default region for the workshop is East US, you might need to create a new Azure AI Foundry project in West US or Norway East to use the Deep Research tool. In addition, to make use of the Deep Research tool, the request access form must be filled out if you do not already have access to the o3 model. Please check with your instructor if the model access request has been submitted and approved before proceeding!
+> IMPORTANT !!! This means that in order to use the Deep Research tool, you need to have access to the o3-deep-research model and set up the necessary Azure resources in one of the supported regions. As the default region for the workshop is East US, you might need to create a new Microsoft Foundry project in West US or Norway East to use the Deep Research tool. In addition, to make use of the Deep Research tool, the request access form must be filled out if you do not already have access to the o3 model. Please check with your instructor if the model access request has been submitted and approved before proceeding!
 
 ## Model Deployments
 - **o3-deep-research**:  
@@ -41,12 +41,12 @@ The deep research tool is tightly integrated with Grounding with Bing Search and
 > 
 > 1. Your usage of Grounding with Bing Search can incur costs. See the pricing page for details.
 > 2. By creating and using a Grounding with Bing Search resource through code-first experience, such as Azure CLI, or deploying through deployment template, you agree to be bound by and comply with the terms available at https://www.microsoft.com/en-us/bing/apis/grounding-legal, which may be updated from time to time.
-> 3. When you use Grounding with Bing Search, your customer data is transferred outside of the Azure compliance boundary to the Grounding with Bing Search service. Grounding with Bing Search is not subject to the same data processing terms (including location of processing) and does not have the same compliance standards and certifications as the Azure AI Foundry Agent Service, as described in the Grounding with Bing Search Terms of Use: https://www.microsoft.com/en-us/bing/apis/grounding-legal. It is your responsibility to assess whether use of Grounding with Bing Search in your agent meets your needs and requirements.
+> 3. When you use Grounding with Bing Search, your customer data is transferred outside of the Azure compliance boundary to the Grounding with Bing Search service. Grounding with Bing Search is not subject to the same data processing terms (including location of processing) and does not have the same compliance standards and certifications as the Microsoft Foundry Agent Service, as described in the Grounding with Bing Search Terms of Use: https://www.microsoft.com/en-us/bing/apis/grounding-legal. It is your responsibility to assess whether use of Grounding with Bing Search in your agent meets your needs and requirements.
 
 # Deployment Steps
 ## Model Deployment
 
-1. Navigate to the Azure AI Foundry portal: https://portal.azure.com/#view/Microsoft_AiFoundry/AIProjectsMenuBlade/~/Overview and select your project in either West US or Norway East. Copy the project endpoint connection string and project key from the Keys + Endpoint tab.
+1. Navigate to the Microsoft Foundry portal: https://portal.azure.com/#view/Microsoft_AiFoundry/AIProjectsMenuBlade/~/Overview and select your project in either West US or Norway East. Copy the project endpoint connection string and project key from the Keys + Endpoint tab.
 
 Save this endpoint to an environment file (.env) as **PROJECT_ENDPOINT**.
 
@@ -66,10 +66,10 @@ Deploy an Azure OpenAI GPT model that is supported for Deep Research, such as gp
 ![alt text](../../../media/image-deepresearch4.png)
 
 ## Connect Bing Grounding to your project
-To use the Deep Research tool, you need to connect a Bing Grounding resource to your Azure AI Foundry project. If you haven't done this yet, follow the instructions in this lab: [Create a Bing Grounding connection](../create-a-bing-grounding-connection/lab-create-a-bing-grounding-connection.md).
+To use the Deep Research tool, you need to connect a Bing Grounding resource to your Microsoft Foundry project. If you haven't done this yet, follow the instructions in this lab: [Create a Bing Grounding connection](../create-a-bing-grounding-connection/lab-create-a-bing-grounding-connection.md).
 
 # Create an agent with the Deep Research tool
-Assuming a new Azure AI Foundry project has been created in either West US or Norway East, follow the steps below to create an agent with the Deep Research tool.
+Assuming a new Microsoft Foundry project has been created in either West US or Norway East, follow the steps below to create an agent with the Deep Research tool.
 
 
 # Install the Azure AI Projects package (pre-release!)
@@ -287,7 +287,7 @@ After a while the LLM will respond with an initial response asking for some refi
 In our case this was the initial response:
 
 ```prompt
-@doruit ➜ /workspaces/Azure-AI-Foundry (main) $ /usr/local/bin/python /workspaces/Azure-AI-Foundry/src/workshop/deep-research-tool.py
+@doruit ➜ /workspaces/Microsoft-Foundry (main) $ /usr/local/bin/python /workspaces/Microsoft-Foundry/src/workshop/deep-research-tool.py
 Created agent, ID: asst_nRFza66mknpm9SrpUNeli3ov
 Created thread, ID: thread_Q1OWe66XgIB88Dwio2iEFQuE
 Created message, ID: msg_J5P34KmQ8HgKxe5kl4uxNGn3

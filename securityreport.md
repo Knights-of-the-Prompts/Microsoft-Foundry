@@ -1,5 +1,5 @@
 # Security Vulnerability Assessment Report
-**Repository:** Azure-AI-Foundry  
+**Repository:** Microsoft-Foundry  
 **Assessed by:** GitHub Copilot  
 **Date:** October 7, 2025  
 **Assessment Type:** Comprehensive Security Scan for Vulnerabilities, Keys, and Secrets
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-A comprehensive security vulnerability assessment was conducted on the Azure-AI-Foundry repository to identify potential security risks, exposed secrets, hardcoded credentials, and security anti-patterns. The assessment covered:
+A comprehensive security vulnerability assessment was conducted on the Microsoft-Foundry repository to identify potential security risks, exposed secrets, hardcoded credentials, and security anti-patterns. The assessment covered:
 
 - Hardcoded secrets and API keys
 - Configuration file vulnerabilities
@@ -225,7 +225,7 @@ The repository demonstrates several excellent security practices:
 
 ## Conclusion
 
-The Azure-AI-Foundry repository maintains a **good security posture** with no critical vulnerabilities identified. The security issues found are primarily configuration and best-practice improvements rather than exploitable vulnerabilities.
+The Microsoft-Foundry repository maintains a **good security posture** with no critical vulnerabilities identified. The security issues found are primarily configuration and best-practice improvements rather than exploitable vulnerabilities.
 
 ### Key Strengths:
 - Proper secrets management using environment variables

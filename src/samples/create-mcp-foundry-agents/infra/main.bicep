@@ -18,10 +18,10 @@ var appServicePlanName = 'az-${resourcePrefix}-plan-${resourceToken}'
 // App Service name
 var appServiceName = 'az-${resourcePrefix}-app-${resourceToken}'
 
-// Azure AI Foundry resource name
+// Microsoft Foundry resource name
 var aiFoundryResourceName = 'az-${resourcePrefix}-foundry-${resourceToken}'
 
-// Azure AI Foundry project name
+// Microsoft Foundry project name
 var aiFoundryProjectName = 'az-${resourcePrefix}-project-${resourceToken}'
 
 // Note: Using system-assigned managed identity (no separate identity resource needed)
@@ -46,7 +46,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   kind: 'linux'
 }
 
-// Create Azure AI Foundry resource
+// Create Microsoft Foundry resource
 resource aiFoundryResource 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   name: aiFoundryResourceName
   location: location
@@ -69,7 +69,7 @@ resource aiFoundryResource 'Microsoft.CognitiveServices/accounts@2025-04-01-prev
   }
 }
 
-// Create Azure AI Foundry project
+// Create Microsoft Foundry project
 resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' = {
   parent: aiFoundryResource
   name: aiFoundryProjectName
@@ -207,7 +207,7 @@ output SERVICE_MCP_CHAT_APP_IDENTITY_PRINCIPAL_ID string = appService.identity.p
 output AZURE_OPENAI_ENDPOINT string = aiFoundryResource.properties.endpoint
 output AZURE_OPENAI_NAME string = aiFoundryResource.name
 output AZURE_AI_PROJECT_ENDPOINT string = 'https://${aiFoundryResource.properties.customSubDomainName}.services.ai.azure.com/api/projects/${aiFoundryProject.name}'
-output AZURE_AI_FOUNDRY_RESOURCE_NAME string = aiFoundryResource.name
+output MICROSOFT_FOUNDRY_RESOURCE_NAME string = aiFoundryResource.name
 output AZURE_AI_PROJECT_NAME string = aiFoundryProject.name
 output AZURE_OPENAI_DEPLOYMENT_NAME string = gpt4oDeployment.name
 output MODEL_DEPLOYMENT string = gpt4oDeployment.name

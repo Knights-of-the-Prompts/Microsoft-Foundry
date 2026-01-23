@@ -1,10 +1,10 @@
 <div align="center">
-    <img src="../../../media/image-bing6.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+    <img src="../../../media/image-bing6.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 ## Connect Bing Grounding to your project
 
-Go to Azure Portal, click on your Azure AI Foundry Project resource and open the Azure AI Foundry portal button. In Azure AI Foundry scroll down and click **Open in management center**:
+Go to Azure Portal, click on your Microsoft Foundry Project resource and open the Microsoft Foundry portal button. In Microsoft Foundry scroll down and click **Open in management center**:
 
 ![alt text](../../../media/image-bing5.png)
 

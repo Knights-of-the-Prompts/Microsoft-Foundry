@@ -1,13 +1,13 @@
 <div align="center">
-    <img src="media/image-1.png" width="100%" alt="Azure AI Foundry">
+    <img src="media/kotp-readme-frontier.png" width="100%" alt="Microsoft Foundry">
 </div>
 
 > **📢 Repository Updated | January 2026**  
-> This repository has been updated to align with the latest Azure AI Foundry best practices, including migration to `Microsoft.MachineLearningServices` resource provider, Azure AI Projects SDK 2.0, and identity-based authentication (AAD) replacing API keys.
+> This repository has been updated to align with the latest Microsoft Foundry best practices, including migration to `Microsoft.MachineLearningServices` resource provider, Azure AI Projects SDK 2.0, and identity-based authentication (AAD) replacing API keys.
 
-# **Welcome to the "Build Agents with Azure AI Foundry" workshop repo!** 🎉
+# **Welcome to the "Build Agents with Microsoft Foundry" workshop repo!** 🎉
 
-Dive into the world of intelligent conversational agents with Azure AI Foundry & AI Agent Service, a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this hands-on workshop, you’ll learn to create a powerful agent capable of answering sales-related queries, performing data analysis, generating visualizations, and integrating external data sources to deliver enhanced business insights. 🚀
+Dive into the world of intelligent conversational agents with Microsoft Foundry & AI Agent Service, a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this hands-on workshop, you'll learn to create a powerful agent capable of answering sales-related queries, performing data analysis, generating visualizations, and integrating external data sources to deliver enhanced business insights. 🚀
 ## 🌟 **Beyond Chatbots: Unlock the Future of AI Applications** 🌟
 
 > **💡 Think Bigger, Build Smarter!**  
@@ -27,7 +27,7 @@ By embracing Agentic applications, you’ll:
 - **Empower Decision-Making**: Enable smarter, faster, and more impactful decisions.
 
 ### 🌐 **Your Journey Starts Here**
-This workshop is your gateway to creating **intelligent, action-driven AI solutions**. Let’s redefine what’s possible with Azure AI Foundry and take your AI development to the next level! 💼✨
+This workshop is your gateway to creating **intelligent, action-driven AI solutions**. Let's redefine what's possible with Microsoft Foundry and take your AI development to the next level! 💼✨
 
 ### ⏱️ Duration
 🕒 45 - 60 minutes

@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../media/image-infra2.png" width="100%" alt="Azure AI Foundry">
+    <img src="../../media/image-infra2.png" width="100%" alt="Microsoft Foundry">
 </div>
 
 # Cost Control for Hackathons

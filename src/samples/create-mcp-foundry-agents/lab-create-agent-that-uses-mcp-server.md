@@ -1,10 +1,10 @@
 <div align="center">
-   <img src="../../../media/image-mcp1.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+   <img src="../../../media/image-mcp1.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 # AI Foundry Agent Connected to MCP Server
 
-A simple web application that allows you to chat with Azure AI Foundry Agents that are connected to remote MCP (Model Context Protocol) servers.
+A simple web application that allows you to chat with Microsoft Foundry Agents that are connected to remote MCP (Model Context Protocol) servers.
 
 ## Important Requirements
 
@@ -46,7 +46,7 @@ Common examples that work:
 
 ### Local Development
 
-⚠️ **Important**: Local development requires Azure AI Foundry resources to be already deployed and environment variables configured. For the easiest setup, deploy directly to Azure using the instructions below.
+⚠️ **Important**: Local development requires Microsoft Foundry resources to be already deployed and environment variables configured. For the easiest setup, deploy directly to Azure using the instructions below.
 
 1. **Configure environment variables (optional - only needed for local development if you want to run the app locally):**
    Create a `.env` file or set these environment variables:
@@ -55,7 +55,7 @@ Common examples that work:
    AZURE_AI_PROJECT_NAME=your-project-name
    MODEL_DEPLOYMENT=gpt-4o
    ```
-   > These values are available in your Azure AI Foundry project after deployment
+   > These values are available in your Microsoft Foundry project after deployment
 
 2. **Set up Azure credentials:**
    ```bash
@@ -98,7 +98,7 @@ azd up
 This will:
 
 - Deploy the FastAPI application to Azure App Service
-- Set up Azure AI Foundry integration
+- Set up Microsoft Foundry integration
 - Configure managed identity for secure authentication
 - The deployed application will be accessible at the URL provided after deployment.
 

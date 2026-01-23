@@ -1,4 +1,4 @@
-// Creates Azure dependent resources for Azure AI Foundry
+// Creates Azure dependent resources for Microsoft Foundry
 
 @description('Azure region of the deployment')
 param location string = resourceGroup().location

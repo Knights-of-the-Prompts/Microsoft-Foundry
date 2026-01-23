@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../../../media/image-avatar1.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+    <img src="../../../../media/image-avatar1.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 # Introduction
@@ -37,7 +37,7 @@ Copy the key and paste it in the Talking Avatar Chat Demo page:
 
 ![alt text](../../../../media/image-avatar5.png)
 
-In the Azure OpenAI section we need the endpoint and API key of the Azure OpenAI model that was created in the initial workshop. You can find the endpoint and API key in the **Azure AI Foundry Portal > Models + endpoints > gpt41**: 
+In the Azure OpenAI section we need the endpoint and API key of the Azure OpenAI model that was created in the initial workshop. You can find the endpoint and API key in the **Microsoft Foundry Portal > Models + endpoints > gpt41**: 
 
 ![alt text](../../../../media/image-avatar10.png)
 

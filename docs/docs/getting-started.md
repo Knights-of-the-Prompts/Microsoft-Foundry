@@ -46,7 +46,7 @@ The way to run this workshop is using GitHub Codespaces. This provides a pre-con
 
 Select **Open in GitHub Codespaces** to open the project in GitHub Codespaces.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Knights-of-the-Prompts/Azure-AI-Foundry)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Knights-of-the-Prompts/Microsoft-Foundry)
 
 > WARNING "It will take several minutes to build the Codespace so carry on reading the instructions while it builds."
 
@@ -92,7 +92,7 @@ az login --use-device-code
 4. Leave the terminal window open for the next steps.
 
 ## Workshop Configuration
-You can get the project connection string from Azure AI Foundry portal. Go to the Azure AI Foundry portal, select your project, and copy the connection string from the **Project Settings** page. 
+You can get the project connection string from Microsoft Foundry portal. Go to the Microsoft Foundry portal, select your project, and copy the connection string from the **Project Settings** page. 
 
 Your **.env** file should look similar to this but with your project connection string.
 
@@ -101,11 +101,11 @@ If you dont see a **.env** file create a new **.env** file under ```/src/worksho
 You can use the following as sample for your new **.env** file
 
 ```bash
-# Azure AI Foundry Project Configuration
+# Microsoft Foundry Project Configuration
 AZURE_SUBSCRIPTION_ID=<YOUR AZURE SUBSCRIPTION ID> # the subscription ID of your Azure subscription
-AZURE_RESOURCE_GROUP_NAME=<YOUR AZURE RESOURCE GROUP NAME> # the name of the resource group where your Azure AI Foundry resource is located
-PROJECT_ENDPOINT=https://<YOUR AZURE AI FOUNDRY RESOURCE NAME>.services.ai.azure.com/api/projects/<YOUR AZURE AI FOUNDRY PROJECT NAME> # the endpoint of your Azure AI Foundry project, you can find it in the Azure portal
-AZURE_PROJECT_NAME=<YOUR AZURE AI FOUNDRY PROJECT NAME> # the name of your Azure AI Foundry project
+AZURE_RESOURCE_GROUP_NAME=<YOUR AZURE RESOURCE GROUP NAME> # the name of the resource group where your Microsoft Foundry resource is located
+PROJECT_ENDPOINT=https://<YOUR MICROSOFT FOUNDRY RESOURCE NAME>.services.ai.azure.com/api/projects/<YOUR MICROSOFT FOUNDRY PROJECT NAME> # the endpoint of your Microsoft Foundry project, you can find it in the Azure portal
+AZURE_PROJECT_NAME=<YOUR MICROSOFT FOUNDRY PROJECT NAME> # the name of your Microsoft Foundry project
 # BING_RESOURCE_NAME=<YOUR BING RESOURCE NAME> # optional usage of Bing requires you to uncomment this line and provide the name of your Bing Grounding resource
 MODEL_DEPLOYMENT_NAME=gpt-4o # or your custom GPT-4o deployment name
 DEEP_RESEARCH_MODEL_DEPLOYMENT_NAME=o3-deep-research # or your custom Deep Research model deployment name
@@ -116,7 +116,7 @@ DEEP_RESEARCH_MODEL_DEPLOYMENT_NAME=o3-deep-research # or your custom Deep Resea
 **Alternatively**, you can use the automated setup script to configure your `.env` file automatically from your existing Azure deployment:
 
 ```bash
-cd /workspaces/Azure-AI-Foundry/src/workshop
+cd /workspaces/Microsoft-Foundry/src/workshop
 python3 setup_env.py
 ```
 
@@ -137,13 +137,13 @@ If you prefer to configure the `.env` file manually or if the automated script d
 To get the AZURE_SUBSCRIPTION_ID and AZURE_RESOURCE_GROUP_NAME, go to the Azure portal, select your Resource Group, and copy the **Subscription ID** and **Resource Group Name**:
 ![alt text](../../media/image-start6.png)
 
-Next, click on the **Azure AI Foundry project resource** and click on Resource Management > Endpoints to get the PROJECT_ENDPOINT:
+Next, click on the **Microsoft Foundry project resource** and click on Resource Management > Endpoints to get the PROJECT_ENDPOINT:
 ![alt text](../../media/image-start5.png)
 ![alt text](../../media/image-start4.png)
 
-The AZURE_PROJECT_NAME is the name of your Azure AI Foundry project which you can find in the same UI. It is also part of the PROJECT_ENDPOINT at the end of the URL (i.e. https://your-resource-name.services.ai.azure.com/api/projects/< project name >).
+The AZURE_PROJECT_NAME is the name of your Microsoft Foundry project which you can find in the same UI. It is also part of the PROJECT_ENDPOINT at the end of the URL (i.e. https://your-resource-name.services.ai.azure.com/api/projects/< project name >).
 
-To get the BING_RESOURCE_NAME, go to your Azure AI Foundry project in the Azure portal, click on **Grounding** in the left menu, and copy the name of your Bing Grounding resource:
+To get the BING_RESOURCE_NAME, go to your Microsoft Foundry project in the Azure portal, click on **Grounding** in the left menu, and copy the name of your Bing Grounding resource:
 
 Now your codespace is ready, let's move to the next step!
 

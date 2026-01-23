@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../../media/image-deepresearch7.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+    <img src="../../../media/image-deepresearch7.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 #ToDO: needs updates !!!
@@ -10,7 +10,7 @@ In this sample we will show you how to debug issues when using the Deep Research
 A fun fact is that we had to debug the Deep Research Tool when we were creating the Deep Research Tool sample, so we know from experience that this can be very useful! In fact, using this debugging code, we found out that the Deep Research Tool was not working because our Zscaler network was blocking the Bing Grounding service. So, if you are using a corporate network, make sure that the Bing Grounding service is not blocked!
 
 ## Setup or validate the .env file
-Make sure you have a `.env` file configured. If you haven't done this yet, you can create one by copying the `.env.sample` file and filling in your Azure AI Foundry project details. If you ran the [Getting Started](docs/docs/getting-started.md) lab, you should already have this file configured.
+Make sure you have a `.env` file configured. If you haven't done this yet, you can create one by copying the `.env.sample` file and filling in your Microsoft Foundry project details. If you ran the [Getting Started](docs/docs/getting-started.md) lab, you should already have this file configured.
 
 ## Create a virtual environment
 Create a virtual environment to manage your Python dependencies. Run the following commands in your terminal:
@@ -222,7 +222,7 @@ def print_info(message):
 
 def validate_environment_variables():
     """Validate that all required environment variables are set and log their values (safely).
-    Updated to enforce use of Azure AI Foundry (Projects) connection for Bing grounding only.
+    Updated to enforce use of Microsoft Foundry (Projects) connection for Bing grounding only.
     Direct Bing endpoint/url variables are intentionally ignored to ensure the SDK connection
     (connection id) is the sole integration path per current guidance.
     """

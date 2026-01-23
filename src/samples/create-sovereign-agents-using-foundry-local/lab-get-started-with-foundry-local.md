@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../../media/image-foundry-local.png" width="100%" alt="Azure AI Foundry workshop / lab / sample">
+    <img src="../../../media/image-foundry-local.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 # Get Started with Foundry Local

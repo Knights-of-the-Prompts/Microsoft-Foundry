@@ -22,14 +22,14 @@
       "type": "string",
       "defaultValue": "Agent Workshop AI Foundry resource",
       "metadata": {
-        "description": "Friendly name for your Azure AI Foundry resource"
+        "description": "Friendly name for your Microsoft Foundry resource"
       }
     },
     "aiFoundryDescription": {
       "type": "string",
-      "defaultValue": "This is an example AI Foundry resource for use in Azure AI Foundry.",
+      "defaultValue": "This is an example AI Foundry resource for use in Microsoft Foundry.",
       "metadata": {
-        "description": "Description of your Azure AI Foundry resource displayed in AI Foundry"
+        "description": "Description of your Microsoft Foundry resource displayed in AI Foundry"
       }
     },
     "location": {
@@ -553,7 +553,7 @@
             },
             "aiProjectDescription": {
               "type": "string",
-              "defaultValue": "Azure AI Foundry project",
+              "defaultValue": "Microsoft Foundry project",
               "metadata": {
                 "description": "Project description"
               }
@@ -637,7 +637,7 @@
             "openAIAccountId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of an Azure AI Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI)."
+                "description": "Resource ID of a Microsoft Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI)."
               }
             },
             "deploymentName": {
@@ -777,7 +777,7 @@
             "openAIAccountId": {
               "type": "string",
               "metadata": {
-                "description": "Resource ID of an Azure AI Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI)."
+                "description": "Resource ID of a Microsoft Foundry resource (kind=AIServices) or Azure OpenAI account (kind=OpenAI)."
               }
             },
             "deploymentName": {

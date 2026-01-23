@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Azure AI Foundry Environment Setup Script
+Microsoft Foundry Environment Setup Script
 Automatically retrieves configuration from Azure deployment and updates .env file
 """
 
@@ -296,8 +296,8 @@ def update_env_file(config):
     replacements = {
         r'AZURE_SUBSCRIPTION_ID=.*': f'AZURE_SUBSCRIPTION_ID={config["subscription_id"]}',
         r'AZURE_RESOURCE_GROUP_NAME=.*': f'AZURE_RESOURCE_GROUP_NAME={config["resource_group"]}',
-        r'AZURE_PROJECT_NAME=.*': f'AZURE_PROJECT_NAME={config["project_name"]} # the name of your Azure AI Foundry project',
-        r'PROJECT_ENDPOINT=.*': f'PROJECT_ENDPOINT={config["project_endpoint"]} # the endpoint of your Azure AI Foundry project, you can find it in the Azure portal',
+        r'AZURE_PROJECT_NAME=.*': f'AZURE_PROJECT_NAME={config["project_name"]} # the name of your Microsoft Foundry project',
+        r'PROJECT_ENDPOINT=.*': f'PROJECT_ENDPOINT={config["project_endpoint"]} # the endpoint of your Microsoft Foundry project, you can find it in the Azure portal',
     }
     
     # Add agent model deployment if available
@@ -340,7 +340,7 @@ def update_env_file(config):
 
 def main():
     """Main execution flow"""
-    print_header("Azure AI Foundry Environment Setup")
+    print_header("Microsoft Foundry Environment Setup")
     
     # Step 1: Check Azure CLI login
     account_info = check_az_login()

@@ -26,9 +26,9 @@ Let me specifically check for .env files and see if there are any hardcoded cred
 
 Searched for files matching `**/.env*`, 4 matches
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/.env.sample)
+Read [](file:///Users/doruit/Microsoft-Foundry/.env.sample)
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/src/workshop/.env.sample)
+Read [](file:///Users/doruit/Microsoft-Foundry/src/workshop/.env.sample)
 
 Let me now examine configuration files for potential vulnerabilities: 
 
@@ -38,15 +38,15 @@ Searched for files matching `**/package.json`, no matches
 
 Searched for files matching `**/requirements.txt`, 4 matches
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/src/samples/create-mcp-foundry-agents/requirements.txt)
+Read [](file:///Users/doruit/Microsoft-Foundry/src/samples/create-mcp-foundry-agents/requirements.txt)
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/src/workshop/requirements.txt)
+Read [](file:///Users/doruit/Microsoft-Foundry/src/workshop/requirements.txt)
 
 Let me also check for any Dockerfiles or docker-compose files: 
 
 Searched for files matching `**/Dockerfile*`, 2 matches
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/.devcontainer/Dockerfile)
+Read [](file:///Users/doruit/Microsoft-Foundry/.devcontainer/Dockerfile)
 
 Searched for files matching `**/docker-compose*`, no matches
 
@@ -56,11 +56,11 @@ Starting (3/6) *Analyze infrastructure code for security issues*
 
 Searched for files matching `**/*.bicep`, 18 matches
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/infra/main.bicep)
+Read [](file:///Users/doruit/Microsoft-Foundry/infra/main.bicep)
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/infra/modules/ai-foundry.bicep)
+Read [](file:///Users/doruit/Microsoft-Foundry/infra/modules/ai-foundry.bicep)
 
-Read [](file:///Users/doruit/Azure-AI-Foundry/src/samples/create-mcp-foundry-agents/infra/main.bicep)
+Read [](file:///Users/doruit/Microsoft-Foundry/src/samples/create-mcp-foundry-agents/infra/main.bicep)
 
 Now let me search for security anti-patterns in source code: 
 
@@ -86,7 +86,7 @@ Starting (6/6) *Generate security recommendations report*
 
 # 🔒 Security Vulnerability Assessment Report
 
-I've completed a comprehensive security scan of your Azure-AI-Foundry repository. Here are my findings:
+I've completed a comprehensive security scan of your Microsoft-Foundry repository. Here are my findings:
 
 ## ✅ **GOOD NEWS: No Critical Vulnerabilities Found**
 
@@ -179,7 +179,7 @@ doruit: store the entire transscript of this chat to a markdown file called secu
 
 GitHub Copilot: I'll create a comprehensive security report markdown file with our entire conversation transcript. Let me compile this into a well-formatted document. 
 
-Created [](file:///Users/doruit/Azure-AI-Foundry/securityreport.md)
+Created [](file:///Users/doruit/Microsoft-Foundry/securityreport.md)
 
 Perfect! I've created a comprehensive security report file securityreport.md in the root of your repository that contains the complete transcript of our security assessment conversation. 
 

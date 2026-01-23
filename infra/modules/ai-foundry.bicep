@@ -1,4 +1,4 @@
-// Creates an Azure AI Foundry resource for unified AI services
+// Creates a Microsoft Foundry resource for unified AI services
 
 @description('Azure region of the deployment')
 param location string

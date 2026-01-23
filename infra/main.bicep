@@ -1,4 +1,4 @@
-// Execute this main file to depoy Azure AI Foundry resources in the basic security configuraiton
+// Execute this main file to depoy Microsoft Foundry resources in the basic security configuraiton
 
 // Parameters
 @minLength(2)
@@ -6,11 +6,11 @@
 @description('Name for the AI resource and used to derive name of dependent resources.')
 param aiFoundryName string = 'aiagents'
 
-@description('Friendly name for your Azure AI Foundry resource')
+@description('Friendly name for your Microsoft Foundry resource')
 param aiFoundryFriendlyName string = 'Agent Workshop AI Foundry resource'
 
-@description('Description of your Azure AI Foundry resource displayed in AI Foundry')
-param aiFoundryDescription string = 'This is an example AI Foundry resource for use in Azure AI Foundry.'
+@description('Description of your Microsoft Foundry resource displayed in AI Foundry')
+param aiFoundryDescription string = 'This is an example AI Foundry resource for use in Microsoft Foundry.'
 
 @description('Azure region used for the deployment of all resources.')
 param location string = resourceGroup().location
