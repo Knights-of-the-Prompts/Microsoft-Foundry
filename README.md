@@ -95,13 +95,13 @@ Agent Creation:
 - [Create Agents with the Bing Grounding Tool](src/samples/create-a-bing-grounding-connection/lab-create-a-bing-grounding-connection.md)
 
 Deep Research Tool:
-- [Create Agents with the Deep Research Tool](src/samples/create-deep-research-tool/lab-how-to-use-the-deep-research-tool.md)
-- [Debugging sample for the Deep Research Tool](src/samples/create-deep-research-tool/lab-deep-research-tool-debugging-sample.md)
+- [Create Agents with the Deep Research Tool](src/samples/create-deep-research-tool/lab-how-to-use-the-deep-research-tool.md) *(under revision - o3-deep-research deployment temporarily deactivated)*
+- [Debugging sample for the Deep Research Tool](src/samples/create-deep-research-tool/lab-deep-research-tool-debugging-sample.md) *(under revision)*
 
-Agent Framework:
-- [Create Agents using Semantic Kernel](src/samples/create-semantic-kernel-agents/lab-create-simple-semantic-kernel-agents.md)
+Agent Frameworks:
+- [Create Agents using Semantic Kernel](src/samples/create-semantic-kernel-agents/lab-create-simple-semantic-kernel-agents.md) *(will be upgraded to Agent Framework samples)*
 - *Create Agents using AutoGen.... (coming soon)*
-- *Create Agents using the Agent Framework.... (coming soon)*
+- *Create Agents using the Microsoft Agent Framework.... (coming soon)*
 
 Autonomous Agents:
 - *Create Autonomous Agents....(coming soon)*
@@ -128,6 +128,15 @@ Multimodal Agents:
 Integration with Business Applications:
 - Create Agents with SAP Connector....(coming soon)
 - Create Agents with Salesforce Connector....(coming soon)
+
+Compliance, Observability & Management:
+- *Implement Content Safety and Responsible AI....(coming soon)*
+- *Monitor Agent Performance with Application Insights....(coming soon)*
+- *Set up Logging and Tracing for Agents....(coming soon)*
+- *Implement Cost Management and Budgeting....(coming soon)*
+- *Deploy Agents with Azure DevOps/GitHub Actions....(coming soon)*
+- *Manage Agent Lifecycle and Versioning....(coming soon)*
+- *Implement Compliance Controls (GDPR, HIPAA, etc.)....(coming soon)*
 
 ## Resources for organizing a hackathon 🎉
 

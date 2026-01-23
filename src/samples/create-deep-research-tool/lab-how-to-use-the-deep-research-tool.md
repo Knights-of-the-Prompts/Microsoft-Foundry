@@ -2,6 +2,16 @@
     <img src="../../../media/image-deepresearch1.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
+> **🚧 SAMPLE UNDER REVISION | January 2026**
+> 
+> **⚠️ NOTICE**: This sample is currently being revisited due to significant infrastructure and SDK changes in Microsoft Foundry. The o3-deep-research model deployment has been temporarily deactivated in the infrastructure templates.
+> 
+> - 🔄 Infrastructure modernization in progress
+> - ⚠️ Instructions may be outdated
+> - 📅 Expected update: February 2026
+> 
+> Please refer to the [CHANGELOG.md](../../../CHANGELOG.md) for information about the ongoing changes.
+
 # Deep Research Introduction
 Before diving into the Deep Research tool, it's important to understand its capabilities, prerequisites, and how to effectively utilize it within your Microsoft Foundry projects. 
 

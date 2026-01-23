@@ -2,7 +2,15 @@
     <img src="../../../media/image-deepresearch7.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
-#ToDO: needs updates !!!
+> **🚧 SAMPLE UNDER REVISION | January 2026**
+> 
+> **⚠️ NOTICE**: This sample is currently being revisited due to significant infrastructure and SDK changes in Microsoft Foundry. The o3-deep-research model deployment has been temporarily deactivated in the infrastructure templates.
+> 
+> - 🔄 Infrastructure modernization in progress
+> - ⚠️ Instructions may be outdated
+> - 📅 Expected update: February 2026
+> 
+> Please refer to the [CHANGELOG.md](../../../CHANGELOG.md) for information about the ongoing changes.
 
 ## Debugging the Deep Research Tool
 In this sample we will show you how to debug issues when using the Deep Research Tool in your AI Agent. By adding some print statements to your code you can get insights into what is happening when the agent is using the Deep Research Tool. 

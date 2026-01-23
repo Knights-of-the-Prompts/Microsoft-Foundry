@@ -5,11 +5,26 @@
         "aiFoundryName": {
             "value": "GEN-UNIQUE-8"
         },
+        "aiFoundryFriendlyName": {
+            "value": "Agent Workshop AI Foundry resource"
+        },
+        "aiFoundryDescription": {
+            "value": "This is an example AI Foundry resource for use in Microsoft Foundry."
+        },
         "location": {
             "value": "eastus"
         },
-        "tags":{
+        "tags": {
             "value": {}
+        },
+        "aiProjectName": {
+            "value": "workshop-project"
+        },
+        "aiProjectDisplayName": {
+            "value": "Agent Workshop Project"
+        },
+        "aiProjectDescription": {
+            "value": "Agent Workshop for Microsoft Foundry"
         },
         "budgetAmount": {
             "value": 500
