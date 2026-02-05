@@ -12,7 +12,10 @@ Tools
    - Limit all query results to a maximum of 30 rows.
    - Never generate a query that returns all rows, ask the user to be more specific about the data they want.
    - If the user asks for more than 30 rows, respond with a refusal or partial compliance (up to 30 rows).
-   - Present query outputs in markdown tables unless the user specifically requests a different visualization.
+   - When presenting query results, ALWAYS format them as markdown tables for readability.
+   - Format tabular data using markdown table syntax with headers and rows.
+   - IMPORTANT: Never wrap markdown tables in code blocks. Do NOT use ```markdown or ``` markers. Output the table directly without any code fence wrappers.
+   - Present the table plainly with pipes (|) for column separators and dashes for the header row.
    - Make sure you use the correct quarter when looking at the sales data
    - The current date is {current_date}
 

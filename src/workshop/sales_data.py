@@ -22,13 +22,32 @@ class SalesData:
 
     async def connect(self: "SalesData") -> None:
         env = os.getenv("ENVIRONMENT", "local")
-        db_uri = f"file:{'src/workshop/' if env == 'container' else ''}{DATA_BASE}?mode=ro"
+        
+        # Use absolute path for better reliability
+        if env == "container":
+            db_path = f"src/workshop/{DATA_BASE}"
+        else:
+            # For local, use relative path (current directory should be workshop)
+            db_path = DATA_BASE
+        
+        # Also try absolute path if relative fails
+        if not os.path.exists(db_path):
+            # Try finding it from current script location
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(script_dir, DATA_BASE)
+        
+        db_uri = f"file:{os.path.abspath(db_path)}?mode=ro"
+        
+        print(f"Attempting to connect to database at: {os.path.abspath(db_path)}")
+        print(f"Database file exists: {os.path.exists(os.path.abspath(db_path))}")
 
         try:
             self.conn = await aiosqlite.connect(db_uri, uri=True)
             logger.debug("Database connection opened.")
-        except aiosqlite.Error as e:
-            logger.exception("An error occurred", exc_info=e)
+            print("✅ Database connection successful")
+        except Exception as e:
+            logger.exception(f"An error occurred connecting to database at {db_uri}", exc_info=e)
+            print(f"❌ Failed to connect to database: {e}")
             self.conn = None
 
     async def close(self: "SalesData") -> None:
