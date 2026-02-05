@@ -248,12 +248,66 @@ INFERENCE_ENDPOINT=https://{resource}.services.ai.azure.com/models
 
 ---
 
+## Workshop & Training Updates
+
+### 🏫 SDK Migration & Learning Structure Update
+
+#### **`src/workshop/main.py`** - Refactored for New SDK & Step-by-Step Learning
+
+**Key Changes:**
+- Updated imports to include all foundry tools:
+  - Added: `CodeInterpreterTool`, `FileSearchTool` alongside existing `FunctionTool`
+  - Enables progressive tool learning
+
+- **Restructured `get_tools()` function** with explicit learning steps:
+  - **STEP 1**: Function Tool (SQL Database Queries) - Always enabled
+  - **STEP 2**: Code Interpreter (Python Code Execution) - Uncomment to enable
+  - **STEP 3**: File Search (Document Knowledge Search) - Uncomment to enable
+  - Clear visual separators (====) for each step
+  - Inline instructions for developers on what to uncomment and why
+  - Print statements for debugging/learning
+
+- **Organized `INSTRUCTIONS_FILE` section** with step labels:
+  - Grouped with `get_tools()` function for clarity
+  - Each instruction file maps to corresponding tool step
+  - Clear comments showing which lines correspond to which capability
+
+- **Fixed agent cleanup logic**:
+  - Replaced synchronous version list with while loop
+  - Prevents "resource does not exist" errors on subsequent deletions
+  - Individual try-catch per deletion attempt for resilience
+  - Better error messaging for debugging
+
+#### **`src/workshop/instructions/instructions_function_calling.txt`** - Enhanced Output Formatting
+
+**Formatting Improvements:**
+- Added currency formatting rules:
+  - All monetary values displayed as `$` with comma separators (e.g., `$1,234,567.89`)
+  - Values rounded to 2 decimal places
+  
+- Added readable column name mapping:
+  - `total_revenue` → `Revenue (USD)`
+  - `total_shipping_cost` → `Shipping Cost (USD)`
+  - `total_orders` → `Total Orders`
+  - `region` → `Region`
+
+- Improved number formatting:
+  - Thousands separators for clarity
+  - User-friendly table output (not technical field names)
+
+**Learning Benefits:**
+- Developers can now uncomment lines step-by-step to build agent capabilities progressively
+- Output is more professional and easier to interpret
+- Grouped code organization makes relationships between tools/instructions clear
+
+---
+
 ## Known Issues & Limitations
 
 ### 🚧 Work in Progress
 
 1. **Sample Code Updates** (Pending)
-   - Workshop samples need updating for new endpoints
+   - ~~Workshop samples need updating for new endpoints~~ ✓ UPDATED: src/workshop/main.py migrated to new SDK
    - Notebook samples require authentication updates
    - Some samples may still reference old patterns
 
