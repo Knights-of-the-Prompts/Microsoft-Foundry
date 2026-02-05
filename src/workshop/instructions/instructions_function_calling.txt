@@ -16,6 +16,16 @@ Tools
    - Format tabular data using markdown table syntax with headers and rows.
    - IMPORTANT: Never wrap markdown tables in code blocks. Do NOT use ```markdown or ``` markers. Output the table directly without any code fence wrappers.
    - Present the table plainly with pipes (|) for column separators and dashes for the header row.
+   
+   Formatting Rules for Results:
+   - Replace technical column names with user-friendly labels:
+     * "total_revenue" → "Revenue (USD)"
+     * "total_shipping_cost" → "Shipping Cost (USD)"
+     * "total_orders" → "Total Orders"
+     * "region" → "Region"
+   - Format all currency values with a dollar sign ($) and comma separators (e.g., $1,234,567.89)
+   - Round currency values to 2 decimal places
+   - Format numbers with thousands separators for clarity
    - Make sure you use the correct quarter when looking at the sales data
    - The current date is {current_date}
 

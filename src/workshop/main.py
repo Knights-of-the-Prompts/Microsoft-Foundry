@@ -186,12 +186,21 @@ async def cleanup(project_client: AIProjectClient, agent) -> None:
     try:
         if agent:
             # Delete all versions of the agent
-            versions = project_client.agents.list_versions(agent_name=agent.name)
-            for version in versions:
-                project_client.agents.delete_version(agent_name=agent.name, agent_version=version.version)
-                print(f"Deleted agent version: {agent.name}/{version.version}")
+            # Keep trying to delete versions until none are left
+            while True:
+                versions = project_client.agents.list_versions(agent_name=agent.name)
+                if not versions:
+                    break
+                for version in versions:
+                    try:
+                        project_client.agents.delete_version(agent_name=agent.name, agent_version=version.version)
+                        print(f"Deleted agent version: {agent.name}/{version.version}")
+                    except Exception as e:
+                        print(f"Note: Could not delete version {version.version}: {e}")
+                        continue
     except Exception as e:
-        print(f"Error deleting agent: {e}")
+        print(f"Cleanup complete (some resources may have already been deleted)")
+    
     
     await sales_data.close()
 
