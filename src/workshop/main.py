@@ -81,7 +81,7 @@ async def fetch_sales_data_using_sqlite_query(sqlite_query: str) -> str:
 # ============================================================================
 
 # STEP 1: Function Calling - SQL Database Queries
-INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
+# INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
 
 # STEP 2: Code Interpreter - Python Code Execution
 # Uncomment the line below when you uncomment the Code Interpreter tool in get_tools()
@@ -104,7 +104,7 @@ async def get_tools(project_client: AIProjectClient) -> list:
     # STEP 1: Function Tool - Enables SQL database queries
     # Start with this tool enabled to learn about function calling
     # ============================================================================
-    tools.append(function_tool)
+    # tools.append(function_tool)
     
     # ============================================================================
     # STEP 2: Code Interpreter Tool - Enables Python code execution
