@@ -154,28 +154,32 @@ class Utilities:
         except Exception as e:
             print(f"Error handling file downloads: {e}")
 
-    def create_vector_store(self, project_client: AIProjectClient, files: list[str], vector_store_name: str):
-        """Upload files and create a vector store."""
+    def create_vector_store(self, openai_client, files: list[str], vector_store_name: str):
+        """Upload files and create a vector store using the OpenAI client."""
+        import time
 
         file_ids = []
-        env = os.getenv("ENVIRONMENT", "local")
-        prefix = "src/workshop/" if env == "container" else ""
 
-        # Upload the files to Azure AI
+        # Upload files
         for file in files:
-            file_path = Path(f"{prefix}{file}")
+            file_path = Path(file)
             self.log_msg_purple(f"Uploading file: {file_path}")
             with file_path.open("rb") as f:
-                # Upload file using the correct API method
-                uploaded_file = project_client.agents.files.upload(file=f, purpose="assistants")
+                uploaded_file = openai_client.files.create(file=f, purpose="assistants")
                 file_ids.append(uploaded_file.id)
                 self.log_msg_purple(f"Uploaded file: {uploaded_file.id}")
 
         self.log_msg_purple("Creating the vector store")
 
-        # Create a vector store using the correct API method
-        vector_store = project_client.agents.vector_stores.create_and_poll(
-            file_ids=file_ids, name=vector_store_name
+        vector_store = openai_client.vector_stores.create(
+            name=vector_store_name,
+            file_ids=file_ids,
         )
-        self.log_msg_purple(f"Vector store created: {vector_store.id}")
+
+        # Poll until the vector store finishes processing files
+        while vector_store.status == "in_progress":
+            time.sleep(1)
+            vector_store = openai_client.vector_stores.retrieve(vector_store.id)
+
+        self.log_msg_purple(f"Vector store created: {vector_store.id} (status: {vector_store.status})")
         return vector_store

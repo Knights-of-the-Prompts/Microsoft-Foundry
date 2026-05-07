@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-TENTS_DATA_SHEET_FILE = "datasheet/contoso-tents-datasheet.pdf"
+TENTS_DATA_SHEET_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "datasheet", "contoso-tents-datasheet.pdf")
+FILES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "files")
 API_DEPLOYMENT_NAME = os.getenv("AGENT_MODEL_DEPLOYMENT_NAME")
 PROJECT_ENDPOINT = os.environ["PROJECT_ENDPOINT"]
 AZURE_SUBSCRIPTION_ID = os.environ["AZURE_SUBSCRIPTION_ID"]
@@ -80,19 +81,12 @@ async def fetch_sales_data_using_sqlite_query(sqlite_query: str) -> str:
 # to see the agent use that capability
 # ============================================================================
 
-# STEP 1: Function Calling - SQL Database Queries
 INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
-
-# STEP 2: Code Interpreter - Python Code Execution
-# Uncomment the line below when you uncomment the Code Interpreter tool in get_tools()
-# INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
-
-# STEP 3: File Search - Knowledge Search over Documents
-# Uncomment the line below when you uncomment the File Search tool in get_tools()
-# INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
+INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
+INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
 
 
-async def get_tools(project_client: AIProjectClient) -> list:
+async def get_tools(project_client: AIProjectClient, openai_client) -> list:
     """Get tools for the agent to be registered with agents_client.
     
     LEARNING EXERCISE: Uncomment the tool sections below step by step to add capabilities.
@@ -111,35 +105,36 @@ async def get_tools(project_client: AIProjectClient) -> list:
     # Uncomment the lines below to add code execution capability to the agent
     # Then restart the script to enable this tool
     # ============================================================================
-    # print("Adding Code Interpreter tool...")
-    # code_interpreter = CodeInterpreterTool()
-    # tools.append(code_interpreter)
+    print("Adding Code Interpreter tool...")
+    code_interpreter = CodeInterpreterTool()
+    tools.append(code_interpreter)
     
     # ============================================================================
     # STEP 3: File Search Tool - Enables knowledge search over documents
     # Uncomment the lines below to add file search capability (requires vector store)
     # Then restart the script to enable this tool
     # ============================================================================
-    # print("Adding File Search tool...")
-    # try:
-    #     # Create vector store for file search
-    #     vector_store = project_client.agents.create_vector_store_and_files(
-    #         file_paths=[TENTS_DATA_SHEET_FILE],
-    #         vector_store_name="Contoso Product Information Vector Store",
-    #     )
-    #     print(f"Vector store created: {vector_store.id}")
-    #     
-    #     file_search = FileSearchTool(vector_store_ids=[vector_store.id])
-    #     tools.append(file_search)
-    #     print(f"File search tool added with vector store: {vector_store.id}")
-    # except Exception as e:
-    #     print(f"Error creating file search tools: {e}")
-    #     print("Continuing without file search capability...")
+    print("Adding File Search tool...")
+    try:
+        # Create vector store using the OpenAI client (uploads files + creates vector store)
+        vector_store = utilities.create_vector_store(
+            openai_client,
+            files=[TENTS_DATA_SHEET_FILE],
+            vector_store_name="Contoso Product Information Vector Store",
+        )
+        print(f"Vector store created: {vector_store.id}")
+        
+        file_search = FileSearchTool(vector_store_ids=[vector_store.id])
+        tools.append(file_search)
+        print(f"File search tool added with vector store: {vector_store.id}")
+    except Exception as e:
+        print(f"Error creating file search tools: {e}")
+        print("Continuing without file search capability...")
     
     return tools
 
 
-async def initialize(project_client: AIProjectClient):
+async def initialize(project_client: AIProjectClient, openai_client):
     """Initialize the agent with the sales data schema and instructions."""
     
     await sales_data.connect()
@@ -158,7 +153,7 @@ async def initialize(project_client: AIProjectClient):
         instructions = instructions.replace("{current_date}", date.today().strftime("%Y-%m-%d"))
 
         # Get tools
-        tools = await get_tools(project_client)
+        tools = await get_tools(project_client, openai_client)
 
         # Create agent using create_version API with PromptAgentDefinition
         print("Creating agent...")
@@ -228,70 +223,80 @@ async def handle_function_calls(openai_client, agent_name: str, tool_calls: list
 
 async def post_message(
     openai_client,
+    project_client,
     agent_name: str,
+    agent_version: str,
     content: str
 ) -> None:
     """Post a message and get agent response."""
     try:
         print(f"\nUser: {content}")
-        
-        # First turn: Agent processes the request and makes function calls
+
+        agent_ref = {"agent_reference": {"type": "agent_reference", "name": agent_name, "version": agent_version}}
+
+        # Send the user message
         response = openai_client.responses.create(
+            model=API_DEPLOYMENT_NAME,
             input=[{"role": "user", "content": content}],
-            extra_body={"agent_reference": {"type": "agent_reference", "name": agent_name}},
+            include=["code_interpreter_call.outputs"],
+            extra_body=agent_ref,
         )
-        
-        response_items = response.output if hasattr(response, 'output') else []
-        
-        # Process items looking for function calls
-        function_data = {}
-        
-        for item in response_items:
-            item_type = getattr(item, 'type', None)
-            item_class = item.__class__.__name__
-            
-            # Look for function calls
-            if 'FunctionToolCall' in item_class or item_type == 'function_call':
-                if hasattr(item, 'name') and item.name == "fetch_sales_data_using_sqlite_query":
-                    try:
+
+        # Agentic loop: keep submitting function results until the agent is done
+        while True:
+            function_outputs = []
+            for item in response.output:
+                if getattr(item, 'type', None) == 'function_call':
+                    if item.name == "fetch_sales_data_using_sqlite_query":
                         args = json.loads(item.arguments) if isinstance(item.arguments, str) else item.arguments
                         result = await fetch_sales_data_using_sqlite_query(args.get("sqlite_query", ""))
-                        try:
-                            function_data['result'] = json.loads(result)
-                        except:
-                            function_data['result'] = result
-                    except Exception as e:
-                        function_data['error'] = str(e)
-        
-        # If a function was executed, ask the agent to format the result
-        if function_data:
-            result_json = json.dumps(function_data.get('result'), indent=2)
-            format_request = f"Please format this query result as a markdown table:\n\n{result_json}"
-            
-            response2 = openai_client.responses.create(
-                input=[{"role": "user", "content": format_request}],
-                extra_body={"agent_reference": {"type": "agent_reference", "name": agent_name}},
+                        function_outputs.append({
+                            "type": "function_call_output",
+                            "call_id": item.call_id,
+                            "output": result,
+                        })
+
+            if not function_outputs:
+                break  # No more function calls — agent is done
+
+            # Submit function results and continue the conversation
+            response = openai_client.responses.create(
+                model=API_DEPLOYMENT_NAME,
+                previous_response_id=response.id,
+                input=function_outputs,
+                include=["code_interpreter_call.outputs"],
+                extra_body=agent_ref,
             )
-            
-            response_items2 = response2.output if hasattr(response2, 'output') else []
-            
-            # Get the agent's formatted response
-            for item in response_items2:
-                item_class = item.__class__.__name__
-                if 'OutputMessage' in item_class:
-                    if hasattr(item, 'content'):
-                        if isinstance(item.content, list):
-                            for content_item in item.content:
-                                if hasattr(content_item, 'text'):
-                                    # Remove markdown code block wrappers if present
-                                    text = content_item.text
-                                    text = text.replace("```markdown\n", "").replace("\n```", "").replace("```", "")
-                                    print(f"\n{text}")
-                        elif hasattr(item.content, 'text'):
-                            # Remove markdown code block wrappers if present
-                            text = item.content.text
-                            text = text.replace("```markdown\n", "").replace("\n```", "").replace("```", "")
-                            print(f"\n{text}")
+
+        # Download any files generated by the code interpreter
+        os.makedirs(FILES_DIR, exist_ok=True)
+        seen_containers = set()
+        for item in response.output:
+            if getattr(item, 'type', None) == 'code_interpreter_call':
+                container_id = item.container_id
+                if container_id in seen_containers:
+                    continue
+                seen_containers.add(container_id)
+                try:
+                    container_files = openai_client.containers.files.list(container_id)
+                    for cf in container_files:
+                        file_name = os.path.basename(getattr(cf, 'path', '') or cf.id)
+                        file_path = os.path.join(FILES_DIR, file_name)
+                        file_content = openai_client.containers.files.content.retrieve(cf.id, container_id=container_id)
+                        with open(file_path, 'wb') as f:
+                            f.write(file_content.read())
+                        print(f"Downloaded file: {file_path}")
+                except Exception as e:
+                    print(f"Error downloading container files: {e}")
+
+        # Print the final text response
+        for item in response.output:
+            if getattr(item, 'type', None) == 'message':
+                for content_item in (item.content or []):
+                    if hasattr(content_item, 'text'):
+                        text = content_item.text
+                        text = text.replace("```markdown\n", "").replace("\n```", "").replace("```", "")
+                        print(f"\n{text}")
 
     except Exception as e:
         print(f"An error occurred posting the message: {str(e)}")
@@ -319,7 +324,7 @@ async def main() -> None:
         project_client.get_openai_client() as openai_client,
     ):
         # Initialize agent
-        agent = await initialize(project_client)
+        agent = await initialize(project_client, openai_client)
         agent_name = agent.name
         
         # Interactive loop
@@ -333,7 +338,9 @@ async def main() -> None:
             
             await post_message(
                 openai_client=openai_client,
+                project_client=project_client,
                 agent_name=agent_name,
+                agent_version=agent.version,
                 content=prompt
             )
         

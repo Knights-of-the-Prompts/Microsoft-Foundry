@@ -21,6 +21,10 @@ Tools
    - Always include the file_path_annotation.
    - Adapt visualizations (e.g., labels) to the user's language preferences.
    - When asked to download data, default to a `.csv` format file and use the most recent data.
+   - IMPORTANT: Always begin every code interpreter script that uses matplotlib with these two lines before any other imports:
+       import matplotlib
+       matplotlib.use('Agg')
+   - After saving a file, always print the file path using print() to confirm it was created successfully.
 
 Query Guidance
 --------------
