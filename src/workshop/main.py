@@ -81,7 +81,7 @@ async def fetch_sales_data_using_sqlite_query(sqlite_query: str) -> str:
 # ============================================================================
 
 # STEP 1: Function Calling - SQL Database Queries
-# INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
+INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
 
 # STEP 2: Code Interpreter - Python Code Execution
 # Uncomment the line below when you uncomment the Code Interpreter tool in get_tools()
@@ -104,7 +104,7 @@ async def get_tools(project_client: AIProjectClient) -> list:
     # STEP 1: Function Tool - Enables SQL database queries
     # Start with this tool enabled to learn about function calling
     # ============================================================================
-    # tools.append(function_tool)
+    tools.append(function_tool)
     
     # ============================================================================
     # STEP 2: Code Interpreter Tool - Enables Python code execution
@@ -238,7 +238,7 @@ async def post_message(
         # First turn: Agent processes the request and makes function calls
         response = openai_client.responses.create(
             input=[{"role": "user", "content": content}],
-            extra_body={"agent": {"name": agent_name, "type": "agent_reference"}},
+            extra_body={"agent_reference": {"type": "agent_reference", "name": agent_name}},
         )
         
         response_items = response.output if hasattr(response, 'output') else []
@@ -270,7 +270,7 @@ async def post_message(
             
             response2 = openai_client.responses.create(
                 input=[{"role": "user", "content": format_request}],
-                extra_body={"agent": {"name": agent_name, "type": "agent_reference"}},
+                extra_body={"agent_reference": {"type": "agent_reference", "name": agent_name}},
             )
             
             response_items2 = response2.output if hasattr(response2, 'output') else []
