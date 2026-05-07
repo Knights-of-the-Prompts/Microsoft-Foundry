@@ -81,9 +81,9 @@ async def fetch_sales_data_using_sqlite_query(sqlite_query: str) -> str:
 # to see the agent use that capability
 # ============================================================================
 
-INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
-INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
-INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
+# INSTRUCTIONS_FILE = "instructions/instructions_function_calling.txt"
+# INSTRUCTIONS_FILE = "instructions/instructions_code_interpreter.txt"
+# INSTRUCTIONS_FILE = "instructions/instructions_file_search.txt"
 
 
 async def get_tools(project_client: AIProjectClient, openai_client) -> list:
@@ -98,38 +98,38 @@ async def get_tools(project_client: AIProjectClient, openai_client) -> list:
     # STEP 1: Function Tool - Enables SQL database queries
     # Start with this tool enabled to learn about function calling
     # ============================================================================
-    tools.append(function_tool)
+    # tools.append(function_tool)
     
     # ============================================================================
     # STEP 2: Code Interpreter Tool - Enables Python code execution
     # Uncomment the lines below to add code execution capability to the agent
     # Then restart the script to enable this tool
     # ============================================================================
-    print("Adding Code Interpreter tool...")
-    code_interpreter = CodeInterpreterTool()
-    tools.append(code_interpreter)
+    # print("Adding Code Interpreter tool...")
+    # code_interpreter = CodeInterpreterTool()
+    # tools.append(code_interpreter)
     
     # ============================================================================
     # STEP 3: File Search Tool - Enables knowledge search over documents
     # Uncomment the lines below to add file search capability (requires vector store)
     # Then restart the script to enable this tool
     # ============================================================================
-    print("Adding File Search tool...")
-    try:
-        # Create vector store using the OpenAI client (uploads files + creates vector store)
-        vector_store = utilities.create_vector_store(
-            openai_client,
-            files=[TENTS_DATA_SHEET_FILE],
-            vector_store_name="Contoso Product Information Vector Store",
-        )
-        print(f"Vector store created: {vector_store.id}")
+    # print("Adding File Search tool...")
+    # try:
+    #     # Create vector store using the OpenAI client (uploads files + creates vector store)
+    #     vector_store = utilities.create_vector_store(
+    #         openai_client,
+    #         files=[TENTS_DATA_SHEET_FILE],
+    #         vector_store_name="Contoso Product Information Vector Store",
+    #     )
+    #     print(f"Vector store created: {vector_store.id}")
         
-        file_search = FileSearchTool(vector_store_ids=[vector_store.id])
-        tools.append(file_search)
-        print(f"File search tool added with vector store: {vector_store.id}")
-    except Exception as e:
-        print(f"Error creating file search tools: {e}")
-        print("Continuing without file search capability...")
+    #     file_search = FileSearchTool(vector_store_ids=[vector_store.id])
+    #     tools.append(file_search)
+    #     print(f"File search tool added with vector store: {vector_store.id}")
+    # except Exception as e:
+    #     print(f"Error creating file search tools: {e}")
+    #     print("Continuing without file search capability...")
     
     return tools
 
