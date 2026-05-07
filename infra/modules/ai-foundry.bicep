@@ -43,19 +43,21 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   sku: {
     name: skuName
   }
+  
   properties: {
+    // Use the provided custom subdomain when present; otherwise fallback
+    // to the account name so the endpoint is deterministic.
     customSubDomainName: !empty(customSubDomainName) ? customSubDomainName : aiFoundryName
     publicNetworkAccess: publicNetworkAccess
     disableLocalAuth: disableLocalAuth
     allowProjectManagement: true
-    apiProperties: {
-      statisticsEnabled: false
-    }
     networkAcls: {
       defaultAction: 'Allow'
       ipRules: []
       virtualNetworkRules: []
     }
+    // Enable restore semantics when updating or recovering the account.
+    restore: true
   }
 }
 

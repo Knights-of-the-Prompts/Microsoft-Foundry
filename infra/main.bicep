@@ -45,16 +45,20 @@ var name = toLower('${aiFoundryName}')
 // Create a short, unique suffix, that will be unique to each resource group
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 4)
 
+// Build the AI Foundry account name once and reuse it for the resource
+// name and custom subdomain to keep naming consistent.
+var aiFoundryResourceName = 'aif-${name}-${uniqueSuffix}'
+
 // Microsoft Foundry resource (CognitiveServices AIServices account)
 module aiFoundry 'modules/ai-foundry.bicep' = {
   name: 'foundry-${name}-${uniqueSuffix}-deployment'
   params: {
-    aiFoundryName: 'aif-${name}-${uniqueSuffix}'
+    aiFoundryName: aiFoundryResourceName
     aiFoundryFriendlyName: aiFoundryFriendlyName
     aiFoundryDescription: aiFoundryDescription
     location: location
     tags: tags
-    customSubDomainName: 'aif-${name}-${uniqueSuffix}'
+    customSubDomainName: aiFoundryResourceName
     disableLocalAuth: disableLocalAuth
   }
 }
@@ -109,6 +113,8 @@ module aiProjectRoleAssignment 'modules/role-assignment.bicep' = {
 }
 
 // Outputs
+output location string = location
+output resourceGroupName string = resourceGroup().name
 output aiFoundryName string = aiFoundry.outputs.aiFoundryName
 output aiFoundryId string = aiFoundry.outputs.aiFoundryId
 output aiFoundryEndpoint string = aiFoundry.outputs.aiFoundryEndpoint
@@ -116,6 +122,4 @@ output aiProjectName string = aiProject.outputs.projectName
 output aiProjectId string = aiProject.outputs.projectId
 output aiProjectEndpoint string = aiProject.outputs.projectEndpoint
 output aiInferenceEndpoint string = aiFoundry.outputs.aiInferenceEndpoint
-output location string = location
-output resourceGroupName string = resourceGroup().name
 output gpt4oDeploymentName string = gpt4oDeployment.outputs.deploymentName
