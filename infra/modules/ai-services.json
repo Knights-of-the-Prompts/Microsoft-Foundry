@@ -94,9 +94,6 @@
         "customSubDomainName": "[if(not(empty(parameters('customSubDomainName'))), parameters('customSubDomainName'), parameters('aiServicesName'))]",
         "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
         "disableLocalAuth": "[parameters('disableLocalAuth')]",
-        "apiProperties": {
-          "statisticsEnabled": false
-        },
         "networkAcls": {
           "defaultAction": "Allow",
           "ipRules": [],

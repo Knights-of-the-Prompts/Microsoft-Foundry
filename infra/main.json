@@ -230,9 +230,6 @@
                 "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
                 "disableLocalAuth": "[parameters('disableLocalAuth')]",
                 "allowProjectManagement": true,
-                "apiProperties": {
-                  "statisticsEnabled": false
-                },
                 "networkAcls": {
                   "defaultAction": "Allow",
                   "ipRules": [],
