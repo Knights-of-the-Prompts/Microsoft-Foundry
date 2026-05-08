@@ -13,17 +13,19 @@ Ledger** for tamper-evident, append-only storage with cryptographic receipts.
 > evidence the business can report on.
 
 > [!IMPORTANT]
-> **The agent in this lab is fictional.** It does *not* call an LLM, talk to a
-> CRM, or actually process a customer inquiry. The three buttons trigger plain
-> Python methods on `OutcomeAwareAgent` that immediately write a hard-coded
-> "this is what the agent would have done" entry — `Customer Inquiry`,
-> `Report Generation`, `Resource Allocation` — straight into the value ledger.
-> The point of the lab is **the value-attribution mechanic itself**: how each
-> action is captured (timestamp, hours saved, materialized value) and how those
-> entries are stored, surfaced in a UI, and (optionally) anchored in Azure
-> Confidential Ledger for tamper-evident proof. In a real system you would
-> swap the simulated method bodies for actual agent calls (Microsoft Foundry
-> Agents, Semantic Kernel, etc.) and keep the same ledger shape.
+> **The CRM/ERP systems are simulated, but the agent is real.** When you chat
+> with the UI, your message goes to a Microsoft Foundry agent (your
+> `PROJECT_ENDPOINT`, your model deployment) which decides which tools to
+> call. The four tools — `create_crm_lead`, `create_erp_invoice`,
+> `update_inventory_level`, `generate_finance_report` — don't actually talk
+> to Salesforce, SAP, or Dynamics; they return plausible mock data and emit
+> a live activity event so the UI can show the moment value is materialized.
+>
+> The point of the lab is the **value-attribution mechanic**: every tool call
+> writes a `ValueEntry` (timestamp, hours saved, materialized value) into the
+> ledger, which can be persisted to **Azure Confidential Ledger** for
+> tamper-evident proof. In a real system you would swap the mock tool bodies
+> for real CRM/ERP API calls and keep the same ledger shape.
 
 ---
 
@@ -31,27 +33,47 @@ Ledger** for tamper-evident, append-only storage with cryptographic receipts.
 
 | Component | Description |
 | --- | --- |
-| `OutcomeAwareAgent` | Performs simulated tasks (customer inquiries, reports, allocation). |
-| `ValueLedger` | Records each action as a `ValueEntry` (timestamp, hours saved, materialized value). |
-| `LedgerStore` | Pluggable storage: `InMemoryLedgerStore` for the local demo, `ConfidentialLedgerStore` for Azure. |
-| FastAPI UI | Minimal web page with metrics, action buttons, and an entries table. |
+| `FoundryOutcomeAgent` | Real Microsoft Foundry agent (`AIProjectClient` + Responses API) with four registered function tools. |
+| `tools.py` | Mock `create_crm_lead`, `create_erp_invoice`, `update_inventory_level`, `generate_finance_report` — emit live activity events and write to the ledger. |
+| `ValueLedger` | Records each tool call as a `ValueEntry` (timestamp, hours saved, materialized value). |
+| `LedgerStore` | Pluggable storage: `InMemoryLedgerStore` (local) or `ConfidentialLedgerStore` (Azure). |
+| FastAPI UI | Chat box, scenario presets, live SSE activity feed, ledger table. |
+| `outcome-aware-agent-example.py` | Offline pure-Python demo (no Azure / no LLM) for the smoke-test. |
 | Bicep (`infra/`) | Deploys an Azure Confidential Ledger and assigns you the `Administrator` role. |
 
 ---
 
 ## Prerequisites
 
-- Python **3.10+**
-- An Azure subscription (only required for the Azure step)
-- **Azure CLI** logged in: `az login`
-- The Confidential Ledger resource provider registered:
-  ```bash
-  az provider register --namespace Microsoft.ConfidentialLedger
-  ```
+> [!IMPORTANT]
+> **Run the main Microsoft Foundry workshop first.** This lab builds on top of
+> it and assumes everything that workshop sets up is already in place — the
+> Azure subscription, resource group, Foundry project, GitHub Codespace (or
+> local devcontainer), Python venv, model deployment, and the populated
+> [`src/workshop/.env`](../../workshop/.env) file.
+>
+> Start here: [`src/workshop/README.md`](../../workshop/README.md). Come back
+> to this lab once you can run the Contoso Sales agent end-to-end.
+
+After completing the main workshop you should already have:
+
+- A working Codespace / devcontainer with Python **3.10+** and the workspace-wide
+  `.venv` at the repo root.
+- `az login` completed in that environment.
+- `src/workshop/.env` populated by `setup_env.py` with at minimum:
+  `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP_NAME`, `PROJECT_ENDPOINT`,
+  `AGENT_MODEL_DEPLOYMENT_NAME`.
+
+This lab adds **one extra prerequisite** — the Confidential Ledger resource
+provider must be registered on your subscription (one-time, ~2 min):
+
+```bash
+az provider register --namespace Microsoft.ConfidentialLedger
+```
 
 ---
 
-## 1. Run locally (in-memory ledger)
+## 1. Run the agent UI
 
 This lab reuses the workshop-wide virtual environment at the repository root
 (the same `.venv` used by every other Microsoft Foundry lab) so dependencies
@@ -60,23 +82,29 @@ stay in one place.
 ```bash
 cd src/samples/create-outcome-aware-agents
 
-# Activate the workshop venv (create it once if it doesn't exist yet:
-#   python -m venv ../../../.venv  &&  source ../../../.venv/bin/activate
-#   pip install -r ../../workshop/requirements.txt)
+# Activate the workshop venv
 source ../../../.venv/bin/activate
 
-# Install the lab-specific extras (FastAPI, jinja2, azure-confidentialledger, …)
+# Install the lab-specific extras (FastAPI, SSE, azure-ai-projects, …)
 pip install -r requirements.txt
 
-# Pure-Python terminal demo
+# Optional: pure-Python offline demo — no Azure, no LLM, just the ledger.
 python outcome-aware-agent-example.py
 
-# Web UI (in-memory by default)
+# Real agent + chat UI. Reads PROJECT_ENDPOINT and AGENT_MODEL_DEPLOYMENT_NAME
+# from src/workshop/.env. Uses your `az login` session for auth.
 uvicorn app:app --reload
 ```
 
-Open <http://127.0.0.1:8000>. Click each action button and watch entries and
-total hours saved update.
+Open <http://127.0.0.1:8000>. The page has three panels:
+
+1. **Chat** — free-form input plus four scenario presets (new lead,
+   closed-won deal, month-end close, issue invoice). Hitting *Send* invokes
+   the Foundry agent, which decides which mock CRM/ERP tools to call.
+2. **Live activity** — server-sent events show every tool call as it happens
+   (`Creating lead 'ACME Robotics'…` → `Lead LEAD-A1B2C3 created — pipeline +$80,000`).
+3. **Value ledger** — each tool call writes a `ValueEntry`. Total entries and
+   total hours saved update in real time.
 
 ![Outcome-Aware Agent value ledger UI](media/ui-value-ledger.png)
 
@@ -150,11 +178,11 @@ echo "$LEDGER_URI"
 uvicorn app:app --reload
 ```
 
-Click an action button. The agent now writes each entry to Azure Confidential
-Ledger via `DefaultAzureCredential` (your `az login` session). Reload the page
-— entries are loaded back from the ledger.
+Chat with the agent. Every tool call now writes its `ValueEntry` to Azure
+Confidential Ledger via `DefaultAzureCredential` (your `az login` session).
+Reload the page — entries are loaded back from the ledger across restarts.
 
-You can also browse the same entries in the Azure portal under your
+You can browse the value attribution entries in the Azure portal under your
 Confidential Ledger → **Operations** → **Ledger explorer (preview)**:
 
 ![Azure portal Ledger explorer showing the same entries](media/azure-ledger-explorer.png)
@@ -205,11 +233,13 @@ environment (everything in the resource group), follow the cleanup step in
 
 ```
 create-outcome-aware-agents/
-├── outcome-aware-agent-example.py   # Pure-Python terminal demo
-├── agent.py                         # OutcomeAwareAgent + ValueLedger
+├── outcome-aware-agent-example.py   # Offline pure-Python demo (no Azure / no LLM)
+├── agent.py                         # FoundryOutcomeAgent + ValueLedger + offline OutcomeAwareAgent
+├── tools.py                         # Mock CRM/ERP function tools + agent system prompt
+├── event_bus.py                     # In-process pub/sub for SSE
 ├── ledger_store.py                  # LedgerStore protocol + In-memory + ACL
 ├── app.py                           # FastAPI UI (reads src/workshop/.env)
-├── templates/index.html             # Minimal Jinja2 page
+├── templates/index.html             # Chat / activity / ledger page
 ├── requirements.txt
 └── infra/
     └── outcome-aware-ledger.bicep   # ACL deployment (single self-contained template)
@@ -221,16 +251,23 @@ create-outcome-aware-agents/
 
 ```mermaid
 flowchart LR
-    UI["FastAPI UI<br/>(templates/index.html)"]
-    VL["ValueLedger<br/>add_entry() / get_summary()"]
-    LS["LedgerStore (protocol)"]
-    MEM["InMemoryLedgerStore<br/>(local)"]
-    ACL["ConfidentialLedgerStore<br/>(Azure)"]
+    User["User<br/>(chat + scenario buttons)"]
+    UI["FastAPI UI<br/>(SSE activity feed)"]
+    Foundry["Microsoft Foundry agent<br/>(your model deployment)"]
+    Tools["Mock CRM/ERP tools<br/>create_crm_lead·invoice·inventory·report"]
+    VL["ValueLedger"]
+    LS["LedgerStore"]
+    MEM["InMemoryLedgerStore"]
+    ACL["Azure Confidential Ledger"]
 
-    UI -- "add_entry()" --> VL
-    VL -- "list_entries()" --> UI
-    VL -- "append()" --> LS
-    LS -- "list_entries()" --> VL
+    User -- chat --> UI
+    UI -- POST /api/chat --> Foundry
+    Foundry -- function_call --> Tools
+    Tools -- result --> Foundry
+    Foundry -- reply --> UI
+    Tools -- emit event --> UI
+    Tools -- add_entry() --> VL
+    VL -- append() --> LS
     LS --- MEM
     LS --- ACL
 ```
@@ -243,8 +280,11 @@ Switch backends with one environment variable — no code change.
 
 | Symptom | Fix |
 | --- | --- |
+| Yellow banner: "Foundry agent is not configured" | Make sure `PROJECT_ENDPOINT` and `AGENT_MODEL_DEPLOYMENT_NAME` are set in `src/workshop/.env`, then restart `uvicorn`. |
+| `POST /api/chat` returns 503 | Same as above — the agent failed to start; check the `uvicorn` logs for the original Azure error. |
 | `LEDGER_BACKEND=acl requires ACL_ENDPOINT` | Set `ACL_ENDPOINT` in `src/workshop/.env` to the `ledgerUri` from the deployment outputs. |
 | `DefaultAzureCredential failed to retrieve a token` | Run `az login` in the same shell that launches `uvicorn`. |
 | `403 Forbidden` from the ledger | The signed-in user doesn't have a role on the ledger. Re-deploy with the correct `principalId`. |
+| Activity feed never updates | The browser couldn't open the SSE stream — check the browser dev-tools network tab for `/events`, and confirm no proxy is buffering responses. |
 | ACL not available in your region | Use one of: `swedencentral`, `eastus`, `westeurope`, `australiaeast`, `southeastasia`. |
 | Provider not registered | `az provider register --namespace Microsoft.ConfidentialLedger` (takes a few minutes). |

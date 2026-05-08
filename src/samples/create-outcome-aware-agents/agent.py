@@ -1,25 +1,47 @@
-"""Outcome-aware agent and its value ledger.
+"""Outcome-aware agent.
 
-Importable module (Python module names cannot contain hyphens, so the
-classes live here while ``outcome-aware-agent-example.py`` remains the
-runnable workshop script).
+This module exposes two things:
+
+* ``ValueLedger`` / ``OutcomeAwareAgent`` -- the lightweight, *offline* demo
+  used by ``outcome-aware-agent-example.py`` and the smoke tests. No LLM, no
+  Azure dependency.
+
+* ``FoundryOutcomeAgent`` -- a *real* agent backed by Microsoft Foundry
+  (``AIProjectClient`` + the Responses API). It wires the four mock CRM/ERP
+  function tools defined in :mod:`tools`, dispatches them locally, and
+  pipes every step through the shared event bus so the FastAPI UI can show
+  a live activity feed.
+
+The Foundry agent is created lazily inside an ``async with`` context so the
+underlying Azure clients are properly closed at process shutdown.
 """
 
 from __future__ import annotations
 
+import json
+import logging
+import os
+from contextlib import AsyncExitStack
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from ledger_store import InMemoryLedgerStore, LedgerStore, ValueEntry
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# ValueLedger / OutcomeAwareAgent (offline demo, kept for backward compat)
+# ---------------------------------------------------------------------------
 
 
 class ValueLedger:
     """Manages the ledger of value attribution.
 
-    Storage is delegated to a pluggable ``LedgerStore`` so the same agent code
-    can run against an in-memory list (for the local workshop demo) or against
-    Azure Confidential Ledger (for tamper-evident, durable persistence).
+    Storage is delegated to a pluggable ``LedgerStore`` so the same code can
+    run against an in-memory list (local demo) or Azure Confidential Ledger
+    (tamper-evident, durable persistence).
     """
 
     def __init__(self, store: Optional[LedgerStore] = None) -> None:
@@ -73,7 +95,11 @@ class ValueLedger:
 
 
 class OutcomeAwareAgent:
-    """A simple agent that performs tasks and tracks value attribution."""
+    """Simple offline agent that records hard-coded value entries.
+
+    Kept for the pure-Python intro demo (``outcome-aware-agent-example.py``)
+    so the lab is runnable without Azure credentials.
+    """
 
     def __init__(self, ledger: Optional[ValueLedger] = None) -> None:
         self.ledger = ledger or ValueLedger()
@@ -109,3 +135,189 @@ class OutcomeAwareAgent:
 
     def get_value_report(self) -> Dict[str, Any]:
         return self.ledger.get_summary()
+
+
+# ---------------------------------------------------------------------------
+# Foundry-backed agent
+# ---------------------------------------------------------------------------
+
+
+class FoundryOutcomeAgent:
+    """Outcome-aware agent powered by Microsoft Foundry.
+
+    Reads connection details from the workshop env (``PROJECT_ENDPOINT``,
+    ``AGENT_MODEL_DEPLOYMENT_NAME``). On ``start()`` it registers an agent
+    version with the four CRM/ERP function tools from :mod:`tools`. On
+    ``chat()`` it runs an agentic Responses-API loop, dispatching tool calls
+    locally (which writes ledger entries and emits live UI events).
+    """
+
+    def __init__(self, ledger: ValueLedger) -> None:
+        self.ledger = ledger
+        self.endpoint = os.environ.get("PROJECT_ENDPOINT")
+        self.model = os.environ.get("AGENT_MODEL_DEPLOYMENT_NAME")
+        self._stack: Optional[AsyncExitStack] = None
+        self._project_client = None
+        self._openai_client = None
+        self._agent = None
+        self._agent_name = "OutcomeAwareAgent"
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.endpoint and self.model)
+
+    async def start(self) -> None:
+        if not self.is_configured:
+            raise RuntimeError(
+                "FoundryOutcomeAgent requires PROJECT_ENDPOINT and "
+                "AGENT_MODEL_DEPLOYMENT_NAME in src/workshop/.env."
+            )
+
+        # Imports are local so the lab still imports cleanly without the SDK.
+        from azure.ai.projects import AIProjectClient
+        from azure.ai.projects.models import FunctionTool, PromptAgentDefinition
+        from azure.identity import DefaultAzureCredential
+
+        from tools import AGENT_INSTRUCTIONS, TOOL_SCHEMAS
+
+        self._stack = AsyncExitStack()
+        credential = self._stack.enter_context(DefaultAzureCredential())
+        self._project_client = self._stack.enter_context(
+            AIProjectClient(endpoint=self.endpoint, credential=credential)
+        )
+        self._openai_client = self._stack.enter_context(
+            self._project_client.get_openai_client()
+        )
+
+        function_tools = [
+            FunctionTool(
+                name=schema["name"],
+                description=schema["description"],
+                parameters=schema["parameters"],
+                strict=False,
+            )
+            for schema in TOOL_SCHEMAS
+        ]
+
+        self._agent = self._project_client.agents.create_version(
+            agent_name=self._agent_name,
+            definition=PromptAgentDefinition(
+                model=self.model,
+                instructions=AGENT_INSTRUCTIONS,
+                tools=function_tools,
+                temperature=0.2,
+            ),
+        )
+        logger.info(
+            "Created Foundry agent %s (version %s)",
+            self._agent.name,
+            self._agent.version,
+        )
+
+    async def stop(self) -> None:
+        # Best-effort cleanup of agent versions, then close clients.
+        try:
+            if self._agent and self._project_client is not None:
+                versions = self._project_client.agents.list_versions(
+                    agent_name=self._agent.name
+                )
+                for version in versions:
+                    try:
+                        self._project_client.agents.delete_version(
+                            agent_name=self._agent.name,
+                            agent_version=version.version,
+                        )
+                    except Exception:  # noqa: BLE001
+                        continue
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Agent cleanup encountered: %s", exc)
+        finally:
+            if self._stack is not None:
+                await self._stack.aclose()
+                self._stack = None
+
+    async def chat(self, user_message: str) -> str:
+        """Run one user turn against the agent. Returns the assistant text.
+
+        Tool calls are dispatched locally; each emits start/end events on the
+        shared event bus so the UI can render them in real time, and writes a
+        ``ValueEntry`` to the ledger.
+        """
+        if self._agent is None or self._openai_client is None:
+            raise RuntimeError("FoundryOutcomeAgent.start() has not been called.")
+
+        from event_bus import bus
+        from tools import dispatch
+
+        await bus.publish(
+            {
+                "type": "user_message",
+                "ts": datetime.now().isoformat(timespec="seconds"),
+                "label": user_message,
+            }
+        )
+
+        agent_ref = {
+            "agent_reference": {
+                "type": "agent_reference",
+                "name": self._agent.name,
+                "version": self._agent.version,
+            }
+        }
+
+        response = self._openai_client.responses.create(
+            model=self.model,
+            input=[{"role": "user", "content": user_message}],
+            extra_body=agent_ref,
+        )
+
+        # Agentic loop: keep submitting tool outputs until the agent stops
+        # asking for more function calls.
+        while True:
+            function_outputs: List[Dict[str, Any]] = []
+            for item in response.output:
+                if getattr(item, "type", None) == "function_call":
+                    name = item.name
+                    args = item.arguments
+                    result_json = await dispatch(name, args, self.ledger)
+                    function_outputs.append(
+                        {
+                            "type": "function_call_output",
+                            "call_id": item.call_id,
+                            "output": result_json,
+                        }
+                    )
+
+            if not function_outputs:
+                break
+
+            response = self._openai_client.responses.create(
+                model=self.model,
+                previous_response_id=response.id,
+                input=function_outputs,
+                extra_body=agent_ref,
+            )
+
+        # Collect the final assistant text.
+        assistant_text_parts: List[str] = []
+        for item in response.output:
+            if getattr(item, "type", None) == "message":
+                for content_item in (item.content or []):
+                    text = getattr(content_item, "text", None)
+                    if isinstance(text, str):
+                        assistant_text_parts.append(text)
+                    elif text is not None and hasattr(text, "value"):
+                        assistant_text_parts.append(text.value)
+
+        assistant_text = "\n".join(t for t in assistant_text_parts if t).strip()
+        if not assistant_text:
+            assistant_text = "(no response)"
+
+        await bus.publish(
+            {
+                "type": "assistant_message",
+                "ts": datetime.now().isoformat(timespec="seconds"),
+                "label": assistant_text,
+            }
+        )
+        return assistant_text
