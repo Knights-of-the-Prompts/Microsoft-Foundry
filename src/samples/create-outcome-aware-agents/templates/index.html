@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Outcome-Aware Agent — Value Ledger</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
+    p.lede { color: var(--muted); margin-top: 0; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .metric .label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric .value { font-size: 2rem; font-weight: 600; color: var(--accent); }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 2rem; }
+    .actions form { margin: 0; }
+    button {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { filter: brightness(1.1); }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 8px; overflow: hidden; }
+    th, td { padding: 0.65rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; }
+    th { background: #0b1220; color: var(--muted); font-weight: 500; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+    tr:last-child td { border-bottom: none; }
+    .empty { color: var(--muted); padding: 1.25rem; text-align: center; }
+    code { background: #0b1220; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.85em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Outcome-Aware Agent</h1>
+    <p class="lede">Value attribution ledger — every agent action is recorded with the hours saved and business outcome.</p>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Total entries</div>
+        <div class="value">{{ summary.total_entries }}</div>
+      </div>
+      <div class="metric">
+        <div class="label">Total hours saved</div>
+        <div class="value">{{ "%.1f"|format(summary.total_hours_saved) }}</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <form method="post" action="/actions/customer"><button type="submit">Process customer inquiry</button></form>
+      <form method="post" action="/actions/report"><button type="submit">Automate report</button></form>
+      <form method="post" action="/actions/optimize"><button type="submit">Optimize allocation</button></form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Task</th>
+          <th>Agent action</th>
+          <th>Hours saved</th>
+          <th>Materialized value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if summary.entries %}
+          {% for entry in summary.entries %}
+            <tr>
+              <td><code>{{ entry.timestamp }}</code></td>
+              <td>{{ entry.task_description }}</td>
+              <td>{{ entry.agent_action }}</td>
+              <td>{{ entry.hours_saved }}</td>
+              <td>{{ entry.materialized_value }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5" class="empty">No entries yet — click an action above.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

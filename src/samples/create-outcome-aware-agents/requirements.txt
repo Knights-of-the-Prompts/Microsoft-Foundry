@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+jinja2>=3.1
+python-dotenv>=1.0
+azure-identity>=1.15
+azure-confidentialledger>=1.1
