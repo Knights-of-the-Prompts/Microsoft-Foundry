@@ -108,8 +108,6 @@ Open <http://127.0.0.1:8000>. The page has three panels:
 
 ![Outcome-Aware Agent value ledger UI](media/ui-value-ledger.png)
 
-![alt text](image.png)
-
 ---
 
 ## 2. Deploy Azure Confidential Ledger (optional, recommended)
