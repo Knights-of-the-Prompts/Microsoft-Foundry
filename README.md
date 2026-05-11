@@ -93,6 +93,7 @@ Agent Creation:
 - [Create RAG Agents using Jupyter Notebooks](src/samples/create-rag-agent-using-notebook/lab-create-rag-agent-using-notebook.ipynb)
 - [Create Multi-Agent Systems using Jupyter Notebooks](src/samples/create-multi-agent-system-using-notebook/lab-create-multi-agent-system-using-notebook.ipynb)
 - [Create Agents with the Bing Grounding Tool](src/samples/create-a-bing-grounding-connection/lab-create-a-bing-grounding-connection.md)
+- [Create a pro-code Foundry agent fully in sync with Agent 365](src/samples/create-agent365-managed-agents/lab-create-agent365-managed-foundry-agent.ipynb)
 
 Deep Research Tool:
 - [Create Agents with the Deep Research Tool](src/samples/create-deep-research-tool/lab-how-to-use-the-deep-research-tool.md) *(under revision - o3-deep-research deployment temporarily deactivated)*

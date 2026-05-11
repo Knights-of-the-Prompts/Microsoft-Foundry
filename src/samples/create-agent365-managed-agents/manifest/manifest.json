@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/agent365/v1.0/manifest.json",
+  "manifestVersion": "1.0",
+  "id": "foundry-lab-agent",
+  "version": "1.0.0",
+  "developer": {
+    "name": "Contoso Agent Lab",
+    "websiteUrl": "https://contoso.example.com",
+    "privacyUrl": "https://contoso.example.com/privacy",
+    "termsOfUseUrl": "https://contoso.example.com/terms"
+  },
+  "name": {
+    "short": "Foundry Lab",
+    "full": "Foundry Lab Agent (pro-code)"
+  },
+  "description": {
+    "short": "Pro-code Foundry agent governed by Agent 365.",
+    "full": "Pro-code Foundry lab agent registered with an Entra Agent ID and published to Agent 365 for governance."
+  },
+  "identity": {
+    "entraAgentId": "eab91a3d-3034-48d4-b540-65c56be4b9bd"
+  },
+  "runtime": {
+    "type": "foundry",
+    "endpoint": "https://aif-aiagents-vbds.services.ai.azure.com/api/projects/workshop-project",
+    "agentName": "foundry-lab-agent",
+    "agentVersion": "2",
+    "model": "gpt4o"
+  },
+  "actions": [
+    {
+      "id": "lookup_policy",
+      "description": "Read company policy snippets."
+    },
+    {
+      "id": "summarize_ticket",
+      "description": "Summarise a support ticket."
+    }
+  ],
+  "permissions": {
+    "resourceSpecific": [],
+    "orgWide": []
+  },
+  "validDomains": [
+    "contoso.example.com"
+  ]
+}

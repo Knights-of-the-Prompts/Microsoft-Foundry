@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/agent365/v1.0/declarativeAgent.json",
+  "name": "Foundry Lab Agent",
+  "description": "Pro-code Foundry lab agent registered with an Entra Agent ID and published to Agent 365 for governance.",
+  "instructions": "You are an internal assistant for Contoso. Use the `lookup_policy` tool to answer questions about company policies. Use the `summarize_ticket` tool to produce a one-paragraph summary of a support ticket. Never invent policy text -- if the tool returns no match, say so.",
+  "capabilities": [
+    {
+      "name": "FoundryRuntime",
+      "agentName": "foundry-lab-agent",
+      "agentVersion": "2"
+    }
+  ],
+  "actions": [
+    "lookup_policy",
+    "summarize_ticket"
+  ]
+}

@@ -1,0 +1,5 @@
+azure-ai-projects>=1.0.0
+azure-identity>=1.17.0
+python-dotenv>=1.0.1
+httpx>=0.27.0
+msgraph-sdk>=1.5.0
