@@ -129,11 +129,13 @@ class AgentHandle:
     created: bool
 
 
+
 def build_or_get_agent(
     project_client: AIProjectClient,
     model_deployment_name: str,
+    agent_name: str = AGENT_NAME,
 ) -> AgentHandle:
-    """Detect-and-reuse the ``foundry-lab-agent``.
+    """Detect-and-reuse the agent with the given name.
 
     The Foundry SDK identifies agents by ``agent_name``. Each call to
     ``create_version`` produces a new immutable ``AgentVersionDetails``. We
@@ -143,16 +145,16 @@ def build_or_get_agent(
     """
 
     existing = next(
-        (a for a in project_client.agents.list() if a.name == AGENT_NAME),
+        (a for a in project_client.agents.list() if a.name == agent_name),
         None,
     )
     if existing is not None:
-        versions = list(project_client.agents.list_versions(agent_name=AGENT_NAME))
+        versions = list(project_client.agents.list_versions(agent_name=agent_name))
         latest = max(versions, key=lambda v: int(v.version)) if versions else None
         if latest is not None:
-            logger.info("Reusing %s v%s", AGENT_NAME, latest.version)
+            logger.info("Reusing %s v%s", agent_name, latest.version)
             return AgentHandle(
-                name=AGENT_NAME,
+                name=agent_name,
                 version=str(latest.version),
                 model=getattr(latest.definition, "model", model_deployment_name),
                 created=False,
@@ -164,13 +166,13 @@ def build_or_get_agent(
         tools=[lookup_policy_tool, summarize_ticket_tool],
     )
     version = project_client.agents.create_version(
-        agent_name=AGENT_NAME,
+        agent_name=agent_name,
         definition=definition,
         description=AGENT_DESCRIPTION,
     )
-    logger.info("Created %s v%s", AGENT_NAME, version.version)
+    logger.info("Created %s v%s", agent_name, version.version)
     return AgentHandle(
-        name=AGENT_NAME,
+        name=agent_name,
         version=str(version.version),
         model=model_deployment_name,
         created=True,
