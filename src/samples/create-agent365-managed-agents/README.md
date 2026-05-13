@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../../media/kotp-readme-frontier.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
+    <img src="../../../media/a365-agents.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
 # Build a pro-code Microsoft Foundry agent that is registered and fully in sync with Agent 365
@@ -20,19 +20,7 @@ from the Agent 365 admin center.
 [`lab-create-agent365-managed-foundry-agent.ipynb`](lab-create-agent365-managed-foundry-agent.ipynb)
 
 > [!IMPORTANT]
-> **Pick the correct Python kernel first.** Use the workshop-wide virtual
-> environment at the repo root (`.venv` → `Python 3.x`,
-> `/workspaces/Microsoft-Foundry/.venv/bin/python`). Click the kernel picker
-> in the top-right of the notebook → **Python Environments…** → select
-> `.venv`. Do not let VS Code auto-create a fresh kernel — every other lab
-> in this repo shares the same `.venv` so dependencies stay in one place.
->
-> **First-time package install takes 1–2 minutes.** If this is the first
-> notebook you run in your Codespace / devcontainer, the
-> `%pip install -r requirements.txt` cell pulls down `azure-ai-projects`,
-> `azure-identity`, `msgraph-sdk`, `httpx`, and their transitive
-> dependencies. Wait for the cell to finish before moving on; subsequent
-> runs are nearly instant.
+> Follow the instructions! :-)
 
 ## What you will learn
 
