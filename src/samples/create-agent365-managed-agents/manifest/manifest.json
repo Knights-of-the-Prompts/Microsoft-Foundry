@@ -1,47 +1,36 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/agent365/v1.0/manifest.json",
-  "manifestVersion": "1.0",
-  "id": "foundry-lab-agent",
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.19",
   "version": "1.0.0",
+  "id": "2310d96b-03fc-45d8-af1b-c3cb1e61e759",
   "developer": {
-    "name": "Contoso Agent Lab",
-    "websiteUrl": "https://contoso.example.com",
-    "privacyUrl": "https://contoso.example.com/privacy",
-    "termsOfUseUrl": "https://contoso.example.com/terms"
+    "name": "Douwe van de Ruit",
+    "websiteUrl": "https://example.com",
+    "privacyUrl": "https://example.com/privacy",
+    "termsOfUseUrl": "https://example.com/terms"
   },
   "name": {
-    "short": "Foundry Lab",
-    "full": "Foundry Lab Agent (pro-code)"
+    "short": "Foundry365 Agent",
+    "full": "Foundry365 Agent for Microsoft 365"
   },
   "description": {
-    "short": "Pro-code Foundry agent governed by Agent 365.",
-    "full": "Pro-code Foundry lab agent registered with an Entra Agent ID and published to Agent 365 for governance."
+    "short": "Foundry agent for Microsoft 365.",
+    "full": "A Foundry-based declarative agent package for Microsoft 365 and Agent 365 validation."
   },
-  "identity": {
-    "entraAgentId": "eab91a3d-3034-48d4-b540-65c56be4b9bd"
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
   },
-  "runtime": {
-    "type": "foundry",
-    "endpoint": "https://aif-aiagents-vbds.services.ai.azure.com/api/projects/workshop-project",
-    "agentName": "foundry-lab-agent",
-    "agentVersion": "2",
-    "model": "gpt4o"
-  },
-  "actions": [
-    {
-      "id": "lookup_policy",
-      "description": "Read company policy snippets."
-    },
-    {
-      "id": "summarize_ticket",
-      "description": "Summarise a support ticket."
-    }
-  ],
-  "permissions": {
-    "resourceSpecific": [],
-    "orgWide": []
-  },
+  "accentColor": "#FFFFFF",
   "validDomains": [
-    "contoso.example.com"
-  ]
+    "example.com"
+  ],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "foundry365-agent",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  }
 }
