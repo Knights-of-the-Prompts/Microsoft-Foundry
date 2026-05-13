@@ -1,8 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
-  "manifestVersion": "1.19",
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.21/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.21",
   "version": "1.0.0",
-  "id": "2310d96b-03fc-45d8-af1b-c3cb1e61e759",
+  "id": "feee351c-0c81-42a6-8a9c-ead17f8c2fc3",
   "developer": {
     "name": "Douwe van de Ruit",
     "websiteUrl": "https://example.com",
@@ -10,12 +10,12 @@
     "termsOfUseUrl": "https://example.com/terms"
   },
   "name": {
-    "short": "Foundry365 Agent",
-    "full": "Foundry365 Agent for Microsoft 365"
+    "short": "Foundry Lab Agent",
+    "full": "Foundry Lab Agent for Microsoft 365"
   },
   "description": {
-    "short": "Foundry agent for Microsoft 365.",
-    "full": "A Foundry-based declarative agent package for Microsoft 365 and Agent 365 validation."
+    "short": "Foundry-backed custom engine agent for Microsoft 365.",
+    "full": "A Microsoft 365 custom engine agent that routes interactions through an Azure Bot / proxy runtime to a Microsoft Foundry agent. This package is intended to demonstrate Agent 365 registration, governance, access controls, restrictions, and policy behavior."
   },
   "icons": {
     "color": "color.png",
@@ -26,11 +26,44 @@
     "example.com"
   ],
   "copilotAgents": {
-    "declarativeAgents": [
+    "customEngineAgents": [
       {
-        "id": "foundry365-agent",
-        "file": "declarativeAgent.json"
+        "type": "bot",
+        "id": "feee351c-0c81-42a6-8a9c-ead17f8c2fc3",
+        "disclaimer": {
+          "text": "This agent uses a custom runtime connected to Microsoft Foundry."
+        }
       }
     ]
-  }
+  },
+  "bots": [
+    {
+      "botId": "feee351c-0c81-42a6-8a9c-ead17f8c2fc3",
+      "scopes": [
+        "copilot",
+        "personal",
+        "team"
+      ],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": [
+            "copilot",
+            "personal"
+          ],
+          "commands": [
+            {
+              "title": "How can you help me?",
+              "description": "Explain what this Foundry-backed custom engine agent can do."
+            },
+            {
+              "title": "Show governance status",
+              "description": "Explain how this agent is registered and governed in Agent 365."
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
