@@ -1,0 +1,27 @@
+{
+  "generatedAtUtc": "2026-05-13T11:24:28.913909+00:00",
+  "integrationMode": "foundry_agent365_governance",
+  "azure": {
+    "subscriptionId": "c200e3e7-0839-483b-848b-25a98451f2cd",
+    "resourceGroup": "rg-kotp-temp"
+  },
+  "foundry": {
+    "projectEndpoint": "https://aif-aiagents-vbds.services.ai.azure.com/api/projects/workshop-project",
+    "projectName": "workshop-project",
+    "accountName": "aif-aiagents-vbds",
+    "accountKind": "AIServices",
+    "accountLocation": "swedencentral",
+    "accountResourceId": "/subscriptions/c200e3e7-0839-483b-848b-25a98451f2cd/resourceGroups/rg-kotp-temp/providers/Microsoft.CognitiveServices/accounts/aif-aiagents-vbds",
+    "modelDeploymentName": "gpt4o",
+    "agentName": "foundry-lab-agent-vscode-dd3ae0",
+    "agentIdOrHandle": "foundry-lab-agent-vscode-dd3ae0",
+    "agentVersion": "1",
+    "agentDescription": null
+  },
+  "agent365": {
+    "a365LoggingEnabled": true,
+    "a365Status": "Enabled",
+    "adminCenterUrl": "https://admin.microsoft.com",
+    "expectedRegistryName": "foundry-lab-agent-vscode-dd3ae0"
+  }
+}
