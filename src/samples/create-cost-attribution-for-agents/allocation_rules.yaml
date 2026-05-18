@@ -1,0 +1,29 @@
+# allocation_rules.yaml
+# Distribution keys define how shared costs are allocated across agents,
+# teams or cost centers. Provide keys as weights or percentages.
+# Example:
+# distribution_keys:
+#   engineering: 0.5
+#   product: 0.3
+#   infra: 0.2
+
+period: "2026-05"
+source: "azure-cost-export-sample"
+
+direct:
+  method: direct_tag_mapping
+
+indirect:
+  default_distribution_key: log_volume_gb
+  fallback_distribution_key: request_count
+
+platform:
+  distribution_key: weighted_agent_usage
+  weights:
+    token_share: 0.5
+    runtime_share: 0.3
+    tool_call_share: 0.2
+
+unallocated:
+  mode: keep_visible
+

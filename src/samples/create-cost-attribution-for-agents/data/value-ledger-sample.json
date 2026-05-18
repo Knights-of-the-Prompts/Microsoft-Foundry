@@ -1,0 +1,24 @@
+
+[
+  {
+    "timestamp": "2026-05-01T09:05:00Z",
+    "agent_id": "sales-followup-agent",
+    "workload_id": "crm-opportunity-followup",
+    "outcome_id": "opportunity-progressed",
+    "efficiency_value": 420,
+    "outcome_value": 2500,
+    "currency": "EUR",
+    "description": "opportunity progressed / revenue opportunity advanced"
+  },
+  {
+    "timestamp": "2026-05-01T10:05:00Z",
+    "agent_id": "support-resolution-agent",
+    "workload_id": "incident-resolution",
+    "outcome_id": "incident-resolved",
+    "efficiency_value": 300,
+    "outcome_value": 1200,
+    "currency": "EUR",
+    "description": "incident resolved / customer risk reduced"
+  }
+]
+

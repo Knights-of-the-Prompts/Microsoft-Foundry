@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cost Attribution for Accountable Agents</title>
+  <link rel="stylesheet" href="/static/custom.css">
+</head>
+<body>
+  <header>
+    <h1>Cost Attribution for Accountable Agents</h1>
+    <h2>From Azure costs to Value Ledger economics</h2>
+  </header>
+
+  <div class="context-bar">
+    Reporting period: {{ reporting_context.reporting_period or 'N/A' }} |
+    Source: {{ reporting_context.cost_source or 'demo CSV' }} |
+    Currency: {{ reporting_context.currency_symbol }}{{ reporting_context.currency or '' }} |
+    Granularity: {{ reporting_context.granularity or 'monthly' }} |
+    Cost basis: {{ reporting_context.cost_basis or 'actual cost' }} |
+    Generated: {{ reporting_context.generated or '' }}
+  </div>
+
+  <section>
+    <h3>Concept summary</h3>
+    <ul>
+      {% for line in concepts %}
+        <li>{{ line }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section>
+    <h3>Pipeline view</h3>
+    <pre class="pipeline">{% for p in pipeline_text %}{{ p }}
+{% endfor %}</pre>
+  </section>
+
+  <section>
+    <h3>Cost categories</h3>
+    <div class="cards">
+      <div class="card">
+        <strong>Direct cost</strong>
+        <p class="muted">Costs directly attributed to an agent or workload via tags.</p>
+        <p>Detected by: `agent_id` or `workload_id` tags, or cost_category/allocation_scope=direct.</p>
+        <p>Allocation: mapped 100% to the tagged agent/workload.</p>
+        <p><strong>Total for selected period:</strong> {{ reporting_context.currency_symbol }}{{ '%.2f' % totals.direct }}</p>
+      </div>
+      <div class="card">
+        <strong>Indirect cost</strong>
+        <p class="muted">Shared costs allocated across agents based on usage metrics.</p>
+        <p>Detected by: cost_category/allocation_scope=indirect.</p>
+        <p>Allocation: by `log_volume_gb` (fallback to `request_count`).</p>
+        <p><strong>Total for selected period:</strong> {{ reporting_context.currency_symbol }}{{ '%.2f' % totals.indirect }}</p>
+      </div>
+      <div class="card">
+        <strong>Platform cost</strong>
+        <p class="muted">Platform-level shared costs (storage, infra) allocated by weighted usage.</p>
+        <p>Detected by: cost_category/allocation_scope=platform or shared_service + distribution_key.</p>
+        <p>Allocation: weighted usage (token, runtime, tool-call shares).</p>
+        <p><strong>Total for selected period:</strong> {{ reporting_context.currency_symbol }}{{ '%.2f' % totals.platform }}</p>
+      </div>
+      <div class="card">
+        <strong>Unallocated cost</strong>
+        <p class="muted">Costs that lack required attribution metadata and are kept visible.</p>
+        <p>Detected by: missing `agent_id` / `workload_id` / distribution keys.</p>
+        <p>Action: kept visible and not silently assigned.</p>
+        <p><strong>Total for selected period:</strong> {{ reporting_context.currency_symbol }}{{ '%.2f' % totals.unallocated }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="summary-cards">
+      <div class="card">
+        <strong>Total source cost</strong>
+        <p class="muted">Sum of all source cost rows for the selected reporting period.</p>
+        <p class="big">{{ reporting_context.currency_symbol }}{{ '%.2f' % total_source_cost }}</p>
+      </div>
+      <div class="card">
+        <strong>Total attributed agent cost</strong>
+        <p class="muted">Direct + indirect + platform costs assigned to agents.</p>
+        <p class="big">{{ reporting_context.currency_symbol }}{{ '%.2f' % attributed_agent_cost }}</p>
+      </div>
+      <div class="card">
+        <strong>Visible unallocated cost</strong>
+        <p class="muted">Costs kept visible because attribution metadata is missing.</p>
+        <p class="big">{{ reporting_context.currency_symbol }}{{ '%.2f' % unallocated_visible }}</p>
+      </div>
+      <div class="card">
+        <strong>Allocation coverage</strong>
+        <p class="muted">Attributed agent cost / total source cost</p>
+        <p class="big">{{ '%.1f' % (allocation_coverage_portfolio * 100) }}%</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Agent economics</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="muted">Download: <a href="/api/economics.csv">Economics</a> • <a href="/api/cost-ledger.csv">Cost ledger</a> • <a href="/api/source-costs.csv">Source costs</a></div>
+      <div><button id="toggle-details" onclick="toggleDetails()">Toggle details</button></div>
+    </div>
+
+    <div class="agent-cards">
+      {% for s in summaries %}
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div>
+            <strong class="agent-name">{{ s.agent_id }}</strong>
+            <div class="muted">Technical id: {{ s.agent_id }} • Workload: {{ s.workload_id or '—' }}</div>
+          </div>
+          <div class="agent-badge">{{ s.currency_symbol }}{{ '%.2f' % s.net_value }}</div>
+        </div>
+        <div class="agent-card-body">
+          <div class="two-col">
+            <div>
+              <div class="muted">Efficiency value</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.efficiency_value }}</div>
+            </div>
+            <div>
+              <div class="muted">Outcome value</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.outcome_value }}</div>
+            </div>
+          </div>
+
+          <div class="muted" style="margin-top:8px">Total attributed value</div>
+          <div class="big">{{ s.currency_symbol }}{{ '%.2f' % s.total_attributed_value }}</div>
+
+          <div class="costs-grid">
+            <div>
+              <div class="muted">Direct</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.direct_cost }}</div>
+            </div>
+            <div>
+              <div class="muted">Indirect</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.indirect_allocated_cost }}</div>
+            </div>
+            <div>
+              <div class="muted">Platform</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.platform_allocated_cost }}</div>
+            </div>
+            <div>
+              <div class="muted">Total cost</div>
+              <div>{{ s.currency_symbol }}{{ '%.2f' % s.total_attributed_cost }}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <span class="muted">Indicative net attributed value</span>
+            <div>{{ s.currency_symbol }}{{ '%.2f' % s.net_value }}</div>
+          </div>
+
+          <div class="two-col" style="margin-top:8px">
+            <div>
+              <div class="muted">Cost / attributed value</div>
+              <div>{{ '%.2f' % s.cost_to_value_percent }}%</div>
+              <div class="muted small">Equivalent to {{ s.currency_symbol }}{{ '%.3f' % s.cost_per_value_unit }} per €1 attributed value</div>
+            </div>
+            <div>
+              <div class="muted">Attributed value multiple</div>
+              <div>{{ (s.attributed_value_multiple ~ 'x') if s.attributed_value_multiple else '—' }}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <div class="muted">Allocation share</div>
+            <div>{{ '%.1f' % s.allocation_share_percent }}%</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h3>Visible unallocated cost</h3>
+    <p>Total unallocated visible cost: <strong>{{ '%.2f' % unallocated_visible }}</strong></p>
+    <p class="muted">These costs are not silently assigned because required attribution metadata is missing.</p>
+  </section>
+
+  <section>
+    <h3>Explain this attribution</h3>
+    <ul>
+      <li>Direct costs were mapped using `agent_id` / `workload_id` tags.</li>
+      <li>Indirect costs were allocated by `log_volume_gb`.</li>
+      <li>Platform costs were allocated by weighted usage (token/runtime/tool-call shares).</li>
+      <li>Unallocated costs were kept visible for manual review.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Cost Ledger</h3>
+    <table>
+      <thead><tr><th>agent</th><th>category</th><th>amount</th><th>explanation</th></tr></thead>
+      <tbody>
+        {% for e in cost_entries %}
+        <tr>
+          <td>{{ e.agent_id or 'UNALLOCATED' }}</td>
+          <td>{{ e.cost_category }}</td>
+          <td>{{ '%.2f' % e.allocated_cost_amount }}</td>
+          <td>{{ e.explanation }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <footer style="margin-top:24px">
+    <p class="muted">APIs: <a href="/api/economics">/api/economics</a> | <a href="/api/cost-ledger">/api/cost-ledger</a> | <a href="/api/source-costs">/api/source-costs</a></p>
+  </footer>
+  <script src="/static/ui.js"></script>
+</body>
+</html>

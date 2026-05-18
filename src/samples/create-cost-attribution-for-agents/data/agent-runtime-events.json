@@ -1,0 +1,32 @@
+
+[
+  {
+    "event_id": "evt-1",
+    "timestamp": "2026-05-01T09:00:00Z",
+    "agent_id": "sales-followup-agent",
+    "workload_id": "crm-opportunity-followup",
+    "business_process": "sales",
+    "value_stream": "revenue-growth",
+    "token_count": 60000,
+    "runtime_seconds": 420,
+    "tool_call_count": 18,
+    "log_volume_gb": 1.2,
+    "request_count": 35,
+    "outcome_id": "opportunity-progressed"
+  },
+  {
+    "event_id": "evt-2",
+    "timestamp": "2026-05-01T10:00:00Z",
+    "agent_id": "support-resolution-agent",
+    "workload_id": "incident-resolution",
+    "business_process": "support",
+    "value_stream": "customer-retention",
+    "token_count": 30000,
+    "runtime_seconds": 300,
+    "tool_call_count": 12,
+    "log_volume_gb": 0.8,
+    "request_count": 25,
+    "outcome_id": "incident-resolved"
+  }
+]
+
