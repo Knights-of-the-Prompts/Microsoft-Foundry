@@ -122,7 +122,7 @@ flowchart LR
     H --> I
 ```
 
-A rendered version of the cost category diagram is also included:
+A simplified functional version of the cost category diagram:
 
 ![Cost categories](assets/diagram-cost-categories.svg)
 
