@@ -224,10 +224,11 @@ Open:
 http://127.0.0.1:8000
 ```
 
-Screenshot:
+Screenshot of a very very simple UI:
 
 ![alt text](../../../media/cost-attribution-ui.png)
 
+In production scenario's PowerBI (or alike) will probably do a much better job ;-)
 
 The UI shows:
 
