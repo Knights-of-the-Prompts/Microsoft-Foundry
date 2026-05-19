@@ -2,9 +2,7 @@
     <img src="../../../media/cost-atrribution-banner.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
 </div>
 
-# Cost Attribution for Accountable Agents
-
-**Accountable Agents — Part 2: Cost Attribution & Allocation**
+# Accountable Agents — Part 2: Cost Attribution & Allocation
 
 This sample shows how to attribute Azure costs back to individual AI agents, workloads and business outcomes.
 
