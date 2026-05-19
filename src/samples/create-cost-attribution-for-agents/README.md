@@ -224,6 +224,11 @@ Open:
 http://127.0.0.1:8000
 ```
 
+Screenshot:
+
+![alt text](../../../media/cost-attribution-ui.png)
+
+
 The UI shows:
 
 - cost category totals;

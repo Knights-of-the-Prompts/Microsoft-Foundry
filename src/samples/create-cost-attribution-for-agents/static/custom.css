@@ -4,6 +4,10 @@
   --muted:#6b7280;
   --accent:#2563eb;
   --border:#e6e9ee;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --surface-2: #f8fafc;
+  --radius: 10px;
 }
 html,body{height:100%}
 body{
@@ -12,14 +16,17 @@ body{
 }
 .container{max-width:1200px;margin:0 auto}
 header h1{margin:0;font-size:1.5rem}
-header h2{margin:6px 0 18px;color:var(--muted);font-weight:400}
+header .subtitle{margin:6px 0 18px;color:var(--muted);font-weight:500}
 .pipeline{background:#fff;margin:8px 0;padding:12px;border-radius:8px;border:1px solid var(--border)}
 .cards{display:flex;gap:14px;margin:16px 0;flex-wrap:wrap}
 .card{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:8px;flex:1 1 220px;box-shadow:0 1px 2px rgba(2,6,23,0.04)}
 .card strong{display:block;margin-bottom:8px}
 .muted{color:var(--muted);font-size:0.95rem}
 /* context bar */
-.context-bar{background:var(--card);border:1px solid var(--border);padding:8px 12px;border-radius:6px;margin:12px 0;color:var(--muted);font-size:0.95rem}
+.context-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0}
+.context-left{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--surface-2);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:0.95rem;color:var(--muted)}
+.context-right{font-size:0.95rem}
 
 .summary-cards{display:flex;gap:14px;margin:12px 0 20px;flex-wrap:wrap}
 .summary-cards .card{flex:1 1 220px;display:flex;flex-direction:column;align-items:flex-start}
@@ -27,20 +34,30 @@ header h2{margin:6px 0 18px;color:var(--muted);font-weight:400}
 
 /* agent cards */
 .agent-cards{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
-.agent-card{background:var(--card);border:1px solid var(--border);padding:12px;border-radius:8px;width:100%;box-shadow:0 1px 2px rgba(2,6,23,0.04)}
-.agent-card-header{display:flex;justify-content:space-between;align-items:center}
-.agent-name{font-size:1.1rem}
-.agent-badge{background:var(--accent);color:#fff;padding:6px 10px;border-radius:8px}
+.agent-card{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:var(--radius);width:100%;box-shadow:0 6px 18px rgba(15,23,42,0.06);transition:transform .12s ease,box-shadow .12s ease}
+.agent-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(15,23,42,0.08)}
+.agent-card-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.agent-name{font-size:1.05rem}
+.agent-badge{padding:6px 12px;border-radius:999px;color:#fff;font-weight:600}
+.agent-badge.positive{background:var(--success)}
+.agent-badge.negative{background:var(--danger)}
 .agent-card-body{margin-top:10px}
 .two-col{display:flex;gap:16px}
 .costs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
 .small{font-size:0.85rem;color:var(--muted)}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
 th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left;font-size:0.95rem}
 th{background:#fbfdff;font-weight:600;color:#0f172a}
 tbody tr:hover{background:#fbfcfe}
 footer .muted a{color:var(--accent)}
 .section{margin-top:20px}
 .explain{background:var(--card);padding:12px;border-radius:8px;border:1px solid var(--border)}
+/* controls */
+.controls-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.btn{display:inline-block;background:var(--accent);color:#fff;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:600;margin-left:6px}
+.btn:hover{opacity:0.95}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px}
+
+@media (max-width:900px){.two-col{flex-direction:column}.costs-grid{grid-template-columns:repeat(2,1fr)}.controls-row{flex-direction:column;align-items:flex-start}}
 @media(max-width:800px){.cards{flex-direction:column}.card{flex:1 1 auto;width:100%}}
 @media(max-width:900px){.agent-card{width:100%}.summary-cards{flex-direction:column}}

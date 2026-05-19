@@ -7,38 +7,40 @@
   <link rel="stylesheet" href="/static/custom.css">
 </head>
 <body>
-  <header>
-    <h1>Cost Attribution for Accountable Agents</h1>
-    <h2>From Azure costs to Value Ledger economics</h2>
-  </header>
+  <div class="container">
+    <header>
+      <h1>Cost Attribution for Accountable Agents</h1>
+      <p class="subtitle">From Azure costs to Value Ledger economics — learn which agent produced value and what it cost.</p>
+    </header>
 
-  <div class="context-bar">
-    Reporting period: {{ reporting_context.reporting_period or 'N/A' }} |
-    Source: {{ reporting_context.cost_source or 'demo CSV' }} |
-    Currency: {{ reporting_context.currency_symbol }}{{ reporting_context.currency or '' }} |
-    Granularity: {{ reporting_context.granularity or 'monthly' }} |
-    Cost basis: {{ reporting_context.cost_basis or 'actual cost' }} |
-    Generated: {{ reporting_context.generated or '' }}
-  </div>
+    <div class="context-row" aria-label="reporting context">
+      <div class="context-left">
+        <span class="chip">Period: <strong>{{ reporting_context.reporting_period or 'N/A' }}</strong></span>
+        <span class="chip">Source: <strong>{{ reporting_context.cost_source or 'demo CSV' }}</strong></span>
+        <span class="chip">Currency: <strong>{{ reporting_context.currency_symbol }}{{ reporting_context.currency or '' }}</strong></span>
+        <span class="chip">Granularity: <strong>{{ reporting_context.granularity or 'monthly' }}</strong></span>
+      </div>
+      <div class="context-right muted">Cost basis: {{ reporting_context.cost_basis or 'actual cost' }} • Generated: {{ reporting_context.generated or '' }}</div>
+    </div>
 
-  <section>
-    <h3>Concept summary</h3>
-    <ul>
-      {% for line in concepts %}
-        <li>{{ line }}</li>
-      {% endfor %}
-    </ul>
-  </section>
+    <section>
+      <h3>What this sample shows</h3>
+      <ul class="explain">
+        {% for line in concepts %}
+          <li>{{ line }}</li>
+        {% endfor %}
+      </ul>
+    </section>
 
-  <section>
-    <h3>Pipeline view</h3>
-    <pre class="pipeline">{% for p in pipeline_text %}{{ p }}
+    <section>
+      <h3>Pipeline view</h3>
+      <pre class="pipeline">{% for p in pipeline_text %}{{ p }}
 {% endfor %}</pre>
-  </section>
+    </section>
 
-  <section>
-    <h3>Cost categories</h3>
-    <div class="cards">
+    <section>
+      <h3>Cost categories</h3>
+      <div class="cards">
       <div class="card">
         <strong>Direct cost</strong>
         <p class="muted">Costs directly attributed to an agent or workload via tags.</p>
@@ -67,11 +69,11 @@
         <p>Action: kept visible and not silently assigned.</p>
         <p><strong>Total for selected period:</strong> {{ reporting_context.currency_symbol }}{{ '%.2f' % totals.unallocated }}</p>
       </div>
-    </div>
-  </section>
+      </div>
+    </section>
 
-  <section>
-    <div class="summary-cards">
+    <section>
+      <div class="summary-cards">
       <div class="card">
         <strong>Total source cost</strong>
         <p class="muted">Sum of all source cost rows for the selected reporting period.</p>
@@ -92,25 +94,29 @@
         <p class="muted">Attributed agent cost / total source cost</p>
         <p class="big">{{ '%.1f' % (allocation_coverage_portfolio * 100) }}%</p>
       </div>
-    </div>
-  </section>
+      </div>
+    </section>
 
-  <section>
-    <h3>Agent economics</h3>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px">
-      <div class="muted">Download: <a href="/api/economics.csv">Economics</a> • <a href="/api/cost-ledger.csv">Cost ledger</a> • <a href="/api/source-costs.csv">Source costs</a></div>
-      <div><button id="toggle-details" onclick="toggleDetails()">Toggle details</button></div>
-    </div>
+    <section>
+      <h3>Agent economics</h3>
+      <div class="controls-row">
+        <div class="muted">Downloads:
+          <a class="btn" href="/api/economics.csv">Economics</a>
+          <a class="btn" href="/api/cost-ledger.csv">Cost ledger</a>
+          <a class="btn" href="/api/source-costs.csv">Source costs</a>
+        </div>
+        <div><button id="toggle-details" class="btn btn-outline" onclick="toggleDetails()" aria-expanded="false">Toggle agent details</button></div>
+      </div>
 
-    <div class="agent-cards">
+      <div class="agent-cards">
       {% for s in summaries %}
       <div class="agent-card">
         <div class="agent-card-header">
           <div>
-            <strong class="agent-name">{{ s.agent_id }}</strong>
-            <div class="muted">Technical id: {{ s.agent_id }} • Workload: {{ s.workload_id or '—' }}</div>
+            <strong class="agent-name">Agent: {{ s.agent_id }}</strong>
+            <div class="muted">Workload: {{ s.workload_id or '—' }} • Technical id: {{ s.agent_id }}</div>
           </div>
-          <div class="agent-badge">{{ s.currency_symbol }}{{ '%.2f' % s.net_value }}</div>
+          <div class="agent-badge {% if s.net_value >= 0 %}positive{% else %}negative{% endif %}">{{ s.currency_symbol }}{{ '%.2f' % s.net_value }}</div>
         </div>
         <div class="agent-card-body">
           <div class="two-col">
@@ -173,42 +179,43 @@
     </div>
   </section>
 
-  <section>
-    <h3>Visible unallocated cost</h3>
-    <p>Total unallocated visible cost: <strong>{{ '%.2f' % unallocated_visible }}</strong></p>
-    <p class="muted">These costs are not silently assigned because required attribution metadata is missing.</p>
-  </section>
+    <section>
+      <h3>Visible unallocated cost</h3>
+      <p>Total unallocated visible cost: <strong>{{ '%.2f' % unallocated_visible }}</strong></p>
+      <p class="muted">These costs are not silently assigned because required attribution metadata is missing.</p>
+    </section>
 
-  <section>
-    <h3>Explain this attribution</h3>
-    <ul>
-      <li>Direct costs were mapped using `agent_id` / `workload_id` tags.</li>
-      <li>Indirect costs were allocated by `log_volume_gb`.</li>
-      <li>Platform costs were allocated by weighted usage (token/runtime/tool-call shares).</li>
-      <li>Unallocated costs were kept visible for manual review.</li>
-    </ul>
-  </section>
+    <section>
+      <h3>Explain this attribution</h3>
+      <ul>
+        <li>Direct costs were mapped using `agent_id` / `workload_id` tags.</li>
+        <li>Indirect costs were allocated by `log_volume_gb`.</li>
+        <li>Platform costs were allocated by weighted usage (token/runtime/tool-call shares).</li>
+        <li>Unallocated costs were kept visible for manual review.</li>
+      </ul>
+    </section>
 
-  <section>
-    <h3>Cost Ledger</h3>
-    <table>
-      <thead><tr><th>agent</th><th>category</th><th>amount</th><th>explanation</th></tr></thead>
-      <tbody>
-        {% for e in cost_entries %}
-        <tr>
-          <td>{{ e.agent_id or 'UNALLOCATED' }}</td>
-          <td>{{ e.cost_category }}</td>
-          <td>{{ '%.2f' % e.allocated_cost_amount }}</td>
-          <td>{{ e.explanation }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </section>
+    <section>
+      <h3>Cost Ledger</h3>
+      <table>
+        <thead><tr><th>Agent</th><th>Category</th><th>Amount</th><th>Explanation</th></tr></thead>
+        <tbody>
+          {% for e in cost_entries %}
+          <tr>
+            <td>{{ e.agent_id or 'UNALLOCATED' }}</td>
+            <td>{{ e.cost_category }}</td>
+            <td>{{ reporting_context.currency_symbol }}{{ '%.2f' % e.allocated_cost_amount }}</td>
+            <td>{{ e.explanation }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
 
-  <footer style="margin-top:24px">
-    <p class="muted">APIs: <a href="/api/economics">/api/economics</a> | <a href="/api/cost-ledger">/api/cost-ledger</a> | <a href="/api/source-costs">/api/source-costs</a></p>
-  </footer>
+    <footer style="margin-top:24px">
+      <p class="muted">APIs: <a href="/api/economics">/api/economics</a> | <a href="/api/cost-ledger">/api/cost-ledger</a> | <a href="/api/source-costs">/api/source-costs</a></p>
+    </footer>
+  </div>
   <script src="/static/ui.js"></script>
 </body>
 </html>
