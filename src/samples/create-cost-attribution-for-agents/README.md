@@ -398,6 +398,9 @@ Optionally deploy export storage:
 ```bash
 ./deploy.sh --with-export-storage
 ```
+---
+
+*Author's note: I used AI assistance to help draft and refine parts of this sample.*
 
 The demo resources represent:
 
