@@ -30,6 +30,7 @@ AZURE_SUBSCRIPTION_ID = os.environ["AZURE_SUBSCRIPTION_ID"]
 AZURE_RESOURCE_GROUP_NAME = os.environ["AZURE_RESOURCE_GROUP_NAME"]
 AZURE_PROJECT_NAME = os.environ["AZURE_PROJECT_NAME"]
 BING_CONNECTION_NAME = os.getenv("BING_CONNECTION_NAME")
+
 MAX_COMPLETION_TOKENS = 4096
 MAX_PROMPT_TOKENS = 10240
 TEMPERATURE = 0.1
@@ -155,18 +156,33 @@ async def initialize(project_client: AIProjectClient, openai_client):
         # Get tools
         tools = await get_tools(project_client, openai_client)
 
-        # Create agent using create_version API with PromptAgentDefinition
-        print("Creating agent...")
-        agent = project_client.agents.create_version(
-            agent_name="ContosoSalesAgent",
-            definition=PromptAgentDefinition(
-                model=API_DEPLOYMENT_NAME,
-                instructions=instructions,
-                tools=tools,
-                temperature=TEMPERATURE,
-            ),
-        )
-        print(f"Created agent (id: {agent.id}, name: {agent.name})")
+        AGENT_NAME = "ContosoSalesAgent"
+
+        # Reuse the existing agent if it was already created in a previous run
+        # to avoid accumulating unused versions.
+        agent = None
+        try:
+            existing_versions = project_client.agents.list_versions(agent_name=AGENT_NAME)
+            if existing_versions:
+                # The SDK returns versions most-recent first; take the latest.
+                agent = existing_versions[0]
+                print(f"Reusing existing agent (id: {agent.id}, name: {agent.name}, version: {agent.version})")
+        except Exception:
+            pass  # Agent name does not exist yet — fall through to create it.
+
+        if agent is None:
+            # No existing agent found — create a new version.
+            print("Creating agent...")
+            agent = project_client.agents.create_version(
+                agent_name=AGENT_NAME,
+                definition=PromptAgentDefinition(
+                    model=API_DEPLOYMENT_NAME,
+                    instructions=instructions,
+                    tools=tools,
+                    temperature=TEMPERATURE,
+                ),
+            )
+            print(f"Created agent (id: {agent.id}, name: {agent.name}, version: {agent.version})")
 
         return agent
 
@@ -344,7 +360,6 @@ async def main() -> None:
                 content=prompt
             )
         
-        # Cleanup
         await cleanup(project_client, agent)
 
 

@@ -1,0 +1,228 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "timeRange",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "typeSettings": {
+              "selectableValues": [
+                { "durationMs": 86400000 },
+                { "durationMs": 259200000 },
+                { "durationMs": 604800000 },
+                { "durationMs": 1209600000 },
+                { "durationMs": 2592000000 }
+              ],
+              "allowCustom": true
+            },
+            "value": { "durationMs": 604800000 },
+            "label": "Time Range"
+          },
+          {
+            "id": "subscription",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "value": null,
+            "label": "Subscription",
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "includeAll": false
+            }
+          },
+          {
+            "id": "resourceGroup",
+            "version": "KqlParameterItem/1.0",
+            "name": "ResourceGroup",
+            "type": 2,
+            "isRequired": true,
+            "query": "Resources | where type =~ 'microsoft.cognitiveservices/accounts' | summarize by resourceGroup | project resourceGroup",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "label": "Resource Group"
+          },
+          {
+            "id": "aiServicesResource",
+            "version": "KqlParameterItem/1.0",
+            "name": "AIServicesResource",
+            "type": 5,
+            "isRequired": true,
+            "query": "Resources | where type =~ 'microsoft.cognitiveservices/accounts' and resourceGroup =~ '{ResourceGroup}' | project id, name",
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "label": "AI Services Resource",
+            "value": null
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.cognitiveservices/accounts"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## ITHelpDeskAgent — Governance Dashboard\n\nMonitoring view for the Agent 365 managed agent. Select your subscription, resource group, and AI Services resource above."
+      },
+      "name": "header"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "TokenTransactions",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.cognitiveservices/accounts",
+        "metricScope": 0,
+        "resourceParameter": "AIServicesResource",
+        "resourceIds": ["{AIServicesResource}"],
+        "timeContext": {
+          "durationMs": 0,
+          "endTime": null,
+          "createdTime": "2024-01-01T00:00:00.000Z",
+          "isInitialTime": false,
+          "grain": 1,
+          "useDashboardTimeRange": false
+        },
+        "timeContextFromParameter": "TimeRange",
+        "metrics": [
+          {
+            "namespace": "microsoft.cognitiveservices/accounts",
+            "metric": "microsoft.cognitiveservices/accounts-TokenTransaction",
+            "aggregation": 1,
+            "splitBy": null
+          }
+        ],
+        "title": "Token Transactions (last period)",
+        "showSubtitle": false,
+        "subtitle": ""
+      },
+      "name": "tokenTransactions"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "RequestsVsErrors",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.cognitiveservices/accounts",
+        "metricScope": 0,
+        "resourceParameter": "AIServicesResource",
+        "resourceIds": ["{AIServicesResource}"],
+        "timeContext": {
+          "durationMs": 0,
+          "endTime": null,
+          "createdTime": "2024-01-01T00:00:00.000Z",
+          "isInitialTime": false,
+          "grain": 1,
+          "useDashboardTimeRange": false
+        },
+        "timeContextFromParameter": "TimeRange",
+        "metrics": [
+          {
+            "namespace": "microsoft.cognitiveservices/accounts",
+            "metric": "microsoft.cognitiveservices/accounts-TotalCalls",
+            "aggregation": 1,
+            "splitBy": null
+          },
+          {
+            "namespace": "microsoft.cognitiveservices/accounts",
+            "metric": "microsoft.cognitiveservices/accounts-TotalErrors",
+            "aggregation": 1,
+            "splitBy": null
+          }
+        ],
+        "title": "Total Requests vs Errors",
+        "showSubtitle": false,
+        "subtitle": ""
+      },
+      "name": "requestsVsErrors"
+    },
+    {
+      "type": 10,
+      "content": {
+        "chartId": "Latency",
+        "version": "MetricsItem/2.0",
+        "size": 0,
+        "chartType": 2,
+        "resourceType": "microsoft.cognitiveservices/accounts",
+        "metricScope": 0,
+        "resourceParameter": "AIServicesResource",
+        "resourceIds": ["{AIServicesResource}"],
+        "timeContext": {
+          "durationMs": 0,
+          "endTime": null,
+          "createdTime": "2024-01-01T00:00:00.000Z",
+          "isInitialTime": false,
+          "grain": 1,
+          "useDashboardTimeRange": false
+        },
+        "timeContextFromParameter": "TimeRange",
+        "metrics": [
+          {
+            "namespace": "microsoft.cognitiveservices/accounts",
+            "metric": "microsoft.cognitiveservices/accounts-Latency",
+            "aggregation": 4,
+            "splitBy": null
+          }
+        ],
+        "title": "End-to-End Latency (avg, ms)",
+        "showSubtitle": false,
+        "subtitle": ""
+      },
+      "name": "latency"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "advisorresources\n| where type =~ 'microsoft.advisor/recommendations'\n| where resourceGroup =~ '{ResourceGroup}'\n| extend category = tostring(properties.category)\n| extend impact    = tostring(properties.impact)\n| extend problem   = tostring(properties.shortDescription.problem)\n| project category, impact, problem, id\n| order by impact asc",
+        "size": 0,
+        "title": "Azure Advisor Recommendations (resource group)",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": ["{Subscription}"],
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "impact",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  { "operator": "==", "thresholdValue": "High",   "representation": "redBright",  "text": "{0}{1}" },
+                  { "operator": "==", "thresholdValue": "Medium", "representation": "yellow",     "text": "{0}{1}" },
+                  { "operator": "==", "thresholdValue": "Low",    "representation": "blue",       "text": "{0}{1}" },
+                  { "operator": "Default",                         "representation": "lightBlue",  "text": "{0}{1}" }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "advisorQuery"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "---\n**Risk thresholds configured in `.env`**\n\n| Threshold | Default |\n|---|---|\n| Max error rate | 5 % |\n| Cost alert (7d) | $10 USD |\n| Idle warning | 3 days without requests |\n\nRun `python report/report.py` for the full console governance report including risk assessment."
+      },
+      "name": "riskNote"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
