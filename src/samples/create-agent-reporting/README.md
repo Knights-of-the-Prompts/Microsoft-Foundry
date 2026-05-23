@@ -20,13 +20,13 @@ You will:
 ```
 Azure AI Foundry
   └─ ITHelpDeskAgent  ──────────────────────────────────────────────────┐
-       │                                                                  │
-       │  agent_guid (Entra agent ID)                                    │
-       ▼                                                                  │
-Microsoft Graph                                                           │
+       │                                                                │
+       │  agent_guid (Entra agent ID)                                   │
+       ▼                                                                │
+Microsoft Graph                                                         │
   └─ PATCH /beta/copilot/agentRegistrations/{agent_guid}                │
-       Owner, Sponsor                                                     │
-                                                                          │
+       Owner, Sponsor                                                   │
+                                                                        │
 Azure Monitor  ◄──── diagnostic-settings (AllMetrics + allLogs) ◄───────┘
   └─ Log Analytics workspace
   └─ Application Insights
