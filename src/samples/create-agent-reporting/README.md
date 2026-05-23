@@ -15,6 +15,46 @@ You will:
 
 ---
 
+## How it works
+
+```mermaid
+flowchart TD
+    A([agent/main.py]) -->|creates| B[ITHelpDeskAgent\nAzure AI Foundry]
+    B -->|agent_guid| C([governance/set_ownership.py])
+
+    C -->|writes Azure resource tags\nowner · sponsor · business-stream| D[(Azure AI Services\nresource tags)]
+    C -->|PATCH best-effort| E[Microsoft Graph\nagentRegistrations]
+    C -->|creates / updates| F[(governance/\nagent_profile.yaml)]
+
+    B -->|diagnostic settings\nAllMetrics + allLogs| G[(Azure Monitor\nLog Analytics)]
+    G --> H[Azure Monitor Workbook\ntokens · latency · errors]
+
+    F --> R
+    D --> R
+    E -.->|fallback if 403/500| R
+    G --> R
+    I[(azure-mgmt-\ncostmanagement)] --> R
+    J[(azure-mgmt-\nadvisor)] --> R
+
+    R([report/report.py]) -->|8-section digest| K[/Weekly governance\nreport — stdout/]
+
+    L[(governance/\nportfolio.yaml)] --> P([report/portfolio.py])
+    R -->|fetch functions\nper agent| P
+    P -->|estate roll-up +\nspotlight| M[/Portfolio report\n— stdout/]
+
+    style B fill:#0078d4,color:#fff
+    style G fill:#0078d4,color:#fff
+    style E fill:#0078d4,color:#fff
+    style H fill:#0078d4,color:#fff
+    style K fill:#107c10,color:#fff
+    style M fill:#107c10,color:#fff
+    style F fill:#ffd700,color:#000
+    style L fill:#ffd700,color:#000
+    style D fill:#ffd700,color:#000
+```
+
+---
+
 ## Architecture
 
 ```
