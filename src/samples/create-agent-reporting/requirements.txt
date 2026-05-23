@@ -5,3 +5,5 @@ azure-mgmt-costmanagement>=4.0.0
 azure-mgmt-advisor>=9.0.0
 httpx>=0.27.0
 python-dotenv>=1.0.0
+pyyaml>=6.0
+pytest>=8.0

@@ -1,0 +1,23 @@
+# Portfolio configuration — list of agents for report/portfolio.py
+#
+# Copy to governance/portfolio.yaml and populate all required fields.
+#
+# Usage:
+#   python report/portfolio.py
+#   python report/portfolio.py --portfolio governance/portfolio.yaml
+
+agents:
+  - name: ITHelpDeskAgent
+    agent_guid: ""                    # Entra agent ID from agent/main.py
+    subscription_id: ""               # Azure subscription ID
+    resource_group: ""                # Azure resource group name
+    ai_services_name: ""              # Azure AI Services resource name
+    profile: governance/agent_profile.yaml
+
+  # Add additional agents below:
+  # - name: SalesFollowUpAgent
+  #   agent_guid: ""
+  #   subscription_id: ""
+  #   resource_group: ""
+  #   ai_services_name: ""
+  #   profile: ""                     # Path to agent_profile.yaml for this agent

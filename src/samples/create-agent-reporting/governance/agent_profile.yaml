@@ -1,0 +1,29 @@
+# Agent governance profile — ITHelpDeskAgent
+#
+# Populated by governance/set_ownership.py or edited manually.
+# Read by report/report.py and report/portfolio.py at report time.
+#
+# This file holds business and ownership metadata that is not available via
+# Azure Monitor, Cost Management, or the Agent 365 API. It represents the
+# governance identity of the agent: who owns it, what it is for, and what
+# value it contributes.
+
+agent_name: ITHelpDeskAgent
+agent_id: ""                          # Populated from AGENT_GUID after step 1
+environment: development              # development | staging | production
+registration_source: azure-ai-foundry-sdk
+deployment_context: "IT Help Desk FAQ agent — Contoso tenant"
+
+# ── Ownership (written by governance/set_ownership.py) ────────────────────────
+owner_email: ""                       # e.g. owner@contoso.com
+sponsor_email: ""                     # e.g. sponsor@contoso.com
+
+# ── Business context ──────────────────────────────────────────────────────────
+business_stream: ""                   # e.g. IT Operations
+
+# ── Value attribution ─────────────────────────────────────────────────────────
+# Configure manually or connect to a value attribution pipeline.
+# The report displays these as narrative descriptions, not computed numbers.
+efficiency_value_description: ""      # e.g. ~15 min saved per resolved ticket
+outcome_value_description: ""         # e.g. Estimated 30% reduction in manual ticket handling
+outcome_description: ""               # e.g. Reduces ticket resolution time for IT Help Desk

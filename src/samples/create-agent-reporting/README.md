@@ -1,4 +1,7 @@
-# Agent 365 Managed Agents — Lab Sample
+<div align="center">
+    <img src="../../../media/agent-reporting.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
+</div>
+
 
 This sample demonstrates how to create an Azure AI Foundry agent and govern it using **Agent 365** — the Microsoft 365 admin center's agent registry and lifecycle management capability.
 
@@ -29,11 +32,24 @@ Azure Monitor  ◄──── diagnostic-settings (AllMetrics + allLogs) ◄─
   └─ Application Insights
   └─ Workbook  (tokens · latency · requests vs errors · Advisor)
 
-report/report.py
-  ├─ Graph API       → Owner, Sponsor
-  ├─ azure-monitor-query → usage metrics (7d)
-  ├─ azure-mgmt-costmanagement → cost estimate (7d)
-  └─ azure-mgmt-advisor → recommendations
+governance/agent_profile.yaml
+  ├─ Owner (email), Sponsor (email), Business stream
+  ├─ Environment, Registration source, Deployment context
+  ├─ Efficiency value, Outcome value descriptions
+  └─ Outcome contribution description
+
+report/report.py  (single-agent digest)
+  ├─ Graph API              → Owner, Sponsor (with profile fallback)
+  ├─ agent_profile.yaml     → Identity, Business stream, Value, Outcome
+  ├─ azure-monitor-query    → Usage metrics (7d)
+  ├─ azure-mgmt-costmanagement → Cost estimate (7d)
+  ├─ azure-mgmt-advisor     → Recommendations
+  └─ evaluate_risks()       → Risk signals + Recommended Actions
+
+report/portfolio.py  (estate roll-up)
+  ├─ governance/portfolio.yaml  → Agent list
+  ├─ per-agent: report.py fetch functions (parameterised)
+  └─ prints estate summary + spotlight (agents needing attention)
 ```
 
 ---
@@ -41,16 +57,22 @@ report/report.py
 ## Folder Structure
 
 ```
-create-agent365-managed-agents/
+create-agent-reporting/
 ├── agent/
 │   ├── instructions.md          # IT Help Desk system prompt
 │   └── main.py                  # Create / reuse ITHelpDeskAgent + chat loop
 ├── governance/
-│   └── set_ownership.py         # Set Owner and Sponsor via Graph API
+│   ├── agent_profile.yaml        # Business + ownership metadata
+│   ├── portfolio.yaml.example    # Multi-agent portfolio config template
+│   ├── set_ownership.py          # Set Owner, Sponsor, Business Stream + update profile
+│   └── bootstrap_consent.py      # One-time Global Admin setup for Graph path
 ├── monitoring/
 │   └── simulate_usage.py        # Send sample questions to generate metric data
 ├── report/
-│   └── report.py                # On-demand console governance report
+│   ├── report.py                # On-demand governance report (single agent)
+│   └── portfolio.py             # Portfolio roll-up report (multi-agent estate)
+├── tests/
+│   └── test_report.py           # Unit tests for report logic (no Azure credentials needed)
 ├── infra/
 │   ├── modules/
 │   │   ├── log-analytics.bicep
@@ -176,6 +198,27 @@ PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations/{AGENT_GUID}
 
 > **Note**: This path only succeeds when the agent has been published to the M365 Copilot registry via the M365 publishing flow. Agents created directly via the Azure AI Foundry SDK are not automatically added to that registry. If the secondary path returns HTTP 500, this is expected — the Azure tags path has already recorded ownership.
 
+---
+
+### Step 2b — Populate the governance profile
+
+`governance/agent_profile.yaml` is created automatically by `set_ownership.py`. Fill in the business context fields manually — these are used by the report to show the full agent identity and value attribution picture:
+
+| Field | Description | Example |
+|---|---|---|
+| `environment` | Deployment environment | `production` |
+| `deployment_context` | Free-text description | `IT Help Desk FAQ agent — Contoso tenant` |
+| `business_stream` | Value stream the agent supports | `IT Operations` |
+| `efficiency_value_description` | Efficiency value narrative | `~15 min saved per resolved ticket` |
+| `outcome_value_description` | Outcome value narrative | `Estimated 30% reduction in manual ticket handling` |
+| `outcome_description` | Business outcome contribution | `Reduces ticket resolution time for IT Help Desk` |
+
+These fields do **not** require a live API — they are configured once and read at report time. This keeps the reporting pattern independent from any single source of truth.
+
+You can also set `AGENT_BUSINESS_STREAM` and `AGENT_ENVIRONMENT` in `.env` before running `set_ownership.py` and they will be written automatically.
+
+---
+
 To enable the M365 path, run the one-time admin bootstrap first:
 
 ```bash
@@ -197,11 +240,13 @@ This creates an Entra app registration called `A365AgentGovernanceTool` with `Ag
 
 ### Step 3 — Deploy monitoring infrastructure
 
-Edit `infra/main.parameters.json` (or rely on env-var overrides) and run:
+Ensure `AI_SERVICES_NAME`, `AZURE_SUBSCRIPTION_ID`, and `AZURE_RESOURCE_GROUP_NAME` are set in `.env`, then run:
 
 ```bash
 bash infra/deploy.sh
 ```
+
+The script automatically downloads the [Bicep CLI](https://github.com/Azure/bicep) if it is not already installed, compiles `infra/main.bicep` to an ARM template, and deploys via the Azure Resource Manager REST API (compatible with all Azure CLI versions).
 
 This deploys:
 
@@ -218,6 +263,14 @@ The script prints the **Workbook URL** on success. Open it in the Azure portal t
 - Total requests vs errors
 - End-to-end latency (avg)
 - Azure Advisor recommendations for the resource group
+
+#### Troubleshooting deploy.sh
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `LocationRequired` | Empty `location` value passed to the template | Remove the `location` entry from `main.parameters.json` (leave it absent to use the resource group's region) |
+| `AuthorizationFailed` | Caller lacks Contributor on the resource group | Assign `Contributor` on `AZURE_RESOURCE_GROUP_NAME` to your user |
+| Deployment `Failed` with no detail | Check `State:` output from the script | Re-run with `set -x` before the `az rest` poll loop to print the raw error |
 
 ---
 
@@ -243,6 +296,8 @@ Metrics appear in Azure Monitor within a few minutes. Refresh the Workbook to se
 python report/report.py
 ```
 
+The report covers all sections described in the article: Agent Identity, Governance (owner + sponsor email, business stream), Usage, Cost, Value (efficiency + outcome), Risks, Azure Advisor, and Recommended Actions.
+
 Sample output:
 
 ```
@@ -251,9 +306,17 @@ Sample output:
   Period : 2026-05-15  →  2026-05-22
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+  Agent Identity
+  Agent name                    ITHelpDeskAgent
+  Agent ID (Entra)              xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  Environment                   production
+  Registration                  azure-ai-foundry-sdk
+  Deployment context            IT Help Desk FAQ agent — Contoso tenant
+  Business stream               IT Operations
+
   Governance
-  Owner                         owner@contoso.com
-  Sponsor                       sponsor@contoso.com
+  Owner (email)                 owner@contoso.com
+  Sponsor (email)               sponsor@contoso.com
 
   Usage  (last 7 days)
   Total requests                42
@@ -265,14 +328,38 @@ Sample output:
   Cost  (last 7 days)
   Estimated spend               0.2341 USD
 
+  Value
+  Efficiency value              ~15 min saved per resolved ticket
+  Outcome value                 Estimated 30% reduction in manual ticket handling
+  Outcome contrib.              Reduces ticket resolution time for IT Help Desk
+
   Risks
   ✅  None
 
   Azure Advisor  (resource group)
   ✅  None
 
+  Recommended Actions
+  ✅  None — no actions required this period
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+---
+
+### Step 6 — Run the portfolio roll-up report
+
+The portfolio report serves the second audience: CTO, FinOps lead, compliance manager, or platform owner. It queries every agent in `governance/portfolio.yaml` and produces an estate-wide summary with a spotlight on agents that need attention.
+
+```bash
+# Copy the example and populate your agent list
+cp governance/portfolio.yaml.example governance/portfolio.yaml
+
+# Edit governance/portfolio.yaml, then:
+python report/portfolio.py
+```
+
+The roll-up shows: agent name, owner, business stream, requests (7d), cost (7d), open risks, and recommended actions per agent. The **Agents needing attention** section surfaces agents that are missing ownership, missing a business stream, or have open risks — with the specific actions for each.
 
 #### Configurable risk thresholds
 
@@ -296,9 +383,33 @@ Sample output:
 | `AGENT_GUID` | Set in step 1 | Entra agent ID printed by `agent/main.py` |
 | `AGENT_OWNER` | Set in step 2 | UPN or object ID of the agent owner |
 | `AGENT_SPONSOR` | Set in step 2 | UPN or object ID of the executive sponsor |
+| `AGENT_BUSINESS_STREAM` | Optional | Business stream written to tags and profile |
+| `AGENT_ENVIRONMENT` | Optional | Environment label written to profile (e.g. `production`) |
 | `RISK_MAX_ERROR_RATE` | Optional | Error rate threshold (default: `0.05`) |
 | `RISK_COST_THRESHOLD_USD` | Optional | Cost alert threshold in USD (default: `10.00`) |
 | `RISK_IDLE_DAYS` | Optional | Idle warning threshold in days (default: `3`) |
+
+---
+
+## RACI for agents
+
+| Role | Responsibility |
+|---|---|
+| **Agent** | Produces the evidence trail: actions, usage, cost, value, risks, Azure Advisor recommendations, and outcome contribution. Accountable by evidence, not by role. |
+| **Owner** | Responsible for the technical lifecycle: configuration, monitoring, fixes, and operational follow-up. Set via `AGENT_OWNER`. |
+| **Sponsor** | Accountable for the business purpose, adoption, funding, value expectations, and risk acceptance. Set via `AGENT_SPONSOR`. |
+| **Security / Compliance / FinOps / Architecture** | Consulted on controls, risk, cost allocation, architecture, and governance requirements. Surfaced via portfolio roll-up. |
+| **CTO / Business controller / Portfolio stakeholders** | Informed through `report/portfolio.py`. |
+
+---
+
+## Running the tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+Tests cover `evaluate_risks()`, `generate_recommended_actions()`, `load_agent_profile()`, and `fetch_governance()`. No Azure credentials are required — all API calls are mocked.
 
 ---
 

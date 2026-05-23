@@ -5,12 +5,6 @@
     "namePrefix": {
       "value": "a365agent"
     },
-    "location": {
-      "value": ""
-    },
-    "aiServicesName": {
-      "value": ""
-    },
     "retentionDays": {
       "value": 30
     }

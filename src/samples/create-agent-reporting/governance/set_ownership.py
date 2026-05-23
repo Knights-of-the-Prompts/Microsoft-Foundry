@@ -32,18 +32,22 @@ import json
 import os
 import re
 import subprocess
+from pathlib import Path
 
 import httpx
+import yaml
 from azure.identity import ClientSecretCredential, DefaultAzureCredential
 from dotenv import load_dotenv
 
 _ENV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
 load_dotenv(dotenv_path=_ENV)
 
-AGENT_GUID        = os.getenv("AGENT_GUID", "")
-AGENT_OWNER       = os.getenv("AGENT_OWNER", "")
-AGENT_SPONSOR     = os.getenv("AGENT_SPONSOR", "")
-AGENT_NAME        = "ITHelpDeskAgent"
+AGENT_GUID           = os.getenv("AGENT_GUID", "")
+AGENT_OWNER          = os.getenv("AGENT_OWNER", "")
+AGENT_SPONSOR        = os.getenv("AGENT_SPONSOR", "")
+AGENT_BUSINESS_STREAM = os.getenv("AGENT_BUSINESS_STREAM", "")
+AGENT_ENVIRONMENT    = os.getenv("AGENT_ENVIRONMENT", "")
+AGENT_NAME           = "ITHelpDeskAgent"
 
 SUBSCRIPTION_ID   = os.getenv("AZURE_SUBSCRIPTION_ID", "")
 RESOURCE_GROUP    = os.getenv("AZURE_RESOURCE_GROUP_NAME", "")
@@ -106,6 +110,8 @@ async def _set_azure_tags(owner: str, sponsor: str) -> bool:
         tags[f"agent-{AGENT_NAME}-owner"] = owner
     if sponsor:
         tags[f"agent-{AGENT_NAME}-sponsor"] = sponsor
+    if AGENT_BUSINESS_STREAM:
+        tags[f"agent-{AGENT_NAME}-business-stream"] = AGENT_BUSINESS_STREAM
 
     body = {"operation": "Merge", "properties": {"tags": tags}}
     headers = {
@@ -178,6 +184,52 @@ async def _try_graph_patch(owner_oid: str | None, sponsor_oid: str | None,
         print(f"  M365 agentRegistrations: HTTP {resp.status_code} — {resp.text[:200]}")
 
 
+# ── Agent profile ─────────────────────────────────────────────────────────────
+
+def _update_agent_profile(owner: str, sponsor: str, business_stream: str) -> None:
+    """
+    Create or update governance/agent_profile.yaml with ownership and context data.
+    Preserves any existing fields not touched by this function.
+    """
+    profile_path = Path(__file__).resolve().parent / "agent_profile.yaml"
+    try:
+        if profile_path.exists():
+            with open(profile_path, "r", encoding="utf-8") as f:
+                profile: dict = yaml.safe_load(f) or {}
+        else:
+            profile = {
+                "agent_name": AGENT_NAME,
+                "agent_id": AGENT_GUID,
+                "environment": AGENT_ENVIRONMENT,
+                "registration_source": "azure-ai-foundry-sdk",
+                "deployment_context": "",
+                "owner_email": "",
+                "sponsor_email": "",
+                "business_stream": "",
+                "efficiency_value_description": "",
+                "outcome_value_description": "",
+                "outcome_description": "",
+            }
+
+        if owner:
+            profile["owner_email"] = owner
+        if sponsor:
+            profile["sponsor_email"] = sponsor
+        if business_stream:
+            profile["business_stream"] = business_stream
+        if AGENT_GUID and not profile.get("agent_id"):
+            profile["agent_id"] = AGENT_GUID
+        if AGENT_ENVIRONMENT and not profile.get("environment"):
+            profile["environment"] = AGENT_ENVIRONMENT
+
+        with open(profile_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(profile, f, default_flow_style=False,
+                           allow_unicode=True, sort_keys=False)
+        print(f"  Agent profile updated : {profile_path}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  Warning: could not update agent profile: {exc}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def set_ownership() -> None:
@@ -192,10 +244,15 @@ async def set_ownership() -> None:
         print(f"  Sponsor : {AGENT_SPONSOR}")
     print()
 
+    if AGENT_BUSINESS_STREAM:
+        print(f"  Business stream : {AGENT_BUSINESS_STREAM}")
+
     # ── Primary: Azure resource tags ──────────────────────────────────────────
     print("── Primary: Azure resource tags ─────────────────────────────────────")
     success = await _set_azure_tags(AGENT_OWNER, AGENT_SPONSOR)
-    if not success:
+    if success:
+        _update_agent_profile(AGENT_OWNER, AGENT_SPONSOR, AGENT_BUSINESS_STREAM)
+    else:
         print("  Azure tag update failed. Check credentials and .env values above.")
 
     # ── Secondary: M365 Graph agentRegistrations (best-effort) ────────────────

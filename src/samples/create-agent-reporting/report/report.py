@@ -2,11 +2,15 @@
 On-demand governance report for ITHelpDeskAgent.
 
 Prints a structured weekly report to the console covering:
-  • Agent governance: Owner and Sponsor from Graph agentRegistrations
-  • Usage metrics  : requests, successes, errors, error rate, tokens (last 7 days)
-  • Cost estimate  : USD total for the AI Services resource (last 7 days)
-  • Risk indicators: rule-based assessment against configurable thresholds
-  • Azure Advisor  : recommendations scoped to the resource group
+  • Agent identity  : name, ID, environment, registration source, deployment context
+  • Governance      : Owner (email), Sponsor (email), Business stream
+  • Usage metrics   : requests, successes, errors, error rate, tokens (last 7 days)
+  • Cost estimate   : USD total for the AI Services resource (last 7 days)
+  • Value           : efficiency value and outcome value (from governance profile)
+  • Outcome contrib : business outcome description (from governance profile)
+  • Risk indicators : rule-based assessment against configurable thresholds
+  • Azure Advisor   : recommendations scoped to the resource group
+  • Recommended     : actions for owner, sponsor, or control function
 
 Usage:
     python report/report.py
@@ -15,9 +19,11 @@ Usage:
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 
 import httpx
+import yaml
 from azure.identity import DefaultAzureCredential
 from azure.monitor.query import MetricsQueryClient, MetricAggregationType
 from azure.mgmt.costmanagement import CostManagementClient
@@ -32,14 +38,16 @@ from azure.mgmt.costmanagement.models import (
 from azure.mgmt.advisor import AdvisorManagementClient
 from dotenv import load_dotenv
 
-_ENV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
+_SAMPLE_ROOT = Path(__file__).resolve().parent.parent
+_ENV = _SAMPLE_ROOT / ".env"
 load_dotenv(dotenv_path=_ENV)
 
-# ── Required env vars ──────────────────────────────────────────────────────────
+# ── Required env vars ─────────────────────────────────────────────────────────────────
 AGENT_GUID            = os.getenv("AGENT_GUID", "")
 AZURE_SUBSCRIPTION_ID = os.environ["AZURE_SUBSCRIPTION_ID"]
 AZURE_RESOURCE_GROUP  = os.environ["AZURE_RESOURCE_GROUP_NAME"]
 AI_SERVICES_NAME      = os.environ["AI_SERVICES_NAME"]
+AGENT_ENVIRONMENT     = os.getenv("AGENT_ENVIRONMENT", "")
 
 # ── Risk thresholds (configurable) ────────────────────────────────────────────
 RISK_MAX_ERROR_RATE      = float(os.getenv("RISK_MAX_ERROR_RATE", "0.05"))
@@ -48,6 +56,7 @@ RISK_IDLE_DAYS           = int(os.getenv("RISK_IDLE_DAYS", "3"))
 
 _REPORT_WIDTH = 66
 _SEP = "━" * _REPORT_WIDTH
+_PROFILE_PATH = _SAMPLE_ROOT / "governance" / "agent_profile.yaml"
 
 
 def _h(text: str) -> None:
@@ -58,12 +67,36 @@ def _row(label: str, value: str) -> None:
     print(f"  {label:<30}{value}")
 
 
+# ── Agent Profile ─────────────────────────────────────────────────────
+
+def load_agent_profile(path: "Optional[Path]" = None) -> dict:
+    """Load governance profile YAML if present; return empty dict if absent."""
+    target = path or _PROFILE_PATH
+    try:
+        with open(target, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        return {}
+    except Exception as exc:  # noqa: BLE001
+        print(f"  Warning: could not load agent profile: {exc}")
+        return {}
+
+
 # ── Governance ────────────────────────────────────────────────────────────────
 
-def fetch_governance(agent_guid: str, credential: DefaultAzureCredential) -> dict:
-    """Read Owner and Sponsor from Graph agentRegistrations."""
+def fetch_governance(agent_guid: str, credential: DefaultAzureCredential,
+                     profile: "Optional[dict]" = None) -> dict:
+    """
+    Read Owner and Sponsor from Graph agentRegistrations.
+    Falls back to governance profile values when the Graph path is unavailable.
+    """
+    _profile = profile or {}
+    result = {
+        "owner":   _profile.get("owner_email") or "—",
+        "sponsor": _profile.get("sponsor_email") or "—",
+    }
     if not agent_guid:
-        return {"owner": "—  (AGENT_GUID not set)", "sponsor": "—  (AGENT_GUID not set)"}
+        return result
 
     token = credential.get_token("https://graph.microsoft.com/.default")
     headers = {"Authorization": f"Bearer {token.token}"}
@@ -72,25 +105,36 @@ def fetch_governance(agent_guid: str, credential: DefaultAzureCredential) -> dic
         resp = httpx.get(url, headers=headers, timeout=15)
         if resp.status_code == 200:
             data = resp.json()
-            return {
-                "owner":   data.get("ownerDisplayName") or data.get("ownerUserId") or "—",
-                "sponsor": data.get("sponsorDisplayName") or data.get("sponsorUserId") or "—",
-            }
-        if resp.status_code == 403:
-            return {"owner": "403 — run governance/set_ownership.py for setup instructions",
-                    "sponsor": "403"}
+            owner   = data.get("ownerDisplayName") or data.get("ownerUserId")
+            sponsor = data.get("sponsorDisplayName") or data.get("sponsorUserId")
+            if owner:
+                result["owner"] = owner
+            if sponsor:
+                result["sponsor"] = sponsor
+        elif resp.status_code == 403 and not _profile.get("owner_email"):
+            result["owner"] = "403 — run governance/set_ownership.py for setup"
     except Exception as exc:  # noqa: BLE001
-        return {"owner": f"Error: {exc}", "sponsor": "—"}
-    return {"owner": "—", "sponsor": "—"}
+        if not _profile.get("owner_email"):
+            result["owner"] = f"Error: {exc}"
+    return result
 
 
 # ── Usage metrics ─────────────────────────────────────────────────────────────
 
-def fetch_usage(credential: DefaultAzureCredential) -> dict:
+def fetch_usage(
+    credential: DefaultAzureCredential,
+    *,
+    subscription_id: Optional[str] = None,
+    resource_group: Optional[str] = None,
+    ai_services_name: Optional[str] = None,
+) -> dict:
     """Query Azure Monitor metrics for the AI Services resource."""
+    sub = subscription_id or AZURE_SUBSCRIPTION_ID
+    rg  = resource_group  or AZURE_RESOURCE_GROUP
+    ai  = ai_services_name or AI_SERVICES_NAME
     resource_id = (
-        f"/subscriptions/{AZURE_SUBSCRIPTION_ID}/resourceGroups/{AZURE_RESOURCE_GROUP}"
-        f"/providers/Microsoft.CognitiveServices/accounts/{AI_SERVICES_NAME}"
+        f"/subscriptions/{sub}/resourceGroups/{rg}"
+        f"/providers/Microsoft.CognitiveServices/accounts/{ai}"
     )
     end   = datetime.now(tz=timezone.utc)
     start = end - timedelta(days=7)
@@ -133,15 +177,20 @@ def fetch_usage(credential: DefaultAzureCredential) -> dict:
 
 # ── Cost ──────────────────────────────────────────────────────────────────────
 
-def fetch_cost(credential: DefaultAzureCredential) -> dict:
+def fetch_cost(
+    credential: DefaultAzureCredential,
+    *,
+    subscription_id: Optional[str] = None,
+    resource_group: Optional[str] = None,
+) -> dict:
     """Query Cost Management for last-7-days spend in the resource group."""
-    scope = (
-        f"/subscriptions/{AZURE_SUBSCRIPTION_ID}/resourceGroups/{AZURE_RESOURCE_GROUP}"
-    )
+    sub   = subscription_id or AZURE_SUBSCRIPTION_ID
+    rg    = resource_group  or AZURE_RESOURCE_GROUP
+    scope = f"/subscriptions/{sub}/resourceGroups/{rg}"
     end   = datetime.now(tz=timezone.utc).date()
     start = end - timedelta(days=7)
 
-    client = CostManagementClient(credential, subscription_id=AZURE_SUBSCRIPTION_ID)
+    client = CostManagementClient(credential, subscription_id=sub)
     try:
         result = client.query.usage(
             scope=scope,
@@ -171,13 +220,20 @@ def fetch_cost(credential: DefaultAzureCredential) -> dict:
 
 # ── Advisor ───────────────────────────────────────────────────────────────────
 
-def fetch_advisor(credential: DefaultAzureCredential) -> list[str]:
+def fetch_advisor(
+    credential: DefaultAzureCredential,
+    *,
+    subscription_id: Optional[str] = None,
+    resource_group: Optional[str] = None,
+) -> list[str]:
     """List Azure Advisor recommendations for the resource group."""
-    client = AdvisorManagementClient(credential, subscription_id=AZURE_SUBSCRIPTION_ID)
+    sub = subscription_id or AZURE_SUBSCRIPTION_ID
+    rg  = resource_group  or AZURE_RESOURCE_GROUP
+    client = AdvisorManagementClient(credential, subscription_id=sub)
     recs: list[str] = []
     try:
         for rec in client.recommendations.list(
-            filter=f"resourceGroup eq '{AZURE_RESOURCE_GROUP}'"
+            filter=f"resourceGroup eq '{rg}'"
         ):
             short = getattr(rec, "short_description", None)
             if short:
@@ -217,17 +273,73 @@ def evaluate_risks(usage: dict, cost: dict) -> list[str]:
     return risks
 
 
+# ── Recommended actions ──────────────────────────────────────────────────────────
+
+def generate_recommended_actions(
+    risks: list[str],
+    advisor: list[str],
+    profile: dict,
+    governance: dict,
+) -> list[str]:
+    """
+    Derive a short list of actions for the owner, sponsor, or control function.
+    Combines risk-based actions, Azure Advisor items, and governance profile
+    completeness checks.
+    """
+    actions: list[str] = []
+    owner_contact   = governance.get("owner",   "") or profile.get("owner_email",   "owner")
+    sponsor_contact = governance.get("sponsor", "") or profile.get("sponsor_email", "sponsor")
+
+    for risk in risks:
+        lower = risk.lower()
+        if "error rate" in lower:
+            actions.append(
+                f"Investigate high error rate with owner — contact: {owner_contact}"
+            )
+        elif "cost alert" in lower:
+            actions.append(
+                f"Review cost allocation with FinOps — notify sponsor: {sponsor_contact}"
+            )
+        elif "idle" in lower:
+            actions.append(
+                f"Verify agent is still needed — confirm with sponsor: {sponsor_contact}"
+            )
+
+    for item in advisor:
+        if not item.startswith("Error"):
+            actions.append(f"Act on Azure Advisor: {item}")
+
+    # Governance completeness checks
+    if not profile.get("business_stream"):
+        actions.append(
+            "Add business_stream to governance/agent_profile.yaml"
+        )
+    if not profile.get("efficiency_value_description") and \
+       not profile.get("outcome_value_description"):
+        actions.append(
+            "Connect value attribution — populate value fields in governance/agent_profile.yaml"
+        )
+    if not profile.get("outcome_description"):
+        actions.append(
+            "Add outcome_description to governance/agent_profile.yaml"
+        )
+
+    return actions
+
+
 # ── Print ─────────────────────────────────────────────────────────────────────
 
 def print_report(
     agent_name: str,
     period_start: str,
     period_end: str,
+    profile: dict,
     governance: dict,
     usage: dict,
     cost: dict,
     risks: list[str],
     advisor: list[str],
+    actions: list[str],
 ) -> None:
     print()
     print(_SEP)
@@ -235,10 +347,21 @@ def print_report(
     print(f"  Period : {period_start}  →  {period_end}")
     print(_SEP)
 
-    _h("Governance")
-    _row("Owner",   governance.get("owner", "—"))
-    _row("Sponsor", governance.get("sponsor", "—"))
+    # ── Agent Identity ──────────────────────────────────────────────────────
+    _h("Agent Identity")
+    _row("Agent name",         profile.get("agent_name", agent_name))
+    _row("Agent ID (Entra)",   AGENT_GUID or "—  (AGENT_GUID not set)")
+    _row("Environment",        profile.get("environment", AGENT_ENVIRONMENT or "—"))
+    _row("Registration",       profile.get("registration_source", "—"))
+    _row("Deployment context", profile.get("deployment_context", "—"))
+    _row("Business stream",    profile.get("business_stream") or "—  (not configured)")
 
+    # ── Governance ──────────────────────────────────────────────────────
+    _h("Governance")
+    _row("Owner (email)",   governance.get("owner", "—"))
+    _row("Sponsor (email)", governance.get("sponsor", "—"))
+
+    # ── Usage ────────────────────────────────────────────────────────────
     _h("Usage  (last 7 days)")
     if "error" in usage:
         _row("Error", usage["error"])
@@ -249,6 +372,7 @@ def print_report(
         _row("Error rate",      f"{usage.get('error_rate', 0):.1%}")
         _row("Tokens consumed", f"{usage.get('tokens', 0):,}")
 
+    # ── Cost ───────────────────────────────────────────────────────────────
     _h("Cost  (last 7 days)")
     if "error" in cost:
         _row("Error", cost["error"])
@@ -258,6 +382,13 @@ def print_report(
             f"{cost.get('amount', 0):.4f} {cost.get('currency', 'USD')}",
         )
 
+    # ── Value ───────────────────────────────────────────────────────────────
+    _h("Value")
+    _row("Efficiency value",  profile.get("efficiency_value_description")  or "—  (not configured)")
+    _row("Outcome value",     profile.get("outcome_value_description")     or "—  (not configured)")
+    _row("Outcome contrib.",  profile.get("outcome_description")           or "—  (not configured)")
+
+    # ── Risks ───────────────────────────────────────────────────────────────
     _h("Risks")
     if risks:
         for r in risks:
@@ -265,12 +396,21 @@ def print_report(
     else:
         print("  ✅  None")
 
+    # ── Azure Advisor ────────────────────────────────────────────────────────
     _h("Azure Advisor  (resource group)")
     if advisor:
         for a in advisor:
             print(f"  •  {a}")
     else:
         print("  ✅  None")
+
+    # ── Recommended Actions ────────────────────────────────────────────────
+    _h("Recommended Actions")
+    if actions:
+        for i, a in enumerate(actions, 1):
+            print(f"  {i}.  {a}")
+    else:
+        print("  ✅  None — no actions required this period")
 
     print()
     print(_SEP)
@@ -287,21 +427,25 @@ def main() -> None:
 
     credential = DefaultAzureCredential()
 
-    governance = fetch_governance(AGENT_GUID, credential)
+    profile    = load_agent_profile()
+    governance = fetch_governance(AGENT_GUID, credential, profile)
     usage      = fetch_usage(credential)
     cost       = fetch_cost(credential)
     risks      = evaluate_risks(usage, cost)
     advisor    = fetch_advisor(credential)
+    actions    = generate_recommended_actions(risks, advisor, profile, governance)
 
     print_report(
         agent_name   = "ITHelpDeskAgent",
         period_start = str(start),
         period_end   = str(now),
+        profile      = profile,
         governance   = governance,
         usage        = usage,
         cost         = cost,
         risks        = risks,
         advisor      = advisor,
+        actions      = actions,
     )
 
 
