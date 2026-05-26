@@ -2,17 +2,14 @@
     <img src="media/kotp-readme-frontier.png" width="100%" alt="Microsoft Foundry">
 </div>
 
-> **� REPOSITORY MODERNIZATION IN PROGRESS | January 2026** 🚧
+> **✅ REPOSITORY MODERNIZATION COMPLETE | May 2026**
 > 
-> **⚠️ IMPORTANT NOTICE**: This repository is currently being upgraded to align with the latest Microsoft Foundry architecture and SDK patterns. During this transition period:
-> - ❌ **The repository may not function correctly**
-> - 🔄 **Breaking infrastructure changes are being implemented**  
-> - 📅 **Expected completion: Late February 2026**
+> The repository has been upgraded to the modern Microsoft Foundry architecture. The main workshop is fully operational.
 > 
-> **What's Changing?**
+> **What Changed?**
 > - ✨ Modern CognitiveServices architecture (replacing MachineLearningServices Hub/Project)
 > - 🔐 Keyless authentication with Entra ID (DefaultAzureCredential)
-> - 🎯 Simplified infrastructure (60% less complexity)
+> - 🎯 Simplified infrastructure (~40% fewer lines)
 > - 🚀 Latest azure-ai-projects SDK patterns
 > 
 > 👉 **See [CHANGELOG.md](CHANGELOG.md) for detailed migration information**
@@ -42,7 +39,7 @@ By embracing Agentic applications, you’ll:
 This workshop is your gateway to creating **intelligent, action-driven AI solutions**. Let's redefine what's possible with Microsoft Foundry and take your AI development to the next level! 💼✨
 
 ### ⏱️ Duration
-🕒 45 - 60 minutes
+🕒 2 - 3 hours
 
 ### 🎥 Watch a Recent Workshop Execution Video
 
@@ -147,13 +144,13 @@ If you are interested in organizing a hackathon using this repository, check out
 - **Cost Control Policies Guide**: 📊 Understand the cost control policies implemented to manage and monitor expenses during the hackathon. [Read more here](infra/policies/README.md).
 ---
 
-## 📝 Recent Changes - January 2026
+## 📝 Infrastructure Changes - January 2026
 
 ### 🔄 Major Infrastructure Modernization
 
 **Key Changes**:
 - **New Architecture**: Migrated from MachineLearningServices Hub/Project to modern CognitiveServices-based Microsoft Foundry
-- **Simplified Infrastructure**: Removed 4 dependent resources (Storage, KeyVault, AppInsights, Container Registry) - now just 2 core resources
+- **Simplified Infrastructure**: Removed dependent resources (Storage, KeyVault, AppInsights, Container Registry) from the default deployment - new architecture uses 2 core Azure resources (Foundry + Project) with optional add-ons
 - **Keyless Authentication**: Entra ID (DefaultAzureCredential) is now the default - no more API key management
 - **Modern Endpoints**: 
   - Project endpoint: `https://{resource}.services.ai.azure.com/api/projects/{project}`
@@ -162,7 +159,7 @@ If you are interested in organizing a hackathon using this repository, check out
 
 **Impact**:
 - ⚠️ **Breaking change** - requires fresh deployment
-- ✅ 34% smaller templates (1246 → 823 lines)
+- ✅ ~40% smaller templates (695 → 416 lines across all modules)
 - ✅ Best practice security (keyless auth)
 - ✅ Aligned with Microsoft Foundry roadmap
 

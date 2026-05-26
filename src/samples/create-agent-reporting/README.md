@@ -359,19 +359,19 @@ Sample output:
   Sponsor (email)               sponsor@contoso.com
 
   Usage  (last 7 days)
-  Total requests                42
-  Successful                    41
-  Errors                        1
-  Error rate                    2.4%
-  Tokens consumed               18,350
+  Total requests                156
+  Successful                    153
+  Errors                        3
+  Error rate                    1.9%
+  Tokens consumed               312,450
 
   Cost  (last 7 days)
-  Estimated spend               0.2341 USD
+  Estimated spend               4.73 USD
 
   Value
-  Efficiency value              ~15 min saved per resolved ticket
-  Outcome value                 Estimated 30% reduction in manual ticket handling
-  Outcome contrib.              Reduces ticket resolution time for IT Help Desk
+  Efficiency value              ~15 min saved per resolved ticket · 38.25 hrs recovered this period
+  Outcome value                 153 tickets deflected (~30% reduction in manual handling vs. baseline)
+  Outcome contrib.              Reduces ticket resolution time for IT Help Desk · est. $1,340 labour saving
 
   Risks
   ✅  None
