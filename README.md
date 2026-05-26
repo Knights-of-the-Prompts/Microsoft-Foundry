@@ -2,18 +2,6 @@
     <img src="media/kotp-readme-frontier.png" width="100%" alt="Microsoft Foundry">
 </div>
 
-> **✅ REPOSITORY MODERNIZATION COMPLETE | May 2026**
-> 
-> The repository has been upgraded to the modern Microsoft Foundry architecture. The main workshop is fully operational.
-> 
-> **What Changed?**
-> - ✨ Modern CognitiveServices architecture (replacing MachineLearningServices Hub/Project)
-> - 🔐 Keyless authentication with Entra ID (DefaultAzureCredential)
-> - 🎯 Simplified infrastructure (~40% fewer lines)
-> - 🚀 Latest azure-ai-projects SDK patterns
-> 
-> 👉 **See [CHANGELOG.md](CHANGELOG.md) for detailed migration information**
-
 # **Welcome to the "Build Agents with Microsoft Foundry" workshop repo!** 🎉
 
 Dive into the world of intelligent conversational agents with Microsoft Foundry & AI Agent Service, a seamless blend of service and SDK that simplifies the development of robust AI-driven solutions. In this hands-on workshop, you'll learn to create a powerful agent capable of answering sales-related queries, performing data analysis, generating visualizations, and integrating external data sources to deliver enhanced business insights. 🚀
@@ -84,20 +72,19 @@ After the basic workshop we will guide you to continue enhancing your agent with
 When you finished the workshop, check out additional resources such as the samples in the [samples folder](src/samples) and the [official documentation](https://learn.microsoft.com/azure/ai-services/agents/overview).
 
 ### Samples overview
+
 Agent Creation:
 - [Create AI Agents using the AI Foundry UI](src/samples/create-agent-using-ui/lab-create-ai-agent-in-ai-foundry-ui.md)
 - [Create AI Agents using Jupyter Notebooks](src/samples/create-agent-using-notebook/lab-create-ai-agent-using-notebook.ipynb)
 - [Create RAG Agents using Jupyter Notebooks](src/samples/create-rag-agent-using-notebook/lab-create-rag-agent-using-notebook.ipynb)
 - [Create Multi-Agent Systems using Jupyter Notebooks](src/samples/create-multi-agent-system-using-notebook/lab-create-multi-agent-system-using-notebook.ipynb)
 - [Create Agents with the Bing Grounding Tool](src/samples/create-a-bing-grounding-connection/lab-create-a-bing-grounding-connection.md)
-- [Create a pro-code Foundry agent fully in sync with Agent 365](src/samples/create-agent365-managed-agents/lab-create-agent365-managed-foundry-agent.ipynb)
 
 Deep Research Tool:
 - [Create Agents with the Deep Research Tool](src/samples/create-deep-research-tool/lab-how-to-use-the-deep-research-tool.md) *(under revision - o3-deep-research deployment temporarily deactivated)*
 - [Debugging sample for the Deep Research Tool](src/samples/create-deep-research-tool/lab-deep-research-tool-debugging-sample.md) *(under revision)*
 
 Agent Frameworks:
-- [Create Agents using Semantic Kernel](src/samples/create-semantic-kernel-agents/lab-create-simple-semantic-kernel-agents.md) *(will be upgraded to Agent Framework samples)*
 - *Create Agents using AutoGen.... (coming soon)*
 - *Create Agents using the Microsoft Agent Framework.... (coming soon)*
 
@@ -110,28 +97,32 @@ Sovereign AI using Foundry Local:
 
 Build User Interfaces:
 - [Create a (mockup) User Interface for Agents using Vibe Coding](src/samples/create-a-user-interface-for-agents/lab-vibe-coding-mockup-ui.md)
-- *Create a NLWeb UI for Agents....(coming soon)*
+- [Create NLWeb Solutions for Agents](src/samples/create-nlweb-solutions/lab-use-nlweb.md)
 
 MCP Integration:
 - [Create AI Foundry Agents connected to MCP Servers](src/samples/create-mcp-foundry-agents/lab-create-agent-that-uses-mcp-server.md)
-
 - *Create MCP Server....(coming soon)*
 
 Multimodal Agents:
 - [Create a Talking Avatar website using Azure Text-to-Speech Avatar Real-Time API](src/samples/create-a-talking-avatar/avatar/README.md)
-- Create Multimodal Agents....(coming soon)
-- Create Agents with Vision Tool....(coming soon)
-- Create Agents with Speech Tool....(coming soon)
+- *Create Multimodal Agents....(coming soon)*
+- *Create Agents with Vision Tool....(coming soon)*
+- *Create Agents with Speech Tool....(coming soon)*
 
 Integration with Business Applications:
-- Create Agents with SAP Connector....(coming soon)
-- Create Agents with Salesforce Connector....(coming soon)
+- *Create Agents with SAP Connector....(coming soon)*
+- *Create Agents with Salesforce Connector....(coming soon)*
 
-Compliance, Observability & Management:
+Accountable Agents series:
+- Part 1: [Build outcome-aware agents that track their own impact](src/samples/create-outcome-aware-agents/README.md)
+- Part 2: [Attribute agent costs across teams and business units](src/samples/create-cost-attribution-for-agents/README.md)
+- Part 3: [Run on-demand governance reports for agents](src/samples/create-agent-reporting/README.md)
+- *Control Plane....(coming soon)*
+
+Compliance & Management:
 - *Implement Content Safety and Responsible AI....(coming soon)*
 - *Monitor Agent Performance with Application Insights....(coming soon)*
 - *Set up Logging and Tracing for Agents....(coming soon)*
-- *Implement Cost Management and Budgeting....(coming soon)*
 - *Deploy Agents with Azure DevOps/GitHub Actions....(coming soon)*
 - *Manage Agent Lifecycle and Versioning....(coming soon)*
 - *Implement Compliance Controls (GDPR, HIPAA, etc.)....(coming soon)*
