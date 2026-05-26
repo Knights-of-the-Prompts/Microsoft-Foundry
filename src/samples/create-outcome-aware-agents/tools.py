@@ -2,7 +2,7 @@
 
 Each tool follows the same pattern:
 
-1. Declares a JSON schema (used to register it with Azure AI Foundry as a
+1. Declares a JSON schema (used to register it with Microsoft Foundry as a
    ``FunctionTool``).
 2. Has a Python implementation that:
 

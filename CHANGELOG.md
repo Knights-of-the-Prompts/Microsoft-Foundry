@@ -361,7 +361,7 @@ INFERENCE_ENDPOINT=https://{resource}.services.ai.azure.com/models
 ## References & Resources
 
 ### 📚 Microsoft Documentation
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-services/agents/)
+- [Microsoft Foundry Documentation](https://learn.microsoft.com/azure/ai-services/agents/)
 - [Azure AI Projects SDK](https://learn.microsoft.com/python/api/overview/azure/ai-projects-readme)
 - [Bicep Best Practices](https://learn.microsoft.com/azure/azure-resource-manager/bicep/best-practices)
 - [Keyless Authentication](https://learn.microsoft.com/azure/ai-services/authentication)

@@ -3,11 +3,11 @@
 </div>
 
 
-This sample demonstrates how to create an Azure AI Foundry agent and govern it using **Agent 365** — the Microsoft 365 admin center's agent registry and lifecycle management capability.
+This sample demonstrates how to create an Microsoft Foundry agent and govern it using **Agent 365** — the Microsoft 365 admin center's agent registry and lifecycle management capability.
 
 You will:
 
-1. Deploy an **IT Help Desk FAQ agent** in Azure AI Foundry
+1. Deploy an **IT Help Desk FAQ agent** in Microsoft Foundry
 2. Discover the agent in the **M365 admin center** (Agents › Registry)
 3. Assign an **Owner and Sponsor** via the Microsoft Graph API
 4. Deploy **Azure Monitor** infrastructure to collect metrics and view a governance dashboard
@@ -19,7 +19,7 @@ You will:
 
 ```mermaid
 flowchart TD
-    A([agent/main.py]) -->|creates| B[ITHelpDeskAgent\nAzure AI Foundry]
+    A([agent/main.py]) -->|creates| B[ITHelpDeskAgent\nMicrosoft Foundry]
     B -->|agent_guid| C([governance/set_ownership.py])
 
     C -->|writes Azure resource tags\nowner · sponsor · business-stream| D[(Azure AI Services\nresource tags)]
@@ -58,7 +58,7 @@ flowchart TD
 ## Architecture
 
 ```
-Azure AI Foundry
+Microsoft Foundry
   └─ ITHelpDeskAgent  ──────────────────────────────────────────────────┐
        │                                                                │
        │  agent_guid (Entra agent ID)                                   │
@@ -135,7 +135,7 @@ create-agent-reporting/
 | Requirement | Details |
 |---|---|
 | Azure subscription | Contributor or Owner on the resource group |
-| Azure AI Foundry project | With a `gpt-4o` (or compatible) model deployment |
+| Microsoft Foundry project | With a `gpt-4o` (or compatible) model deployment |
 | Microsoft 365 tenant | Linked to the same Entra ID tenant as your Azure subscription |
 | Python 3.10+ | With pip |
 | Azure CLI | `az login` completed |
@@ -236,7 +236,7 @@ These tags are visible in the Azure portal under the resource's **Tags** blade, 
 PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations/{AGENT_GUID}
 ```
 
-> **Note**: This path only succeeds when the agent has been published to the M365 Copilot registry via the M365 publishing flow. Agents created directly via the Azure AI Foundry SDK are not automatically added to that registry. If the secondary path returns HTTP 500, this is expected — the Azure tags path has already recorded ownership.
+> **Note**: This path only succeeds when the agent has been published to the M365 Copilot registry via the M365 publishing flow. Agents created directly via the Microsoft Foundry SDK are not automatically added to that registry. If the secondary path returns HTTP 500, this is expected — the Azure tags path has already recorded ownership.
 
 ---
 
@@ -415,7 +415,7 @@ The roll-up shows: agent name, owner, business stream, requests (7d), cost (7d),
 
 | Variable | Required | Description |
 |---|---|---|
-| `PROJECT_ENDPOINT` | ✅ | Azure AI Foundry project endpoint URL |
+| `PROJECT_ENDPOINT` | ✅ | Microsoft Foundry project endpoint URL |
 | `AGENT_MODEL_DEPLOYMENT_NAME` | ✅ | Model deployment (e.g. `gpt-4o`) |
 | `AZURE_SUBSCRIPTION_ID` | ✅ | Azure subscription ID |
 | `AZURE_RESOURCE_GROUP_NAME` | ✅ | Resource group name |

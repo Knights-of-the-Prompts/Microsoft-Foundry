@@ -1,5 +1,5 @@
 """
-Create and interact with the ITHelpDeskAgent in Azure AI Foundry.
+Create and interact with the ITHelpDeskAgent in Microsoft Foundry.
 
 After creation the agent is automatically discoverable in the
 Microsoft 365 admin center under:
