@@ -135,34 +135,6 @@ If you are interested in organizing a hackathon using this repository, check out
 - **Cost Control Policies Guide**: 📊 Understand the cost control policies implemented to manage and monitor expenses during the hackathon. [Read more here](infra/policies/README.md).
 ---
 
-## 📝 Infrastructure Changes - January 2026
-
-### 🔄 Major Infrastructure Modernization
-
-**Key Changes**:
-- **New Architecture**: Migrated from MachineLearningServices Hub/Project to modern CognitiveServices-based Microsoft Foundry
-- **Simplified Infrastructure**: Removed dependent resources (Storage, KeyVault, AppInsights, Container Registry) from the default deployment - new architecture uses 2 core Azure resources (Foundry + Project) with optional add-ons
-- **Keyless Authentication**: Entra ID (DefaultAzureCredential) is now the default - no more API key management
-- **Modern Endpoints**: 
-  - Project endpoint: `https://{resource}.services.ai.azure.com/api/projects/{project}`
-  - Inference endpoint: `https://{resource}.services.ai.azure.com/models`
-- **SDK Alignment**: Ready for azure-ai-projects SDK (Python/JS/.NET)
-
-**Impact**:
-- ⚠️ **Breaking change** - requires fresh deployment
-- ✅ ~40% smaller templates (695 → 416 lines across all modules)
-- ✅ Best practice security (keyless auth)
-- ✅ Aligned with Microsoft Foundry roadmap
-
-**Files Updated**:
-- `infra/main.bicep` - Complete rewrite with modern architecture
-- `infra/modules/ai-foundry.bicep` - NEW: Microsoft Foundry resource
-- `infra/modules/ai-foundry-project.bicep` - NEW: Project as child resource
-- `infra/main.parameters.json` - Updated parameter structure
-- `docs/docs/getting-started.md` - Updated Azure CLI login commands
-
-**Migration Guide**: See [CHANGELOG.md](CHANGELOG.md) for detailed migration steps and breaking changes.
-
-**Old Architecture Backup**: Available in `infra/main-old-hub-architecture.bicep`
+See the [CHANGELOG](CHANGELOG.md) for recent updates and infrastructure changes.
 
 ---
