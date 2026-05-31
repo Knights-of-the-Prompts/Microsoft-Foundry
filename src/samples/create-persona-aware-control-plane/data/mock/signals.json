@@ -1,0 +1,155 @@
+[
+  {
+    "signal_type": "security_events",
+    "platform_id": "azure",
+    "title": "3 anomalous sign-in events detected for service principals",
+    "value": {
+      "severity": "high",
+      "anomalous_signins": 3,
+      "unauthorized_access_attempts": 2,
+      "affected_principals": [
+        "sp-foundry-agent@contoso.com",
+        "sp-reporting-agent@contoso.com"
+      ]
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "azure",
+      "platform_id": "azure",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "user_activity",
+    "platform_id": "microsoft365",
+    "title": "15 files shared externally without classification labels",
+    "value": {
+      "severity": "medium",
+      "external_shares_without_label": 15,
+      "period_days": 7,
+      "top_sharers": ["alice@contoso.com", "bob@contoso.com"]
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "microsoft365",
+      "platform_id": "microsoft365",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "incidents",
+    "platform_id": "servicenow",
+    "title": "2 open P2 security incidents (>24h unresolved)",
+    "value": {
+      "severity": "high",
+      "open_p1": 0,
+      "open_p2": 2,
+      "open_p3": 7,
+      "oldest_open_hours": 38
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "servicenow",
+      "platform_id": "servicenow",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "agent_invocations",
+    "platform_id": "foundry",
+    "title": "3 agents — 4,820 invocations last 7 days, 0.3% error rate",
+    "value": {
+      "severity": "low",
+      "total_invocations": 4820,
+      "error_rate_pct": 0.3,
+      "agents": [
+        {"agent_id": "sales-followup-agent", "invocations": 2100},
+        {"agent_id": "support-resolution-agent", "invocations": 1980},
+        {"agent_id": "reporting-agent", "invocations": 740}
+      ],
+      "period_days": 7
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "foundry",
+      "platform_id": "foundry",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "cost_data",
+    "platform_id": "azure",
+    "title": "Agent infrastructure cost — $1,240 MTD",
+    "value": {
+      "total_cost": 1240.00,
+      "currency": "USD",
+      "period": "BillingMonth",
+      "by_service": {
+        "Azure OpenAI": 820.00,
+        "Azure Kubernetes Service": 310.00,
+        "Storage": 110.00
+      }
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "azure",
+      "platform_id": "azure",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "sla_compliance",
+    "platform_id": "servicenow",
+    "title": "SLA compliance 93% — below 95% target",
+    "value": {
+      "severity": "medium",
+      "compliance_pct": 93.0,
+      "breached": 4,
+      "period_days": 30
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "servicenow",
+      "platform_id": "servicenow",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  },
+  {
+    "signal_type": "opportunity_pipeline",
+    "platform_id": "salesforce",
+    "title": "Agent-influenced pipeline: $4.2M (14% of total) — 30 days",
+    "value": {
+      "total_pipeline_usd": 30000000,
+      "agent_influenced_usd": 4200000,
+      "agent_influenced_pct": 14.0,
+      "period_days": 30
+    },
+    "source_metadata": {
+      "source_mode": "mock",
+      "connector_id": "salesforce",
+      "platform_id": "salesforce",
+      "retrieved_at": "2025-01-15T10:00:00Z",
+      "confidence": 0.7,
+      "raw_reference": null,
+      "data_quality_notes": "Mock data for demo purposes"
+    }
+  }
+]

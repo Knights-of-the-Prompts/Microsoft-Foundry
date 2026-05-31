@@ -1,0 +1,145 @@
+# Platform connector definitions
+# Describes each supported platform, its supported signal types, and its
+# real-connection requirements.  Used for documentation and UI display.
+
+platforms:
+
+  microsoft365:
+    name: Microsoft 365
+    description: >
+      User activity, collaboration, Teams usage, and compliance signals
+      via Microsoft Graph API.
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: microsoft-graph (httpx / msgraph-sdk-python)
+    auth_type: entra_client_credentials
+    base_url: https://graph.microsoft.com/v1.0
+    required_env_vars:
+      - M365_TENANT_ID
+      - M365_CLIENT_ID
+      - M365_CLIENT_SECRET_REF
+    supported_signal_types:
+      - user_activity
+      - collaboration_data
+      - compliance_status
+
+  azure:
+    name: Microsoft Azure
+    description: >
+      Resource health, cost management, security events, and compliance
+      via Azure SDK (azure-mgmt-*, azure-monitor-query, azure-identity).
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: azure-sdk-python (DefaultAzureCredential)
+    auth_type: azure_default_credential
+    base_url: https://management.azure.com
+    required_env_vars:
+      - AZURE_SUBSCRIPTION_ID
+    notes: >
+      DefaultAzureCredential supports az login, managed identity, and
+      workload identity. No client secret required when using managed identity.
+    supported_signal_types:
+      - resource_health
+      - cost_data
+      - security_events
+      - compliance_status
+      - user_activity
+
+  kubernetes:
+    name: Kubernetes
+    description: >
+      Pod health, deployment rollout status, and namespace resource
+      utilisation via kubernetes-client.
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: kubernetes-client (python)
+    auth_type: none
+    notes: >
+      Uses KUBECONFIG_PATH if set, otherwise falls back to in-cluster
+      service account (when running inside the cluster).
+    required_env_vars: []
+    optional_env_vars:
+      - KUBECONFIG_PATH
+    supported_signal_types:
+      - deployment_status
+      - resource_health
+      - resource_utilization
+
+  foundry:
+    name: Microsoft Foundry
+    description: >
+      Agent invocations, model usage, and project health via
+      azure-ai-projects SDK.
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: azure-ai-projects
+    auth_type: azure_default_credential
+    base_url: "" # Set from FOUNDRY_PROJECT_ENDPOINT
+    required_env_vars:
+      - FOUNDRY_PROJECT_ENDPOINT
+      - FOUNDRY_SUBSCRIPTION_ID
+    notes: >
+      Use DefaultAzureCredential. FOUNDRY_PROJECT_ENDPOINT is found in
+      AI Foundry portal → your project → Overview → "Project endpoint".
+    supported_signal_types:
+      - agent_invocations
+      - model_usage
+      - project_health
+
+  agent365:
+    name: Microsoft Agent 365
+    description: >
+      Agent registry, activity, and ownership signals via Microsoft Graph
+      (beta/copilot/agentRegistrations).
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: microsoft-graph (httpx)
+    auth_type: entra_client_credentials
+    base_url: https://graph.microsoft.com/beta
+    required_graph_permissions:
+      - AgentRegistration.Read.All
+    required_env_vars:
+      - AGENT365_TENANT_ID
+      - AGENT365_CLIENT_ID
+      - AGENT365_CLIENT_SECRET_REF
+    supported_signal_types:
+      - agent_registrations
+      - agent_activity
+      - ownership_data
+
+  servicenow:
+    name: ServiceNow
+    description: >
+      Incidents, change requests, SLA compliance, and problem records
+      via ServiceNow REST Table API.
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: httpx (REST)
+    auth_type: api_key
+    base_url: "" # Set from SERVICENOW_BASE_URL
+    required_env_vars:
+      - SERVICENOW_BASE_URL
+      - SERVICENOW_API_KEY_REF
+    supported_signal_types:
+      - incidents
+      - change_requests
+      - sla_compliance
+
+  salesforce:
+    name: Salesforce
+    description: >
+      Opportunity pipeline, case resolution, revenue impact, and customer
+      health via Salesforce REST API (OAuth connected app).
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: simple-salesforce or httpx (REST)
+    auth_type: oauth
+    base_url: "" # Set from SALESFORCE_BASE_URL
+    required_env_vars:
+      - SALESFORCE_BASE_URL
+      - SALESFORCE_CLIENT_ID
+      - SALESFORCE_CLIENT_SECRET_REF
+    supported_signal_types:
+      - opportunity_pipeline
+      - revenue_impact
+      - case_resolution

@@ -1,0 +1,168 @@
+# Default persona → KPI mappings
+# Used by the KPI Agent to initialise the persona context.
+# Each KPI lists the signal_types the agent should gather.
+
+personas:
+
+  compliance_officer:
+    name: Compliance Officer
+    description: >
+      Responsible for ensuring agents operate within regulatory and policy
+      boundaries. Primary concern: audit trail coverage and unauthorized access.
+    relevant_platforms:
+      - azure
+      - microsoft365
+      - agent365
+      - servicenow
+    default_kpis:
+      - kpi_id: comp_01
+        title: Zero unauthorized data access
+        target: "0 unauthorized access events per quarter"
+        signal_types:
+          - security_events
+          - user_activity
+          - compliance_status
+      - kpi_id: comp_02
+        title: 100% agent audit trail coverage
+        target: "100% of agent invocations traceable"
+        signal_types:
+          - agent_invocations
+          - agent_registrations
+
+  cfo:
+    name: CFO
+    description: >
+      Accountable for the financial performance of AI agent investments.
+    relevant_platforms:
+      - azure
+      - foundry
+      - salesforce
+    default_kpis:
+      - kpi_id: cfo_01
+        title: "Agent ROI > 3x"
+        target: "> 3.0"
+        signal_types:
+          - cost_data
+          - revenue_impact
+          - agent_invocations
+      - kpi_id: cfo_02
+        title: "Infrastructure cost per request < $0.01"
+        target: "< $0.01 per request"
+        signal_types:
+          - cost_data
+          - model_usage
+
+  cto:
+    name: CTO
+    description: >
+      Responsible for technical reliability and platform health of agents.
+    relevant_platforms:
+      - azure
+      - kubernetes
+      - foundry
+      - agent365
+    default_kpis:
+      - kpi_id: cto_01
+        title: "Agent uptime > 99.9%"
+        target: "> 99.9%"
+        signal_types:
+          - resource_health
+          - deployment_status
+          - project_health
+      - kpi_id: cto_02
+        title: "Mean time to resolution < 4h"
+        target: "< 4h"
+        signal_types:
+          - incidents
+          - resource_health
+
+  it_manager:
+    name: IT Manager / Platform Owner
+    description: >
+      Manages day-to-day operations and platform health of agent infrastructure.
+    relevant_platforms:
+      - azure
+      - kubernetes
+      - microsoft365
+      - agent365
+    default_kpis:
+      - kpi_id: itm_01
+        title: All agents have assigned owners
+        target: "100% ownership"
+        signal_types:
+          - agent_registrations
+          - ownership_data
+      - kpi_id: itm_02
+        title: No deprecated API usage
+        target: "0 deprecated API calls"
+        signal_types:
+          - resource_health
+          - deployment_status
+
+  security_officer:
+    name: Security Officer
+    description: Ensures agents do not introduce or amplify security risk.
+    relevant_platforms:
+      - azure
+      - microsoft365
+      - servicenow
+    default_kpis:
+      - kpi_id: sec_01
+        title: No open P1 security incidents
+        target: "0 open P1 incidents"
+        signal_types:
+          - security_events
+          - incidents
+      - kpi_id: sec_02
+        title: No anomalous sign-in events
+        target: "0 anomalous sign-ins"
+        signal_types:
+          - security_events
+          - user_activity
+
+  business_owner:
+    name: Business Owner
+    description: Responsible for the business outcomes delivered by agents.
+    relevant_platforms:
+      - salesforce
+      - foundry
+      - azure
+    default_kpis:
+      - kpi_id: biz_01
+        title: "Agent-attributed pipeline growth > 10%"
+        target: "> 10%"
+        signal_types:
+          - opportunity_pipeline
+          - revenue_impact
+
+  product_owner:
+    name: Product Owner
+    description: Responsible for delivering features and improvements via agents.
+    relevant_platforms:
+      - foundry
+      - agent365
+      - servicenow
+    default_kpis:
+      - kpi_id: po_01
+        title: "Agent-assisted throughput improvement > 20%"
+        target: "> 20%"
+        signal_types:
+          - agent_invocations
+          - agent_activity
+          - change_requests
+
+  service_owner:
+    name: Service Owner
+    description: >
+      Accountable for service delivery quality in agent-supported workflows.
+    relevant_platforms:
+      - servicenow
+      - azure
+      - kubernetes
+    default_kpis:
+      - kpi_id: svc_01
+        title: "SLA compliance > 95%"
+        target: "> 95%"
+        signal_types:
+          - sla_compliance
+          - incidents

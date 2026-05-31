@@ -19,3 +19,7 @@ appsettings.*.json
 .files/
 src/workshop/[.][v]env/
 docs/site/
+
+# Local Copilot customizations (do not sync to GitHub)
+.github/agents/
+.github/skills/

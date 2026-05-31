@@ -1,0 +1,20 @@
+# Local secrets — never commit
+.env.local
+.env
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[co]
+.ruff_cache/
+.coverage
+
+# Token/session caches
+.msal_cache/
+*.token_cache
+
+# Local config overrides
+*.local.yaml
+*.local.json
