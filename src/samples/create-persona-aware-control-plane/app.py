@@ -108,6 +108,10 @@ config = ControlPlaneConfig.from_env()
 for connector_cls in ALL_CONNECTORS:
     registry.register(connector_cls())
 
+# Register Azure connector via factory (picks live or mock based on env)
+from control_plane.connectors.azure_live import get_azure_connector as _get_azure_connector
+registry.register(_get_azure_connector())
+
 kpi_agent = KPIAgent(registry)
 access_agent = AccessReadinessAgent(registry)
 kpi_challenge_agent = KpiChallengeAgent()
@@ -335,6 +339,80 @@ def test_connector(connector_id: str) -> Dict[str, Any]:
         source_mode=connector.get_definition().mode.value,
     )
     return {"connector_id": connector_id, "health": health}
+
+
+@app.get("/api/connectors/{connector_id}/auth-status", tags=["Connectors"], summary="Staged connector auth status")
+def get_connector_auth_status(connector_id: str) -> Dict[str, Any]:
+    """Return staged connection status for the connector.
+
+    Stages: configured → authenticated → authorized → live_data_received → used_in_control_package
+
+    For Azure, this executes get_subscription_context to prove a live token was
+    obtained.  For all other connectors, stages are inferred from the health check.
+    """
+    connector = _get_connector(connector_id)
+    defn = connector.get_definition()
+
+    # Defaults — all stages false
+    stages = {
+        "configured": False,
+        "authenticated": False,
+        "authorized": False,
+        "live_data_received": False,
+        "used_in_control_package": False,
+    }
+    identity_summary: Optional[str] = None
+    error: Optional[str] = None
+
+    # Check if connector is at least configured (has a base_url or sub_id)
+    if defn.base_url:
+        stages["configured"] = True
+
+    if defn.platform_id == "azure":
+        # Use live connector to probe auth
+        from control_plane.connectors.azure_live import AzureLiveConnector
+        live = AzureLiveConnector()
+        exec_result = live._tool_get_subscription_context()
+        if exec_result.source_mode == "live":
+            stages["configured"] = True
+            stages["authenticated"] = True
+            stages["authorized"] = True
+            stages["live_data_received"] = True
+            identity_summary = exec_result.identity_summary
+        elif exec_result.source_mode == "mock":
+            # Live disabled — configured but not tested
+            stages["configured"] = True
+            stages["authenticated"] = False
+            stages["authorized"] = False
+            stages["live_data_received"] = False
+            error = exec_result.query_summary
+        else:
+            stages["configured"] = True
+            stages["authenticated"] = False
+            error = exec_result.error
+    else:
+        health = connector.get_health()
+        h_status = health.get("status", "")
+        if h_status in ("healthy", "authenticated"):
+            stages["configured"] = True
+            stages["authenticated"] = True
+            stages["authorized"] = True
+            stages["live_data_received"] = defn.mode.value == "live"
+
+    evidence_store.add_event(
+        "connector_auth_status_checked",
+        {"connector_id": connector_id, "stages": stages},
+        source_mode=defn.mode.value,
+    )
+    effective_mode = "live" if stages.get("live_data_received") else defn.mode.value
+    return {
+        "connector_id": connector_id,
+        "platform_id": defn.platform_id,
+        "mode": effective_mode,
+        "stages": stages,
+        "identity_summary": identity_summary,
+        "error": error,
+    }
 
 
 @app.post("/api/connectors/{connector_id}/enable", tags=["Connectors"], summary="Enable connector")

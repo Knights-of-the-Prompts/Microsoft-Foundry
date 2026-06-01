@@ -1419,6 +1419,48 @@ code, .mono {
 .cp-readiness-row:last-child { border-bottom: none; }
 .cp-readiness-name { font-weight: 500; color: var(--text); flex: 1; }
 
+/* ── Source mode pill (Actions / Ideas section headings) ──────── */
+.section-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.section-heading-row h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.section-heading-row + .action-cards,
+.section-heading-row + .idea-cards { margin-top: 0; }
+.source-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: 1px solid transparent;
+  line-height: 1.6;
+}
+.source-mode-pill.pill-live {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success);
+}
+.source-mode-pill.pill-hybrid {
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+  color: #92400e;
+}
+.source-mode-pill.pill-mock {
+  background: color-mix(in srgb, var(--text-3) 12%, transparent);
+  border-color: var(--border);
+  color: var(--text-3);
+}
+
 /* ── Action cards (Step 5) ───────────────────────────────────── */
 .action-cards { display: flex; flex-direction: column; gap: 14px; }
 .action-card {
@@ -1595,3 +1637,214 @@ code, .mono {
 }
 .disclosure[open] summary svg { transform: rotate(180deg); }
 .ledger-meta { font-size: 11px; color: var(--text-3); }
+
+/* ── Live Signal Provenance ─────────────────────────────────────────────── */
+
+.provenance-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.provenance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.provenance-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.btn-text:hover { text-decoration: underline; }
+.btn-text .chevron-icon { transition: transform 0.15s; }
+.btn-text[aria-expanded="true"] .chevron-icon { transform: rotate(180deg); }
+
+/* Source summary banner */
+.source-summary-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  border: 1px solid transparent;
+}
+.source-summary-banner.banner-live {
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success);
+}
+.source-summary-banner.banner-partial {
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: #92400e;
+}
+.source-summary-banner.banner-mock {
+  background: color-mix(in srgb, var(--text-3) 10%, transparent);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.source-summary-banner.banner-error {
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+}
+
+/* Provenance table */
+.provenance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.provenance-table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.provenance-table tbody td {
+  padding: 8px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  color: var(--text-2);
+  vertical-align: top;
+  line-height: 1.4;
+}
+.provenance-table tbody tr:last-child td { border-bottom: none; }
+.provenance-table .td-signal { font-weight: 500; color: var(--text); }
+.provenance-table .td-mono { font-family: var(--font-mono, monospace); font-size: 11.5px; }
+
+/* Source mode badges in provenance table */
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.source-badge-live {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+.source-badge-mock {
+  background: color-mix(in srgb, var(--text-3) 14%, transparent);
+  color: var(--text-2);
+}
+.source-badge-error {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+.source-badge-cache {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+.source-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* Staged connector status badges */
+.staged-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+.staged-status-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+.staged-status-step.done {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--success) 25%, transparent);
+  color: var(--success);
+}
+.staged-status-step.error {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+  color: var(--danger);
+}
+.staged-status-chevron { color: var(--border); font-size: 10px; }
+
+/* Provenance drawer */
+.provenance-drawer {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.provenance-drawer-item {
+  padding: 10px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+.provenance-drawer-item:last-child { border-bottom: none; }
+.provenance-drawer-tool {
+  font-size: 12px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-2);
+  margin-bottom: 3px;
+}
+.provenance-drawer-query {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.provenance-drawer-endpoint {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-3);
+  word-break: break-all;
+  margin-bottom: 4px;
+}
+.provenance-drawer-identity {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.provenance-drawer-error {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--danger) 5%, transparent);
+  border-radius: 4px;
+}

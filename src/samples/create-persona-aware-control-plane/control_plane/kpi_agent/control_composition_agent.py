@@ -26,6 +26,7 @@ from control_plane.access_readiness import AccessReadinessAgent
 from control_plane.connectors.registry import ToolRegistry
 from control_plane.kpi_agent.agent import KPIAgent
 from control_plane.models.kpi_refinement import ControlPackage
+from control_plane.models.provenance import SignalExecution, SourceSummary
 from control_plane.stores import evidence_store
 
 
@@ -419,6 +420,62 @@ class ControlCompositionAgent:
         required_connectors = list({t.platform_id for t in available_tools})
         required_tool_ids = [t.id for t in available_tools]
 
+        # --- Step 2.5: Execute live signals from connectors (provenance) ---
+        signal_executions: List[SignalExecution] = []
+        context: Dict[str, Any] = {
+            "persona_id": persona_id,
+            "mode": mode,
+            "kpi_title": kpi_title,
+        }
+        for platform in selected_platforms:
+            connector = self._registry.get_connector(platform)
+            if connector is None:
+                continue
+            try:
+                raw_signals = connector.get_signals(required_signals, context)
+            except Exception as exc:
+                raw_signals = []
+                evidence_store.add_event(
+                    "connector_signal_error",
+                    {"platform": platform, "error": str(exc)[:200]},
+                    persona_id=persona_id,
+                    source_mode=mode,
+                )
+            for sig_dict in raw_signals:
+                exec_data = sig_dict.get("signal_execution")
+                if exec_data and isinstance(exec_data, dict):
+                    exec_obj = SignalExecution(
+                        signal_name=exec_data.get("signal_name", sig_dict.get("signal_type", "unknown")),
+                        platform_id=exec_data.get("platform_id", platform),
+                        tool_name=exec_data.get("tool_name", ""),
+                        source_mode=exec_data.get("source_mode", "mock"),
+                        retrieved_at=exec_data.get("retrieved_at", ""),
+                        confidence=exec_data.get("confidence", 0.5),
+                        query_summary=exec_data.get("query_summary"),
+                        endpoint=exec_data.get("endpoint"),
+                        identity_summary=exec_data.get("identity_summary"),
+                        raw_preview=exec_data.get("raw_preview"),
+                        error=exec_data.get("error"),
+                        evidence_ref=exec_data.get("evidence_ref"),
+                        used_in_composition=True,  # signals returned are used
+                    )
+                    signal_executions.append(exec_obj)
+                    evidence_store.add_event(
+                        "live_signal_retrieved" if exec_obj.source_mode == "live"
+                        else "mock_signal_used",
+                        {
+                            "signal_name": exec_obj.signal_name,
+                            "platform_id": exec_obj.platform_id,
+                            "tool_name": exec_obj.tool_name,
+                            "source_mode": exec_obj.source_mode,
+                            "confidence": exec_obj.confidence,
+                        },
+                        persona_id=persona_id,
+                        source_mode=exec_obj.source_mode,
+                    )
+
+        source_summary = SourceSummary.from_executions(signal_executions)
+
         # --- Step 3: Run Access Readiness Agent ---
         access_result = self._access_agent.check(
             persona_id=persona_id,
@@ -548,6 +605,8 @@ class ControlCompositionAgent:
             evidence_events=evidence_events,
             limitations=limitations,
             confidence_score=round(confidence, 2),
+            signal_provenance=[e.to_dict() for e in signal_executions],
+            source_summary=source_summary.to_dict(),
         )
 
         evidence_store.add_event(

@@ -853,7 +853,7 @@
       const data = await API.post('/api/kpi-agent/control-package', {
         persona_id: State.persona.id,
         formalized_kpi: KpiStepper.formalizedKpi,
-        mode: 'mock',
+        mode: 'hybrid',
       });
       KpiStepper.controlPackage = data.control_package;
 
@@ -861,7 +861,7 @@
       const legacy = await API.post('/api/kpi-agent/interpret', {
         persona_id: State.persona.id,
         kpi: KpiStepper.formalizedKpi.title || null,
-        mode: 'mock',
+        mode: 'hybrid',
       });
       State.kpiResult = legacy;
       State.accessResult = {
@@ -1005,6 +1005,147 @@
         </div>
       </div>
     `;
+
+    // Render live signal provenance section if provenance data is present
+    renderSignalProvenance(pkg.signal_provenance || [], pkg.source_summary || {});
+  }
+
+  // ---------------------------------------------------------------------------
+  // Live Signal Provenance rendering
+  // ---------------------------------------------------------------------------
+
+  function renderSignalProvenance(provenance, sourceSummary) {
+    const section = document.getElementById('signal-provenance-section');
+    if (!section) return;
+
+    if (!provenance || provenance.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    section.classList.remove('hidden');
+    renderSourceSummaryBanner(sourceSummary);
+    renderProvenanceTable(provenance);
+    renderProvenanceDrawer(provenance);
+
+    // Wire up the drawer toggle
+    const toggleBtn = document.getElementById('toggle-provenance-drawer-btn');
+    const drawer = document.getElementById('provenance-drawer');
+    if (toggleBtn && drawer) {
+      toggleBtn.onclick = () => {
+        const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        toggleBtn.setAttribute('aria-expanded', String(!expanded));
+        drawer.classList.toggle('hidden', expanded);
+        drawer.setAttribute('aria-hidden', String(expanded));
+      };
+    }
+  }
+
+  function renderSourceSummaryBanner(summary) {
+    const el = document.getElementById('source-summary-banner');
+    if (!el) return;
+
+    const live = summary.live_signals || 0;
+    const mock = summary.mock_signals || 0;
+    const errors = summary.error_signals || 0;
+    const readiness = summary.readiness || 'not_ready';
+
+    let cls = 'banner-mock';
+    let icon = '';
+    let text = '';
+
+    if (readiness === 'ready' && live > 0) {
+      cls = 'banner-live';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      text = `${live} live signal${live !== 1 ? 's' : ''} from real Azure APIs — all signals verified`;
+    } else if (readiness === 'partially_ready') {
+      cls = 'banner-partial';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      text = `${live} live signal${live !== 1 ? 's' : ''}, ${mock} mock — partial live coverage`;
+      if (errors > 0) text += `, ${errors} error${errors !== 1 ? 's' : ''}`;
+    } else if (errors > 0 && live === 0) {
+      cls = 'banner-error';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      text = `${errors} signal error${errors !== 1 ? 's' : ''} — check connector configuration`;
+    } else {
+      cls = 'banner-mock';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>';
+      text = `${mock} mock signal${mock !== 1 ? 's' : ''} — no live Azure connection. Set CONTROL_PLANE_AZURE_LIVE=true to enable.`;
+    }
+
+    el.className = `source-summary-banner ${cls}`;
+    el.innerHTML = `${icon}<span>${esc(text)}</span>`;
+  }
+
+  function renderProvenanceTable(provenance) {
+    const container = document.getElementById('provenance-table-container');
+    if (!container) return;
+
+    const rows = provenance.map(p => {
+      const badgeCls = `source-badge source-badge-${p.source_mode || 'mock'}`;
+      const badgeLabel = (p.source_mode || 'mock').toUpperCase();
+      const usedBadge = p.used_in_composition
+        ? '<span class="badge badge-ready" style="font-size:10px;">used</span>'
+        : '<span class="badge badge-missing" style="font-size:10px;">not used</span>';
+      const confPct = Math.round((p.confidence || 0) * 100);
+      const ts = p.retrieved_at ? new Date(p.retrieved_at).toLocaleTimeString() : '—';
+
+      return `<tr>
+        <td class="td-signal">${esc(p.signal_name || '—')}</td>
+        <td>${esc(p.platform_id || '—')}</td>
+        <td><span class="${badgeCls}">${esc(badgeLabel)}</span></td>
+        <td class="td-mono">${esc(p.tool_name || '—')}</td>
+        <td>${confPct}%</td>
+        <td>${usedBadge}</td>
+        <td style="color:var(--text-3);font-size:11px;">${ts}</td>
+      </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="provenance-table" aria-label="Signal provenance">
+        <thead>
+          <tr>
+            <th>Signal</th>
+            <th>Platform</th>
+            <th>Source</th>
+            <th>Tool</th>
+            <th>Confidence</th>
+            <th>Used</th>
+            <th>Retrieved</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function renderProvenanceDrawer(provenance) {
+    const drawer = document.getElementById('provenance-drawer-content');
+    if (!drawer) return;
+
+    const items = provenance.map(p => {
+      const badgeCls = `source-badge source-badge-${p.source_mode || 'mock'}`;
+      const errorHtml = p.error
+        ? `<div class="provenance-drawer-error">${esc(p.error)}</div>` : '';
+      const endpointHtml = p.endpoint
+        ? `<div class="provenance-drawer-endpoint">${esc(p.endpoint)}</div>` : '';
+      const identityHtml = p.identity_summary
+        ? `<div class="provenance-drawer-identity">Identity: ${esc(p.identity_summary)}</div>` : '';
+      const queryHtml = p.query_summary
+        ? `<div class="provenance-drawer-query">${esc(p.query_summary)}</div>` : '';
+
+      return `<div class="provenance-drawer-item">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="${badgeCls}">${esc((p.source_mode || 'mock').toUpperCase())}</span>
+          <span class="provenance-drawer-tool">${esc(p.tool_name || '—')}</span>
+        </div>
+        ${queryHtml}
+        ${endpointHtml}
+        ${identityHtml}
+        ${errorHtml}
+      </div>`;
+    }).join('');
+
+    drawer.innerHTML = items || '<div class="text-dim text-small">No provenance data.</div>';
   }
 
   document.getElementById('kpi-back-to-formalize-btn').addEventListener('click', () => setKpiStep(3));
@@ -1016,11 +1157,28 @@
     setKpiStep(5);
   });
 
+  function _sourceModePill(sourceSummary) {
+    const s = sourceSummary || {};
+    const readiness = s.readiness || 'not_ready';
+    const live = s.live_signals || 0;
+    const err  = s.error_signals || 0;
+    // "Live" only when every tracked signal is live and there are no errors or missing connectors
+    if (readiness === 'ready' && live > 0 && err === 0) {
+      return '<span class="source-mode-pill pill-live" title="All signals were retrieved from live APIs">Live</span>';
+    }
+    // "Hybrid" when at least one live signal exists but some failed or connectors are mock-only
+    if (live > 0) {
+      return '<span class="source-mode-pill pill-hybrid" title="Mix of live and mock data — not all connectors have a live integration configured">Hybrid</span>';
+    }
+    return '<span class="source-mode-pill pill-mock" title="No live signals — recommendations are based on scenario data">Mock</span>';
+  }
+
   function renderKpiActions(pkg) {
     const actions = pkg.recommended_actions || [];
     const agentIdeas = pkg.agent_ideas || [];
+    const pill = _sourceModePill(pkg.source_summary);
     document.getElementById('kpi-actions-content').innerHTML = `
-      <h3 style="font-size:14px;font-weight:700;margin-bottom:18px;">Recommended Actions</h3>
+      <div class="section-heading-row"><h3>Recommended Actions</h3>${pill}</div>
       <div class="action-cards">
         ${actions.map(a => `
           <div class="action-card">
@@ -1038,7 +1196,7 @@
         `).join('')}
       </div>
       ${agentIdeas.length ? `
-        <h3 style="font-size:14px;font-weight:700;margin:28px 0 14px;">Agent Ideas</h3>
+        <div class="section-heading-row" style="margin-top:28px;"><h3>Agent Ideas</h3>${pill}</div>
         <div class="idea-cards">
           ${agentIdeas.map(idea => `
             <div class="idea-card">

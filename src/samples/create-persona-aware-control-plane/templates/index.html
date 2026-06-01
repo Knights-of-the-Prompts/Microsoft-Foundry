@@ -456,6 +456,26 @@
       <!-- Step 4 — Control Package -->
       <div id="kpi-step-4" class="kpi-step-panel">
         <div id="control-package-content"></div>
+
+        <!-- Live Signal Evidence — rendered by renderSignalProvenance() in app.js -->
+        <div id="signal-provenance-section" class="hidden provenance-section">
+          <div id="source-summary-banner" class="source-summary-banner"></div>
+          <div class="provenance-header">
+            <h3 class="provenance-title">Live Signal Evidence</h3>
+            <button class="btn-text" id="toggle-provenance-drawer-btn" aria-expanded="false"
+              aria-controls="provenance-drawer">
+              View signal provenance
+              <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          <div id="provenance-table-container"></div>
+          <div id="provenance-drawer" class="provenance-drawer hidden" aria-hidden="true">
+            <div id="provenance-drawer-content"></div>
+          </div>
+        </div>
+
         <div class="form-actions" style="margin-top:20px; padding-left:0;">
           <button class="btn btn-primary" id="kpi-to-actions-btn">View Recommended Actions →</button>
           <button class="btn btn-ghost" id="kpi-back-to-formalize-btn">Back</button>

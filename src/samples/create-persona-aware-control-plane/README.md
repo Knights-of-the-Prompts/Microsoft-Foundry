@@ -609,6 +609,150 @@ All 8 personas have deterministic grants across all 7 platforms. `null` means no
 
 ---
 
+## Live Azure Signal Provenance
+
+Part 4 extends mock-only connectors with **proven live signal retrieval** via real Azure SDK calls.
+Every signal in every Control Package now carries a full provenance record.
+
+### What this proves
+
+| Claim | Proof |
+|---|---|
+| Signals came from real Azure | `source_mode: "live"` with endpoint URL and token identity |
+| Signal was used in the control package | `used_in_composition: true` flag per signal |
+| Auth was verified at runtime | `get_subscription_context` calls `/subscriptions/{id}` at token-time |
+| Errors do not crash the package | `source_mode: "error"` with message — package renders with `readiness: "partially_ready"` |
+
+### How to enable live mode
+
+1. Log in to Azure:
+
+   ```bash
+   az login
+   az account set --subscription <your-subscription-id>
+   ```
+
+2. Add to your `.env`:
+
+   ```env
+   CONTROL_PLANE_AZURE_LIVE=true
+   AZURE_SUBSCRIPTION_ID=<your-subscription-id>
+   AZURE_TENANT_ID=<your-tenant-id>
+
+   # Optional — scopes signals to a specific resource group
+   AZURE_RESOURCE_GROUP=<your-resource-group>
+
+   # Optional — enables metric queries via Azure Monitor
+   AZURE_RESOURCE_ID=/subscriptions/<id>/resourceGroups/<rg>/providers/<type>/<name>
+   ```
+
+3. Run the control plane:
+
+   ```bash
+   source .venv/bin/activate
+   uvicorn app:app --reload --port 8000
+   ```
+
+4. Open the UI: `http://localhost:8000`
+
+5. In **Integrations**, find the **Azure** connector and click **Test** — you should see
+   `status: authenticated`.
+
+6. Run the **Governance Workflow** for the **CFO** persona. The Control Package will show
+   a green **"X live signals from real Azure APIs"** banner and the Live Signal Evidence table.
+
+### Required Azure roles
+
+These roles are read-only and can be assigned at subscription scope:
+
+| Role | Permission granted |
+|---|---|
+| `Reader` | Subscription context, resource listing |
+| `Monitoring Reader` | Activity Log entries |
+| `Cost Management Reader` | Cost Management Query API |
+
+### Live tools
+
+| Tool | Azure API called | Signal type |
+|---|---|---|
+| `azure.get_subscription_context` | `GET /subscriptions/{id}` | resource_health |
+| `azure.get_activity_log_summary` | Activity Log (`eventtypes/management`) | resource_health, security_events |
+| `azure.get_cost_summary` | Cost Management Query API | cost_data |
+| `azure.get_resource_metric_summary` | Azure Monitor Metrics | resource_health |
+
+### Signal provenance schema
+
+Every signal in `control_package.signal_provenance[]` has:
+
+```json
+{
+  "signal_name": "month_to_date_cost",
+  "platform_id": "azure",
+  "tool_name": "azure.get_cost_summary",
+  "source_mode": "live",
+  "retrieved_at": "2025-01-15T10:23:44.123Z",
+  "used_in_composition": true,
+  "confidence": 0.85,
+  "query_summary": "Cost Management: USD 1,240.00 MTD across 3 resource group(s).",
+  "endpoint": "POST https://management.azure.com/subscriptions/.../providers/Microsoft.CostManagement/query",
+  "identity_summary": "DefaultAzureCredential — token acquired (tenant 20c1f0e2...)",
+  "raw_preview": { "total_cost": 1240.0, "currency": "USD", ... },
+  "error": null,
+  "evidence_ref": null
+}
+```
+
+### Source summary schema
+
+`control_package.source_summary` aggregates across all signals:
+
+```json
+{
+  "live_signals": 3,
+  "mock_signals": 0,
+  "error_signals": 0,
+  "cache_signals": 0,
+  "used_live_signals": 3,
+  "used_mock_signals": 0,
+  "readiness": "ready"
+}
+```
+
+`readiness` values:
+
+| Value | Meaning |
+|---|---|
+| `ready` | All signals are live with no errors |
+| `partially_ready` | Some live signals, some errors |
+| `not_ready` | No live signals (all mock or all error) |
+
+### New API endpoint
+
+```
+GET /api/connectors/{connector_id}/auth-status
+```
+
+Returns staged connection status:
+
+```json
+{
+  "connector_id": "azure",
+  "platform_id": "azure",
+  "mode": "live",
+  "stages": {
+    "configured": true,
+    "authenticated": true,
+    "authorized": true,
+    "live_data_received": true,
+    "used_in_control_package": false
+  },
+  "identity_summary": "DefaultAzureCredential — token acquired (tenant 20c1f0e2...)",
+  "error": null
+}
+```
+
+---
+
 ## Related samples
 
 | Sample | Description |
