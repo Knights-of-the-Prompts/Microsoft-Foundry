@@ -73,7 +73,7 @@ class ServiceNowMockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="ServiceNow",
             description="Incidents, change requests, SLA compliance via ServiceNow REST API.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.API_KEY,
             base_url="",  # Set from SERVICENOW_BASE_URL in live mode

@@ -77,7 +77,7 @@ class Agent365MockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="Microsoft Agent 365",
             description="Agent registry, activity, and ownership signals via Microsoft Graph.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.ENTRA_CLIENT_CREDENTIALS,
             base_url="https://graph.microsoft.com/beta",

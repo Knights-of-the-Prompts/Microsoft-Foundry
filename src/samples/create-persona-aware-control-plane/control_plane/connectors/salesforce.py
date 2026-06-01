@@ -62,7 +62,7 @@ class SalesforceMockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="Salesforce",
             description="Opportunity pipeline, case resolution, and revenue impact signals.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.OAUTH,
             base_url="",  # Set from SALESFORCE_BASE_URL in live mode

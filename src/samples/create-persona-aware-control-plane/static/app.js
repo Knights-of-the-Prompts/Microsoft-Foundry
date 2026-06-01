@@ -56,7 +56,7 @@
   const SECTION_MAP = {
     briefing:          { parent: 'briefing',      tab: 'persona' },
     persona:           { parent: 'briefing',      tab: 'persona' },
-    series:            { parent: 'briefing',      tab: 'series' },
+    series:            { parent: 'briefing',      tab: 'persona' },
     digest:            { parent: 'briefing',      tab: 'digest' },
     integrations:      { parent: 'integrations',  tab: 'connectors' },
     connectors:        { parent: 'integrations',  tab: 'connectors' },
@@ -66,7 +66,7 @@
     'signal-map':      { parent: 'actions',       tab: 'signal-map' },
     access:            { parent: 'actions',       tab: 'access' },
     'access-requests': { parent: 'actions',       tab: 'access-requests' },
-    'agent-ideas':     { parent: 'actions',       tab: 'agent-ideas' },
+    'agent-ideas':     { parent: 'actions',       tab: 'kpi' },
     'agent-requests':  { parent: 'actions',       tab: 'agent-requests' },
     evidence:          { parent: 'evidence',      tab: 'evidence-trail' },
     'evidence-trail':  { parent: 'evidence',      tab: 'evidence-trail' },
@@ -392,41 +392,67 @@
 
   function renderConnectorCards(connectors) {
     const grid = document.getElementById('connector-cards');
-    grid.innerHTML = connectors.map(c => `
+    const AUTH_LABELS = {
+      none: 'None',
+      api_key: 'API Key',
+      oauth: 'OAuth',
+      entra_client_credentials: 'Entra App',
+      entra_delegated: 'Entra Delegated',
+      workload_identity: 'Workload Identity',
+      azure_default_credential: 'Azure Default Credential',
+    };
+    grid.innerHTML = connectors.map(c => {
+      const authLabel = AUTH_LABELS[c.auth_type] || c.auth_type || 'None';
+      const lastChecked = c.last_checked_at
+        ? new Date(c.last_checked_at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+        : null;
+      return `
       <div class="connector-card" id="cc-${esc(c.id)}">
-        <div class="connector-card-header">
-          <div class="connector-card-title">${esc(c.name)}</div>
-          <div style="display:flex;gap:6px;">
+        <div class="sc-header">
+          <div class="sc-name">${esc(c.name)}</div>
+          <div class="sc-badges">
             ${modeBadge(c.mode)}
             ${statusBadge(c.status)}
           </div>
         </div>
-        <div class="connector-card-desc">${esc(c.description || '')}</div>
-        <div class="connector-meta">
-          <div class="connector-meta-row">
-            <span class="connector-meta-label">Auth type</span>
-            <code>${esc(c.auth_type || 'none')}</code>
+        <div class="sc-desc">${esc(c.description || '')}</div>
+        <div class="sc-contract">
+          <div class="sc-contract-label">Signal Contract</div>
+          <div class="connector-signals">
+            ${(c.supported_signal_types || []).map(s =>
+              `<span class="tag">${esc(s)}</span>`
+            ).join('')}
           </div>
-          ${c.last_checked_at ? `<div class="connector-meta-row">
-            <span class="connector-meta-label">Last checked</span>
-            <span>${esc(c.last_checked_at)}</span>
-          </div>` : ''}
-          ${c.error_message ? `<div class="connector-meta-row">
-            <span class="connector-meta-label" style="color:var(--red)">Error</span>
-            <span style="color:var(--red)">${esc(c.error_message)}</span>
-          </div>` : ''}
         </div>
-        <div class="connector-signals">
-          ${(c.supported_signal_types || []).map(s =>
-            `<span class="tag">${esc(s)}</span>`
-          ).join('')}
-        </div>
-        <div class="connector-actions">
+        <details class="disclosure">
+          <summary>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            Connection Details
+          </summary>
+          <div class="disclosure-body">
+            <div class="connector-meta">
+              <div class="connector-meta-row">
+                <span class="connector-meta-label">Authentication</span>
+                <span>${esc(authLabel)}</span>
+              </div>
+              ${lastChecked ? `<div class="connector-meta-row">
+                <span class="connector-meta-label">Last checked</span>
+                <span>${esc(lastChecked)}</span>
+              </div>` : ''}
+              ${c.error_message ? `<div class="connector-meta-row">
+                <span class="connector-meta-label" style="color:var(--red)">Error</span>
+                <span style="color:var(--red)">${esc(c.error_message)}</span>
+              </div>` : ''}
+            </div>
+          </div>
+        </details>
+        <div class="connector-actions" style="margin-top:12px;">
           <button class="btn btn-secondary btn-sm connector-configure-btn" data-id="${esc(c.id)}">Configure</button>
-          <button class="btn btn-ghost btn-sm connector-test-btn" data-id="${esc(c.id)}">Test</button>
+          <button class="btn btn-ghost btn-sm connector-test-btn" data-id="${esc(c.id)}">Health Check</button>
         </div>
       </div>
-    `).join('');
+      `;
+    }).join('');
 
     grid.querySelectorAll('.connector-configure-btn').forEach(btn => {
       btn.addEventListener('click', () => openConfigModal(btn.getAttribute('data-id'), connectors));
@@ -465,7 +491,7 @@
     };
     try {
       await API.post(`/api/connectors/${encodeURIComponent(cid)}/configure`, payload);
-      toast(`Connector ${cid} configured.`, 'success');
+      toast(`Signal contract updated for ${cid}.`, 'success');
       State.connectors = [];
       closeConfigModal();
       loadConnectors();
@@ -476,7 +502,7 @@
 
   async function testConnector(connectorId) {
     try {
-      toast(`Testing ${connectorId}…`);
+      toast(`Running health check on ${connectorId}…`);
       const result = await API.post(`/api/connectors/${encodeURIComponent(connectorId)}/test`, {});
       toast(`${connectorId}: ${result.status || 'ok'}`, 'success');
       State.connectors = [];
@@ -513,7 +539,7 @@
   function renderToolsTable(tools) {
     const wrap = document.getElementById('tools-table-wrap');
     if (!tools.length) {
-      wrap.innerHTML = '<div class="queue-empty">No tools available. Configure at least one connector.</div>';
+      wrap.innerHTML = '<div class="queue-empty">No registered capabilities. Configure at least one connector.</div>';
       return;
     }
     wrap.innerHTML = `
@@ -521,13 +547,9 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Tool</th>
+              <th>Capability</th>
               <th>Platform</th>
               <th>Signal Types</th>
-              <th>Required Scopes</th>
-              <th>Required Roles</th>
-              <th>Actions</th>
-              <th>Sensitivity</th>
               <th>Mode</th>
               <th>Status</th>
             </tr>
@@ -562,19 +584,15 @@
     tbody.innerHTML = tools.map(t => `
       <tr>
         <td>
-          <div style="font-weight:700;">${esc(t.name)}</div>
-          <div class="text-small">${esc(t.id)}</div>
+          <div style="font-weight:600;font-size:13px;">${esc(t.name)}</div>
+          <div class="text-small text-dim">${esc(t.description || t.id || '')}</div>
         </td>
         <td><span class="tag">${esc(t.platform_id)}</span></td>
         <td>${tags(t.signal_types)}</td>
-        <td>${tags(t.required_scopes, 'tag-accent')}</td>
-        <td>${tags(t.required_roles, 'tag-accent')}</td>
-        <td>${tags(t.supported_actions)}</td>
-        <td>${sensitivityBadge(t.sensitive_data_level)}</td>
         <td>${modeBadge(t.source_mode)}</td>
         <td>${t.enabled
-          ? '<span class="badge badge-ready">Enabled</span>'
-          : '<span class="badge badge-unknown">Disabled</span>'}</td>
+          ? '<span class="badge badge-ready">Active</span>'
+          : '<span class="badge badge-unknown">Inactive</span>'}</td>
       </tr>
     `).join('');
   }
@@ -1238,7 +1256,7 @@
   function renderAccess(r) {
     const content = document.getElementById('access-content');
     if (!r || !r.access_check_results) {
-      content.innerHTML = '<div class="empty-state"><p>No KPI interpreted yet. Go to <a data-section="kpi">KPI Workspace</a> first.</p></div>';
+      content.innerHTML = '<div class="empty-state"><p>No KPI interpreted yet. Go to <a data-section="kpi">Governance Workflow</a> first.</p></div>';
       return;
     }
 
@@ -1788,43 +1806,97 @@
   function renderEvidenceTrail(events) {
     const content = document.getElementById('evidence-content');
     if (!events.length) {
-      content.innerHTML = '<div class="queue-empty">No evidence events recorded yet. Run a KPI interpretation to generate evidence.</div>';
+      content.innerHTML = '<div class="queue-empty">No governance events recorded yet. Run the Governance Workflow to begin building the accountability record.</div>';
       return;
     }
 
-    const EVENT_COLORS = {
-      kpi_interpreted:             'var(--accent)',
-      signals_selected:            'var(--accent)',
-      tools_used:                  'var(--teal)',
-      insights_generated:          'var(--green)',
-      agent_ideas_generated:       'var(--green)',
-      agent_request_submitted:     'var(--amber)',
-      access_checked:              'var(--accent)',
-      access_gap_detected:         'var(--red)',
-      access_request_recommended:  'var(--amber)',
-      connector_access_insufficient:'var(--red)',
-      access_request_submitted:    'var(--amber)',
+    const EVENT_LABELS = {
+      kpi_interpreted:              'KPI Interpreted',
+      signals_selected:             'Signals Selected',
+      tools_used:                   'Tools Invoked',
+      insights_generated:           'Control Insights Generated',
+      agent_ideas_generated:        'Capability Recommendations Produced',
+      agent_request_submitted:      'Agent Build Request Submitted',
+      access_checked:               'Access Readiness Checked',
+      access_gap_detected:          'Access Gap Detected',
+      access_request_recommended:   'Access Request Recommended',
+      connector_access_insufficient:'Insufficient Connector Access',
+      access_request_submitted:     'Access Request Submitted',
+      connector_configured:         'Connector Configured',
+      connector_health_check:       'Connector Health Check',
+      connector_enabled:            'Connector Enabled',
+      connector_disabled:           'Connector Disabled',
     };
+
+    const EVENT_COLORS = {
+      kpi_interpreted:              'var(--accent)',
+      signals_selected:             'var(--accent)',
+      tools_used:                   'var(--teal)',
+      insights_generated:           'var(--green)',
+      agent_ideas_generated:        'var(--green)',
+      agent_request_submitted:      'var(--amber)',
+      access_checked:               'var(--accent)',
+      access_gap_detected:          'var(--red)',
+      access_request_recommended:   'var(--amber)',
+      connector_access_insufficient:'var(--red)',
+      access_request_submitted:     'var(--amber)',
+      connector_configured:         'var(--teal)',
+      connector_health_check:       'var(--teal)',
+    };
+
+    function evidenceNarrative(ev) {
+      const p = ev.payload || {};
+      switch (ev.event_type) {
+        case 'kpi_interpreted':
+          return `KPI "${p.kpi_id || p.kpi || '—'}" interpreted for ${p.persona_id || ev.persona_id || 'persona'}.`;
+        case 'signals_selected':
+          return `${(p.signals || []).length || 'Multiple'} signal requirement(s) determined for this KPI.`;
+        case 'tools_used':
+          return `${(p.tools || []).length || 'Multiple'} tool(s) invoked from the Tool Registry to gather signals.`;
+        case 'insights_generated':
+          return `Control insights produced — ${(p.insights || []).length || ''} recommendation(s) available.`;
+        case 'agent_ideas_generated':
+          return `${(p.ideas || []).length || ''} agent capability recommendation(s) generated from control signals.`;
+        case 'agent_request_submitted':
+          return `Agent build request submitted: "${p.agent_idea_id || '—'}".`;
+        case 'access_checked':
+          return `Access readiness assessed for ${p.persona_id || ev.persona_id || 'persona'} on ${p.connector_id || 'connector'}.`;
+        case 'access_gap_detected':
+          return `Access gap on ${p.platform_id || p.connector_id || 'platform'} — this KPI signal is unavailable without additional permissions.`;
+        case 'access_request_recommended':
+          return `Least-privilege access request recommended for ${p.platform_id || 'platform'}. Human approval required.`;
+        case 'connector_configured':
+          return `Connector "${p.connector_id || ''}" mode updated to ${p.mode || 'mock'}.`;
+        case 'connector_health_check':
+          return `Health check completed for connector "${p.connector_id || ''}" — status: ${p.health?.status || 'checked'}.`;
+        case 'connector_enabled':
+          return `Connector "${p.connector_id || ''}" enabled in the Tool Registry.`;
+        default:
+          return ev.event_type.replace(/_/g, ' ');
+      }
+    }
 
     const reverse = [...events].reverse();
     content.innerHTML = `
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;">
-        ${reverse.map(ev => {
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:0 20px;">
+        ${reverse.map((ev, idx) => {
           const color = EVENT_COLORS[ev.event_type] || 'var(--text-3)';
-          const payload = ev.payload || {};
+          const label = EVENT_LABELS[ev.event_type] || ev.event_type.replace(/_/g, ' ');
+          const narrative = evidenceNarrative(ev);
+          const ts = (ev.timestamp || '').slice(0, 19).replace('T', ' ');
+          const isLast = idx === reverse.length - 1;
           return `
-            <div class="evidence-item">
-              <div class="evidence-dot" style="background:${color}"></div>
-              <div style="flex:1;">
-                <div class="evidence-type" style="color:${color}">${esc(ev.event_type)}</div>
-                <div class="evidence-meta">
-                  ${ev.persona_id ? `persona: <code>${esc(ev.persona_id)}</code> · ` : ''}
-                  ${ev.kpi_id ? `kpi: <code>${esc(ev.kpi_id)}</code> · ` : ''}
-                  <code>${esc((ev.timestamp || '').slice(0, 19).replace('T', ' '))}</code>
+            <div class="ledger-entry">
+              <div class="ledger-line">
+                <div class="ledger-dot" style="background:${color}"></div>
+                ${!isLast ? '<div class="ledger-rule"></div>' : ''}
+              </div>
+              <div class="ledger-content">
+                <div class="ledger-event-label">${esc(label)}</div>
+                <div class="ledger-narrative">${esc(narrative)}</div>
+                <div class="ledger-meta">
+                  ${ev.persona_id ? `Persona: ${esc(ev.persona_id)} · ` : ''}${ev.kpi_id ? `KPI: ${esc(ev.kpi_id)} · ` : ''}${ts}
                 </div>
-                ${Object.keys(payload).length ? `
-                  <div class="evidence-payload">${esc(JSON.stringify(payload, null, 2))}</div>
-                ` : ''}
               </div>
             </div>
           `;
@@ -1835,9 +1907,9 @@
     // Filter
     document.getElementById('evidence-filter').addEventListener('input', e => {
       const text = e.target.value.toLowerCase();
-      content.querySelectorAll('.evidence-item').forEach(item => {
-        const type = item.querySelector('.evidence-type')?.textContent || '';
-        item.style.display = !text || type.includes(text) ? '' : 'none';
+      content.querySelectorAll('.ledger-entry').forEach(item => {
+        const label = item.querySelector('.ledger-event-label')?.textContent || '';
+        item.style.display = !text || label.toLowerCase().includes(text) ? '' : 'none';
       });
     });
   }

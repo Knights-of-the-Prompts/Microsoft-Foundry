@@ -76,7 +76,7 @@ class FoundryMockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="Microsoft Foundry",
             description="Agent invocations, model usage, and project health via azure-ai-projects.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.AZURE_DEFAULT_CREDENTIAL,
             base_url="",  # Set from FOUNDRY_PROJECT_ENDPOINT in live mode

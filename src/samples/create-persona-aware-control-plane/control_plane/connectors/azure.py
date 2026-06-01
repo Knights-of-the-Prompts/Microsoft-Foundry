@@ -103,7 +103,7 @@ class AzureMockConnector(PlatformConnector):
             description=(
                 "Resource health, cost, security events, and compliance via Azure SDK."
             ),
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.AZURE_DEFAULT_CREDENTIAL,
             base_url="https://management.azure.com",

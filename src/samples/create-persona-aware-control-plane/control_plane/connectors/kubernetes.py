@@ -61,7 +61,7 @@ class KubernetesMockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="Kubernetes",
             description="Pod health, deployment status, and namespace resource signals.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.NONE,
             base_url="",

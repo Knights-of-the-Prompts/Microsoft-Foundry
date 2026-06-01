@@ -174,6 +174,13 @@ class PlatformConnector(ABC):
     - Every signal dict includes a ``"source_metadata"`` key.
     """
 
+    def __init__(self) -> None:
+        self._mode: ConnectorMode = ConnectorMode.MOCK
+
+    def set_mode(self, mode: ConnectorMode) -> None:
+        """Update the runtime mode of this connector."""
+        self._mode = mode
+
     @abstractmethod
     def get_definition(self) -> ConnectorDefinition:
         """Return the static metadata for this connector."""

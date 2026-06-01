@@ -71,19 +71,27 @@
 
     <!-- ── GROUP: Briefing ────────────────────────────────────────── -->
     <section id="section-briefing" class="section active">
+      <div class="storyline-bar">
+        <span class="storyline-step done">Value Attribution</span>
+        <span class="storyline-arrow">&rarr;</span>
+        <span class="storyline-step done">Cost Attribution</span>
+        <span class="storyline-arrow">&rarr;</span>
+        <span class="storyline-step done">Agent Reporting</span>
+        <span class="storyline-arrow">&rarr;</span>
+        <span class="storyline-step current">Control Plane</span>
+      </div>
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="persona">Persona</button>
-        <button class="tab-btn" data-tab="series">Accountability Series</button>
+        <button class="tab-btn active" data-tab="persona">Control Briefing</button>
         <button class="tab-btn" data-tab="digest">Weekly Digest</button>
       </nav>
 
     <!-- ── TAB: Persona ─────────────────────────────────────── -->
     <div id="section-persona" class="tab-panel active">
       <div class="section-header">
-        <h1>Select Persona</h1>
+        <h1>Accountability Lens</h1>
         <p class="section-subtitle">
-          The control plane interprets every KPI, signal and access requirement
-          through the lens of a specific human accountability role.
+          Select the persona whose KPIs, signal requirements and access controls
+          this control briefing should be prepared for.
         </p>
       </div>
       <div id="persona-cards" class="persona-grid">
@@ -114,7 +122,7 @@
           </div>
         </div>
         <button class="btn btn-primary mt-lg" id="pd-proceed-btn">
-          Continue to KPI Workspace →
+          Open Governance Workflow
         </button>
       </div>
     </div>
@@ -192,15 +200,15 @@
     <!-- ── TAB: Digest ───────────────────────────────────────── -->
     <div id="section-digest" class="tab-panel">
       <div class="section-header">
-        <h1>Weekly Control Briefing</h1>
+        <h1>Control Briefing</h1>
         <p class="section-subtitle">
-          The weekly digest is the control-plane output for the selected persona and KPI.
-          It aggregates signals from all configured connectors into a governance briefing.
+          The control briefing aggregates KPI signals from configured connectors
+          for the selected persona into a governance summary.
         </p>
       </div>
       <div id="digest-content">
         <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">KPI Workspace</a> first.</p>
+          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
         </div>
       </div>
     </div>
@@ -210,18 +218,18 @@
     <!-- ── GROUP: Integrations ───────────────────────────────────── -->
     <section id="section-integrations" class="section">
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="connectors">Configure Platforms</button>
-        <button class="tab-btn" data-tab="tools">Available Tools</button>
+        <button class="tab-btn active" data-tab="connectors">Signal Contracts</button>
+        <button class="tab-btn" data-tab="tools">Registered Capabilities</button>
       </nav>
 
     <!-- ── TAB: Connectors ───────────────────────────────────── -->
     <div id="section-connectors" class="tab-panel active">
       <div class="section-header">
-        <h1>Configure Platforms</h1>
+        <h1>Signal Contracts</h1>
         <p class="section-subtitle">
-          Connectors are the source of truth for signals. Configured connectors
-          become tools for the KPI Agent and the Access Readiness Agent.
-          Mock mode requires no credentials.
+          Each connector defines a signal contract &mdash; which signals it provides,
+          what access it requires, and what evidence quality it produces.
+          Configure connectors to make their signals available to the control plane.
         </p>
         <div class="info-banner">
           <strong>Security note:</strong> Secrets (API keys, client secrets, tokens) must be
@@ -307,11 +315,10 @@
     <!-- ── TAB: Tools ───────────────────────────────────────── -->
     <div id="section-tools" class="tab-panel">
       <div class="section-header">
-        <h1>Available Tools</h1>
+        <h1>Registered Capabilities</h1>
         <p class="section-subtitle">
-          Configured platforms become tools registered in the ToolRegistry.
-          The KPI Agent uses these tools to gather the signals required by a KPI.
-          Access Readiness checks whether the selected persona can use each tool.
+          Configured platform connectors expose capabilities through the Tool Registry.
+          The KPI Agent selects from these when gathering signals for a given KPI.
         </p>
       </div>
       <div class="toolbar">
@@ -330,22 +337,20 @@
     <!-- ── GROUP: Actions ────────────────────────────────────────── -->
     <section id="section-actions" class="section">
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="kpi">KPI Workspace</button>
+        <button class="tab-btn active" data-tab="kpi">Governance Workflow</button>
         <button class="tab-btn" data-tab="signal-map">Signal Map</button>
         <button class="tab-btn" data-tab="access">Access Readiness</button>
         <button class="tab-btn" data-tab="access-requests">Access Requests</button>
-        <button class="tab-btn" data-tab="agent-ideas">Agent Ideas</button>
         <button class="tab-btn" data-tab="agent-requests">Agent Requests</button>
       </nav>
 
     <!-- ── TAB: KPI Workspace ────────────────────────────────── -->
     <div id="section-kpi" class="tab-panel active">
       <div class="section-header">
-        <h1>KPI Workspace</h1>
+        <h1>Governance Workflow</h1>
         <p class="section-subtitle">
-          Formalize your KPI before the control plane composes signals,
-          tools, access requirements and outputs. Start with a draft —
-          the agent will challenge it before anything is committed.
+          Define and formalize a KPI, then let the control plane compose the
+          required signal contract, access requirements and recommended actions.
         </p>
       </div>
 
@@ -517,15 +522,15 @@
     <!-- ── TAB: Signal Map ──────────────────────────────────── -->
     <div id="section-signal-map" class="tab-panel">
       <div class="section-header">
-        <h1>Signal &amp; Tool Map</h1>
+        <h1>Signal Map</h1>
         <p class="section-subtitle">
-          Trace the full chain from KPI to required access.
-          Run a KPI interpretation first to see the live chain.
+          The full chain from KPI to required access &mdash; signals, connectors,
+          tools and access requirements. Run the Governance Workflow first.
         </p>
       </div>
       <div id="signal-map-content">
         <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">KPI Workspace</a> first.</p>
+          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
         </div>
       </div>
     </div>
@@ -535,14 +540,14 @@
       <div class="section-header">
         <h1>Access Readiness</h1>
         <p class="section-subtitle">
-          The control plane checks whether the selected persona has the access
-          required by their KPI — across every signal, connector, tool and action.
-          No access is auto-granted. Only assessments and least-privilege recommendations.
+          Readiness assessment for the selected persona against their KPI signal
+          requirements. No access is auto-granted. Gaps produce least-privilege
+          recommendations for human approval.
         </p>
       </div>
       <div id="access-content">
         <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">KPI Workspace</a> first.</p>
+          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
         </div>
       </div>
     </div>
@@ -550,11 +555,10 @@
     <!-- ── TAB: Access Requests ─────────────────────────────── -->
     <div id="section-access-requests" class="tab-panel">
       <div class="section-header">
-        <h1>Access Request Queue</h1>
+        <h1>Access Requests</h1>
         <p class="section-subtitle">
-          Submitted access requests are tracked here. Requests are created with
-          status <code>submitted</code> and require human approval.
-          The control plane never auto-grants access.
+          Submitted least-privilege access requests pending human approval.
+          The control plane produces recommendations only &mdash; it never grants access.
         </p>
       </div>
       <div class="toolbar">
@@ -577,7 +581,7 @@
       </div>
       <div id="agent-ideas-content">
         <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">KPI Workspace</a> first.</p>
+          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
         </div>
       </div>
     </div>
@@ -585,10 +589,10 @@
     <!-- ── TAB: Agent Requests ───────────────────────────────── -->
     <div id="section-agent-requests" class="tab-panel">
       <div class="section-header">
-        <h1>Agent Request Queue</h1>
+        <h1>Agent Build Requests</h1>
         <p class="section-subtitle">
-          Submitted requests to build agents from Agent Ideas.
-          Each request is linked to a KPI and submitted by a persona.
+          Requests to build agents generated from capability recommendations.
+          Each request is linked to a KPI and a responsible persona.
         </p>
       </div>
       <div class="toolbar">
@@ -604,18 +608,18 @@
     <!-- ── GROUP: Evidence ────────────────────────────────────────── -->
     <section id="section-evidence" class="section">
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="evidence-trail">Evidence Trail</button>
+        <button class="tab-btn active" data-tab="evidence-trail">Accountability Ledger</button>
         <button class="tab-btn" data-tab="registry">Agent Registry</button>
       </nav>
 
     <!-- ── TAB: Evidence Trail ───────────────────────────────── -->
     <div id="section-evidence-trail" class="tab-panel active">
       <div class="section-header">
-        <h1>Evidence Trail</h1>
+        <h1>Accountability Ledger</h1>
         <p class="section-subtitle">
-          Every control-plane decision is backed by evidence.
-          The trail demonstrates that recommendations are derived from
-          value, cost, reporting and access-readiness signals — not assumptions.
+          Every governance action taken by this control plane is recorded here.
+          Each entry shows what happened, which KPI it supports, and what evidence
+          was created &mdash; forming an auditable accountability record.
         </p>
       </div>
       <div class="toolbar">
@@ -630,11 +634,10 @@
     <!-- ── TAB: Agent Registry ───────────────────────────────── -->
     <div id="section-registry" class="tab-panel">
       <div class="section-header">
-        <h1>Demo Agent Registry</h1>
+        <h1>Agent Registry</h1>
         <p class="section-subtitle">
-          A compact registry of the demo agents used throughout the
-          Accountable Agents series. Shows lifecycle state, risk tier,
-          value/cost contribution and current control recommendation.
+          Governance record of AI agents under accountability oversight.
+          Lifecycle state, risk tier and current control recommendation per agent.
         </p>
       </div>
       <div id="registry-content">

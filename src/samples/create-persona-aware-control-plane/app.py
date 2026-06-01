@@ -302,19 +302,25 @@ def configure_connector(connector_id: str, body: ConnectorConfigRequest) -> Dict
     In a real implementation this would persist the config and re-initialise
     the connector with the new credentials.
     """
+    from control_plane.connectors.base import ConnectorMode
     connector = _get_connector(connector_id)
+    if body.mode:
+        try:
+            connector.set_mode(ConnectorMode(body.mode))
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid mode '{body.mode}'. Use mock, live, or hybrid.")
     defn = connector.get_definition()
     evidence_store.add_event(
         "connector_configured",
-        {"connector_id": connector_id, "mode": body.mode},
-        source_mode=body.mode or "mock",
+        {"connector_id": connector_id, "mode": defn.mode.value},
+        source_mode=defn.mode.value,
     )
     return {
         "connector_id": connector_id,
         "name": defn.name,
         "status": "configured",
-        "mode": body.mode or "mock",
-        "message": "Configuration accepted. No credentials stored in this demo.",
+        "mode": defn.mode.value,
+        "message": f"Mode updated to '{defn.mode.value}'.",
     }
 
 

@@ -81,7 +81,7 @@ class Microsoft365MockConnector(PlatformConnector):
             platform_id=_PLATFORM_ID,
             name="Microsoft 365",
             description="User activity, collaboration, compliance signals via Microsoft Graph.",
-            mode=ConnectorMode.MOCK,
+            mode=self._mode,
             status=ConnectorStatus.CONNECTED,
             auth_type=AuthType.ENTRA_CLIENT_CREDENTIALS,
             base_url="https://graph.microsoft.com/v1.0",
