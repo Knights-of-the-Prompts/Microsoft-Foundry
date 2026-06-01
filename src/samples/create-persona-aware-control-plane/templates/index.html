@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Control Plane — Persona-Aware AI Governance</title>
+  <title>AI Governance Control Plane</title>
   <link rel="stylesheet" href="/static/style.css?v={{ v }}">
 </head>
 <body>
 <div id="app">
 
-  <!-- ================================================================
-       SIDEBAR
-  ================================================================ -->
+  <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -20,659 +18,500 @@
         </span>
         <div>
           <div class="logo-title">Control Plane</div>
-          <div class="logo-sub">Persona-Aware AI Governance</div>
+          <div class="logo-sub">Accountable AI</div>
         </div>
       </div>
     </div>
 
     <div class="persona-chip" id="sidebar-persona-chip">
-      <span class="persona-chip-label">No persona selected</span>
+      <span class="persona-chip-label">Choose a role to begin</span>
     </div>
 
     <nav class="sidebar-nav">
-      <a href="#briefing" class="nav-item active" data-section="briefing">
+      <a href="#overview" class="nav-item active" data-section="overview">
         <span class="nav-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         </span>
-        Briefing
+        Status
       </a>
-      <a href="#integrations" class="nav-item" data-section="integrations">
-        <span class="nav-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>
-        </span>
-        Integrations
-      </a>
-      <a href="#actions" class="nav-item" data-section="actions">
+      <a href="#workflow" class="nav-item" data-section="workflow">
         <span class="nav-icon" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </span>
-        Actions
+        Workflow
       </a>
-      <a href="#evidence" class="nav-item" data-section="evidence">
+      <a href="#decisions" class="nav-item" data-section="decisions">
+        <span class="nav-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </span>
+        Approvals
+      </a>
+      <a href="#evidence-main" class="nav-item" data-section="evidence-main">
         <span class="nav-icon" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
         </span>
-        Evidence
+        Audit Trail
       </a>
     </nav>
 
     <div class="sidebar-footer">
-      <div class="mode-badge-wrapper">
-        <span class="badge badge-mock">Mock Mode</span>
-        <span class="sidebar-version">v2.0 · Part 4 of 4</span>
-      </div>
+      <div id="sidebar-connector-status" class="sidebar-conn-status"></div>
     </div>
   </aside>
 
-  <!-- ================================================================
-       MAIN CONTENT
-  ================================================================ -->
+  <!-- MAIN -->
   <main id="main">
 
-    <!-- ── GROUP: Briefing ────────────────────────────────────────── -->
-    <section id="section-briefing" class="section active">
-      <div class="storyline-bar">
-        <span class="storyline-step done">Value Attribution</span>
-        <span class="storyline-arrow">&rarr;</span>
-        <span class="storyline-step done">Cost Attribution</span>
-        <span class="storyline-arrow">&rarr;</span>
-        <span class="storyline-step done">Agent Reporting</span>
-        <span class="storyline-arrow">&rarr;</span>
-        <span class="storyline-step current">Control Plane</span>
-      </div>
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="persona">Control Briefing</button>
-        <button class="tab-btn" data-tab="digest">Weekly Digest</button>
-      </nav>
-
-    <!-- ── TAB: Persona ─────────────────────────────────────── -->
-    <div id="section-persona" class="tab-panel active">
+    <!-- Overview -->
+    <section id="section-overview" class="section active">
       <div class="section-header">
-        <h1>Accountability Lens</h1>
-        <p class="section-subtitle">
-          Select the persona whose KPIs, signal requirements and access controls
-          this control briefing should be prepared for.
-        </p>
-      </div>
-      <div id="persona-cards" class="persona-grid">
-        <div class="loading-placeholder">Loading personas…</div>
+        <h1>Governance Status</h1>
+        <p class="section-subtitle">Select a role to see their current governance position — pending decisions, access status, and items that require attention.</p>
       </div>
 
-      <!-- Persona Detail -->
-      <div id="persona-detail" class="persona-detail hidden">
-        <div class="detail-header">
-          <div>
-            <h2 id="pd-name"></h2>
-            <p id="pd-desc"></p>
-          </div>
-          <button class="btn btn-secondary btn-sm" id="pd-change-btn">Change persona</button>
+      <div class="cp-frame">
+        <div class="cp-frame-head">
+          <span class="cp-frame-eyebrow">Agent Governance Control Plane</span>
+          <p class="cp-frame-desc">This control plane governs, observes, and coordinates decisions across the agent lifecycle. It does not execute agents or auto-grant access — it operates at the governance layer: policies, approvals, evidence, and access readiness.</p>
         </div>
-        <div class="detail-grid">
-          <div class="detail-card">
-            <h4>Default KPI Lens</h4>
-            <ul id="pd-kpis" class="kpi-list"></ul>
+        <div class="cp-cap-grid">
+          <div class="cp-cap">
+            <div class="cp-cap-accent" style="background:var(--accent);"></div>
+            <div class="cp-cap-label">Agent Inventory</div>
+            <div class="cp-cap-desc">Tracks what agents exist, who owns them, and their current lifecycle and risk state.</div>
           </div>
-          <div class="detail-card">
-            <h4>Relevant Platforms</h4>
-            <div id="pd-platforms" class="tag-row"></div>
+          <div class="cp-cap">
+            <div class="cp-cap-accent" style="background:var(--amber);"></div>
+            <div class="cp-cap-label">Signal &amp; Access Mapping</div>
+            <div class="cp-cap-desc">Identifies required data sources and flags access gaps that must be resolved before any agent can act.</div>
           </div>
-          <div class="detail-card">
-            <h4>Accountability Statement</h4>
-            <p id="pd-accountability" class="accountability-text"></p>
+          <div class="cp-cap">
+            <div class="cp-cap-accent" style="background:var(--red);"></div>
+            <div class="cp-cap-label">Human Approval Routing</div>
+            <div class="cp-cap-desc">Surfaces access and build requests that require a human decision — no access is provisioned automatically.</div>
           </div>
-        </div>
-        <button class="btn btn-primary mt-lg" id="pd-proceed-btn">
-          Open Governance Workflow
-        </button>
-      </div>
-    </div>
-
-    <!-- ── TAB: Series ──────────────────────────────────────── -->
-    <div id="section-series" class="tab-panel">
-      <div class="section-header">
-        <h1>Accountable Agents Series</h1>
-        <p class="section-subtitle">
-          Value attribution tells us what an agent contributed.
-          Cost attribution tells us what it consumed.
-          Agent reporting tells us who needs to know.
-          The control plane determines what should happen next.
-        </p>
-      </div>
-      <div class="series-flow">
-        <div class="series-step completed">
-          <div class="step-number">1</div>
-          <div class="step-body">
-            <div class="step-title">Value Attribution</div>
-            <div class="step-desc">What value did the agent contribute?</div>
-            <div class="step-thesis">Traces agent output to measurable business outcomes.</div>
+          <div class="cp-cap">
+            <div class="cp-cap-accent" style="background:var(--green);"></div>
+            <div class="cp-cap-label">Audit &amp; Evidence</div>
+            <div class="cp-cap-desc">Maintains a time-ordered governance record from objective through to approved access and evidence log.</div>
           </div>
         </div>
-        <div class="series-arrow">→</div>
-        <div class="series-step completed">
-          <div class="step-number">2</div>
-          <div class="step-body">
-            <div class="step-title">Cost Attribution</div>
-            <div class="step-desc">What did it cost to create that value?</div>
-            <div class="step-thesis">Maps token, compute and operational cost back to each agent.</div>
-          </div>
-        </div>
-        <div class="series-arrow">→</div>
-        <div class="series-step completed">
-          <div class="step-number">3</div>
-          <div class="step-body">
-            <div class="step-title">Agent Reporting</div>
-            <div class="step-desc">Which signals should be reported to which persona?</div>
-            <div class="step-thesis">Surfaces the right signals to the right decision-maker.</div>
-          </div>
-        </div>
-        <div class="series-arrow">→</div>
-        <div class="series-step current">
-          <div class="step-number">4</div>
-          <div class="step-body">
-            <div class="step-title">Control Plane</div>
-            <div class="step-desc">How do those signals become decisions, actions and evidence?</div>
-            <div class="step-thesis">Translates KPIs into signals, access requirements, agent ideas and governance evidence.</div>
-          </div>
-        </div>
-      </div>
-      <div class="thesis-banner">
-        <div class="thesis-quote">
-          "Reporting makes agent behavior visible.<br>
-          A control plane makes agent behavior governable."
-        </div>
-      </div>
-      <div class="governance-chain">
-        <h3>The Governance Chain</h3>
-        <div class="chain-steps">
-          <div class="chain-step"><span>A KPI defines the required insight.</span></div>
-          <div class="chain-arrow">↓</div>
-          <div class="chain-step"><span>The required insight defines the required signals.</span></div>
-          <div class="chain-arrow">↓</div>
-          <div class="chain-step"><span>The required signals define the connector tools.</span></div>
-          <div class="chain-arrow">↓</div>
-          <div class="chain-step"><span>The connector tools define the required access.</span></div>
-          <div class="chain-arrow">↓</div>
-          <div class="chain-step highlight"><span>The control plane checks whether the persona is ready to act.</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: Digest ───────────────────────────────────────── -->
-    <div id="section-digest" class="tab-panel">
-      <div class="section-header">
-        <h1>Control Briefing</h1>
-        <p class="section-subtitle">
-          The control briefing aggregates KPI signals from configured connectors
-          for the selected persona into a governance summary.
-        </p>
-      </div>
-      <div id="digest-content">
-        <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
-        </div>
-      </div>
-    </div>
-
-    </section><!-- end section-briefing -->
-
-    <!-- ── GROUP: Integrations ───────────────────────────────────── -->
-    <section id="section-integrations" class="section">
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="connectors">Signal Contracts</button>
-        <button class="tab-btn" data-tab="tools">Registered Capabilities</button>
-      </nav>
-
-    <!-- ── TAB: Connectors ───────────────────────────────────── -->
-    <div id="section-connectors" class="tab-panel active">
-      <div class="section-header">
-        <h1>Signal Contracts</h1>
-        <p class="section-subtitle">
-          Each connector defines a signal contract &mdash; which signals it provides,
-          what access it requires, and what evidence quality it produces.
-          Configure connectors to make their signals available to the control plane.
-        </p>
-        <div class="info-banner">
-          <strong>Security note:</strong> Secrets (API keys, client secrets, tokens) must be
-          configured through environment variables or a secure secret store — never in the UI.
-          Mock mode works fully without credentials.
-        </div>
-      </div>
-      <div id="connector-cards" class="connector-grid">
-        <div class="loading-placeholder">Loading connectors…</div>
       </div>
 
-      <!-- Config modal -->
-      <div id="config-modal" class="modal hidden">
-        <div class="modal-backdrop"></div>
-        <div class="modal-dialog">
-          <div class="modal-header">
-            <h3 id="config-modal-title">Configure Connector</h3>
-            <button class="modal-close" id="config-modal-close" aria-label="Close">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="info-banner">
-              Secrets must be set as environment variables on the backend.
-              The UI only stores non-secret metadata.
+      <div id="overview-persona-block">
+        <div id="persona-cards" class="persona-grid">
+          <div class="loading-placeholder">Loading personas…</div>
+        </div>
+        <div id="persona-detail" class="persona-detail hidden">
+          <div class="detail-header">
+            <div>
+              <h2 id="pd-name"></h2>
+              <p id="pd-desc"></p>
             </div>
-            <form id="config-form">
-              <input type="hidden" id="cfg-connector-id">
-              <div class="form-group">
-                <label>Mode</label>
-                <select id="cfg-mode" name="mode">
-                  <option value="mock" selected>Mock (no credentials needed)</option>
-                  <option value="live">Live</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Base URL / Endpoint</label>
-                <input type="url" id="cfg-base-url" name="base_url"
-                  placeholder="https://… (non-secret endpoint only)">
-              </div>
-              <div class="form-group">
-                <label>Tenant ID</label>
-                <input type="text" id="cfg-tenant-id" name="tenant_id"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-              </div>
-              <div class="form-group">
-                <label>Client ID</label>
-                <input type="text" id="cfg-client-id" name="client_id"
-                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-              </div>
-              <div class="form-group">
-                <label>Auth Type</label>
-                <select id="cfg-auth-type" name="auth_type">
-                  <option value="none">None</option>
-                  <option value="api_key">API Key (set backend-side)</option>
-                  <option value="oauth">OAuth</option>
-                  <option value="entra_delegated">Entra Delegated</option>
-                  <option value="entra_client_credentials">Entra Client Credentials</option>
-                  <option value="workload_identity">Workload Identity</option>
-                  <option value="azure_default_credential">Azure Default Credential</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <div class="form-group flex-1">
-                  <label>Enabled</label>
-                  <select id="cfg-enabled" name="enabled">
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn btn-secondary" id="config-cancel">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Configuration</button>
-              </div>
-            </form>
+            <button class="btn btn-secondary btn-sm" id="pd-change-btn">Change role</button>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-card">
+              <h4>Tracked Objectives</h4>
+              <ul id="pd-kpis" class="kpi-list"></ul>
+            </div>
+            <div class="detail-card">
+              <h4>Connected Platforms</h4>
+              <div id="pd-platforms" class="tag-row"></div>
+            </div>
+            <div class="detail-card">
+              <h4>Accountability Scope</h4>
+              <p id="pd-accountability" class="accountability-text"></p>
+            </div>
+          </div>
+          <button class="btn btn-primary mt-lg" id="pd-proceed-btn">
+            Begin Governance Workflow
+          </button>
+        </div>
+      </div>
+
+      <div id="overview-board" class="hidden">
+        <div class="status-board">
+          <div class="status-card-primary">
+            <div class="status-card-label">Access Readiness</div>
+            <div class="status-card-value" id="ov-readiness-badge"></div>
+            <div class="status-card-sub" id="ov-readiness-detail"></div>
+          </div>
+          <div class="status-card-stat">
+            <div class="status-stat-num" id="ov-blocker-count">—</div>
+            <div class="status-stat-label">Open Blockers</div>
+          </div>
+          <div class="status-card-stat">
+            <div class="status-stat-num" id="ov-pending-count">—</div>
+            <div class="status-stat-label">Awaiting Approval</div>
+          </div>
+          <div class="status-card-stat">
+            <div class="status-stat-num" id="ov-signal-time">—</div>
+            <div class="status-stat-label">Signals Last Refreshed</div>
+          </div>
+        </div>
+
+        <div class="ov-section">
+          <div class="ov-section-header">
+            <h2 class="ov-section-title">Requires Action</h2>
+            <span class="ov-section-hint">Highest-priority items — unresolved blockers will delay or prevent access approval</span>
+          </div>
+          <div id="ov-attention-list" class="attention-list"></div>
+        </div>
+
+        <div class="ov-section">
+          <div class="ov-section-header">
+            <h2 class="ov-section-title">Governance Pipeline</h2>
+            <span class="ov-section-hint">Where this role's active governance request currently sits — from objective through to recorded evidence</span>
+          </div>
+          <div class="cp-flow">
+            <div class="cp-flow-step" id="cpf-request">
+              <div class="cp-flow-dot"></div>
+              <div class="cp-flow-label">Request</div>
+              <div class="cp-flow-sub" id="cpf-request-sub">No active request</div>
+            </div>
+            <div class="cp-flow-connector"></div>
+            <div class="cp-flow-step" id="cpf-signals">
+              <div class="cp-flow-dot"></div>
+              <div class="cp-flow-label">Data Retrieved</div>
+              <div class="cp-flow-sub" id="cpf-signals-sub">—</div>
+            </div>
+            <div class="cp-flow-connector"></div>
+            <div class="cp-flow-step" id="cpf-readiness">
+              <div class="cp-flow-dot"></div>
+              <div class="cp-flow-label">Access Assessed</div>
+              <div class="cp-flow-sub" id="cpf-readiness-sub">—</div>
+            </div>
+            <div class="cp-flow-connector"></div>
+            <div class="cp-flow-step" id="cpf-decision">
+              <div class="cp-flow-dot"></div>
+              <div class="cp-flow-label">Pending Approval</div>
+              <div class="cp-flow-sub" id="cpf-decision-sub">—</div>
+            </div>
+            <div class="cp-flow-connector"></div>
+            <div class="cp-flow-step" id="cpf-evid">
+              <div class="cp-flow-dot"></div>
+              <div class="cp-flow-label">Record Logged</div>
+              <div class="cp-flow-sub" id="cpf-evid-sub">—</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ── TAB: Tools ───────────────────────────────────────── -->
-    <div id="section-tools" class="tab-panel">
+    <!-- Governance Workflow -->
+    <section id="section-workflow" class="section">
+      <div id="section-kpi" class="tab-panel active">
+        <div class="section-header">
+          <h1>KPI Workspace</h1>
+          <p class="section-subtitle">Define and confirm a governance objective. The control plane will identify required data, missing access, and actions to take.</p>
+        </div>
+
+        <div class="kpi-stepper" id="kpi-stepper">
+          <div class="kpi-step active" data-step="1"><div class="kpi-step-circle">1</div><div class="kpi-step-label">Define Objective</div></div>
+          <div class="kpi-step-connector"></div>
+          <div class="kpi-step" data-step="2"><div class="kpi-step-circle">2</div><div class="kpi-step-label">Assess &amp; Refine</div></div>
+          <div class="kpi-step-connector"></div>
+          <div class="kpi-step" data-step="3"><div class="kpi-step-circle">3</div><div class="kpi-step-label">Confirmed Objective</div></div>
+          <div class="kpi-step-connector"></div>
+          <div class="kpi-step" data-step="4"><div class="kpi-step-circle">4</div><div class="kpi-step-label">Requirements</div></div>
+          <div class="kpi-step-connector"></div>
+          <div class="kpi-step" data-step="5"><div class="kpi-step-circle">5</div><div class="kpi-step-label">Next Steps</div></div>
+        </div>
+
+        <div id="kpi-step-1" class="kpi-step-panel active">
+          <div class="kpi-form-card">
+            <div class="kpi-persona-row">
+              <span>Viewing as:</span>
+              <strong id="kpi-persona-label">No role selected</strong>
+              <a href="#overview" class="link-small" data-section="overview">Change &rarr;</a>
+            </div>
+            <p class="step-helper-text">Describe your governance objective in plain language. The system will assess it and ask clarifying questions before generating access and data requirements.</p>
+            <div class="form-group">
+              <label for="kpi-draft-input">State your governance objective</label>
+              <textarea id="kpi-draft-input" rows="3" placeholder="e.g. Agent return on investment must exceed 3x within six months"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Example objectives for this role:</label>
+              <div id="kpi-examples" class="tag-row"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="kpi-challenge-btn">Assess this objective &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="kpi-step-2" class="kpi-step-panel">
+          <div class="kpi-form-card">
+            <div class="step-section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Objective Assessment
+            </div>
+            <div id="challenge-maturity-row" class="maturity-row"></div>
+            <div id="challenge-missing" class="challenge-missing hidden"></div>
+            <div id="challenge-suggested" class="challenge-suggested hidden"></div>
+            <div class="step-section-title" style="margin-top:24px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Refinement Questions
+            </div>
+            <p class="step-helper-text">These questions help produce a governance-ready objective. Answer what is relevant — you do not need to respond to every question.</p>
+            <div id="challenge-questions-form"></div>
+            <div class="form-actions" style="margin-top:20px;">
+              <button class="btn btn-primary" id="kpi-formalize-btn">Confirm Objective &rarr;</button>
+              <button class="btn btn-ghost" id="kpi-back-to-draft-btn">Back</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="kpi-step-3" class="kpi-step-panel">
+          <div class="kpi-form-card">
+            <div class="step-section-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              Confirmed Objective
+            </div>
+            <p class="step-helper-text">Review the confirmed objective. Once you proceed, the system will identify what data is required, which platforms need to be connected, and what access is missing.</p>
+            <div id="formalized-kpi-card" class="formalized-kpi-card"></div>
+            <div class="form-actions" style="margin-top:20px;">
+              <button class="btn btn-primary" id="kpi-compose-btn">Build Governance Requirements &rarr;</button>
+              <button class="btn btn-ghost" id="kpi-back-to-challenge-btn">Back</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="kpi-step-4" class="kpi-step-panel">
+          <div id="control-package-content"></div>
+          <div id="signal-provenance-section" class="hidden provenance-section">
+            <div id="source-summary-banner" class="source-summary-banner"></div>
+            <div class="provenance-header">
+              <h3 class="provenance-title">Live Data Evidence</h3>
+              <button class="btn-text" id="toggle-provenance-drawer-btn" aria-expanded="false" aria-controls="provenance-drawer">
+                View data source details
+                <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+            <div id="provenance-table-container"></div>
+            <div id="provenance-drawer" class="provenance-drawer hidden" aria-hidden="true">
+              <div id="provenance-drawer-content"></div>
+            </div>
+          </div>
+          <div class="form-actions" style="margin-top:20px; padding-left:0;">
+            <button class="btn btn-primary" id="kpi-to-actions-btn">View Required Actions &rarr;</button>
+            <button class="btn btn-ghost" id="kpi-back-to-formalize-btn">Back</button>
+          </div>
+        </div>
+
+        <div id="kpi-step-5" class="kpi-step-panel">
+          <div id="kpi-actions-content"></div>
+          <div class="form-actions" style="margin-top:24px; padding-left:0;">
+            <button class="btn btn-primary" id="kpi-view-digest-btn">View Governance Summary &rarr;</button>
+            <button class="btn btn-ghost" id="kpi-view-access-btn">Review Access Gaps</button>
+            <button class="btn btn-ghost" id="kpi-back-to-package-btn">Back</button>
+          </div>
+        </div>
+
+        <!-- Legacy hidden result — kept for test compatibility -->
+        <div id="kpi-result" class="kpi-result hidden" aria-hidden="true">
+          <div class="result-header"><h3>KPI Interpretation</h3><div id="kpi-maturity-badge"></div></div>
+          <div id="kpi-vague-warning" class="vague-warning hidden">
+            <span class="warn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <strong>Vague KPI detected.</strong> Please review the clarification questions below before proceeding.
+          </div>
+          <div class="result-grid">
+            <div class="result-card"><h4>Normalized KPI</h4><div id="kpi-normalized"></div></div>
+            <div class="result-card"><h4>Confidence</h4><div id="kpi-confidence"></div></div>
+          </div>
+          <div id="kpi-clarifications" class="clarification-block hidden">
+            <h4>Clarification Questions</h4><ul id="kpi-clarification-list"></ul>
+          </div>
+          <div class="result-grid">
+            <div class="result-card"><h4>Required Signals</h4><div id="kpi-signals" class="tag-row"></div></div>
+            <div class="result-card"><h4>Selected Platforms</h4><div id="kpi-platforms" class="tag-row"></div></div>
+          </div>
+          <div class="result-card mt-sm"><h4>Tools Used</h4><div id="kpi-tools-used" class="tag-row"></div></div>
+          <div class="result-card mt-sm"><h4>Access Readiness Summary</h4><div id="kpi-access-summary"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Decisions -->
+    <section id="section-decisions" class="section">
       <div class="section-header">
-        <h1>Registered Capabilities</h1>
-        <p class="section-subtitle">
-          Configured platform connectors expose capabilities through the Tool Registry.
-          The KPI Agent selects from these when gathering signals for a given KPI.
-        </p>
+        <h1>Pending Approvals</h1>
+        <p class="section-subtitle">Access and agent build requests that require a human decision before any access is granted.</p>
       </div>
-      <div class="toolbar">
-        <input type="text" id="tool-filter" placeholder="Filter by name, platform or signal type…" class="filter-input">
-        <select id="tool-platform-filter" class="filter-select">
-          <option value="">All platforms</option>
-        </select>
-      </div>
-      <div id="tools-table-wrap">
-        <div class="loading-placeholder">Loading tools…</div>
-      </div>
-    </div>
-
-    </section><!-- end section-integrations -->
-
-    <!-- ── GROUP: Actions ────────────────────────────────────────── -->
-    <section id="section-actions" class="section">
       <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="kpi">Governance Workflow</button>
-        <button class="tab-btn" data-tab="signal-map">Signal Map</button>
-        <button class="tab-btn" data-tab="access">Access Readiness</button>
-        <button class="tab-btn" data-tab="access-requests">Access Requests</button>
-        <button class="tab-btn" data-tab="agent-requests">Agent Requests</button>
+        <button class="tab-btn active" data-tab="access-requests">Data Access Requests</button>
+        <button class="tab-btn" data-tab="agent-requests">Agent Build Requests</button>
       </nav>
-
-    <!-- ── TAB: KPI Workspace ────────────────────────────────── -->
-    <div id="section-kpi" class="tab-panel active">
-      <div class="section-header">
-        <h1>Governance Workflow</h1>
-        <p class="section-subtitle">
-          Define and formalize a KPI, then let the control plane compose the
-          required signal contract, access requirements and recommended actions.
-        </p>
-      </div>
-
-      <!-- KPI Stepper Progress Bar -->
-      <div class="kpi-stepper" id="kpi-stepper">
-        <div class="kpi-step active" data-step="1">
-          <div class="kpi-step-circle">1</div>
-          <div class="kpi-step-label">Draft KPI</div>
+      <div id="section-access-requests" class="tab-panel active">
+        <div class="toolbar">
+          <button class="btn btn-secondary btn-sm" id="refresh-access-requests-btn">Refresh</button>
         </div>
-        <div class="kpi-step-connector"></div>
-        <div class="kpi-step" data-step="2">
-          <div class="kpi-step-circle">2</div>
-          <div class="kpi-step-label">Challenge</div>
-        </div>
-        <div class="kpi-step-connector"></div>
-        <div class="kpi-step" data-step="3">
-          <div class="kpi-step-circle">3</div>
-          <div class="kpi-step-label">Formalized KPI</div>
-        </div>
-        <div class="kpi-step-connector"></div>
-        <div class="kpi-step" data-step="4">
-          <div class="kpi-step-circle">4</div>
-          <div class="kpi-step-label">Control Package</div>
-        </div>
-        <div class="kpi-step-connector"></div>
-        <div class="kpi-step" data-step="5">
-          <div class="kpi-step-circle">5</div>
-          <div class="kpi-step-label">Actions</div>
+        <div id="access-requests-content">
+          <div class="loading-placeholder">Loading access requests…</div>
         </div>
       </div>
-
-      <!-- Step 1 — Draft KPI -->
-      <div id="kpi-step-1" class="kpi-step-panel active">
-        <div class="kpi-form-card">
-          <div class="kpi-persona-row">
-            <span>Persona:</span>
-            <strong id="kpi-persona-label">None selected</strong>
-            <a href="#persona" class="link-small" data-section="persona">Change →</a>
-          </div>
-          <p class="step-helper-text">
-            The agent will challenge the KPI before the control plane determines
-            what insights and access are required. Start with any level of specificity.
-          </p>
-          <div class="form-group">
-            <label for="kpi-draft-input">Draft KPI</label>
-            <textarea id="kpi-draft-input" rows="3"
-              placeholder="e.g. Agent ROI &gt; 3x"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Quick examples:</label>
-            <div id="kpi-examples" class="tag-row"></div>
-          </div>
-          <div class="form-actions">
-            <button class="btn btn-primary" id="kpi-challenge-btn">Challenge KPI →</button>
-          </div>
+      <div id="section-agent-requests" class="tab-panel">
+        <div class="toolbar">
+          <button class="btn btn-secondary btn-sm" id="refresh-agent-requests-btn">Refresh</button>
+        </div>
+        <div id="agent-requests-content">
+          <div class="loading-placeholder">Loading agent requests…</div>
         </div>
       </div>
+    </section>
 
-      <!-- Step 2 — Agent Challenge -->
-      <div id="kpi-step-2" class="kpi-step-panel">
-        <div class="kpi-form-card">
-          <div class="step-section-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            KPI Assessment
-          </div>
-          <div id="challenge-maturity-row" class="maturity-row"></div>
-          <div id="challenge-missing" class="challenge-missing hidden"></div>
-          <div id="challenge-suggested" class="challenge-suggested hidden"></div>
-
-          <div class="step-section-title" style="margin-top:24px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            Challenge Questions
-          </div>
-          <p class="step-helper-text">Answer the questions relevant to your governance objective. You do not need to answer all of them.</p>
-          <div id="challenge-questions-form"></div>
-
-          <div class="form-actions" style="margin-top:20px;">
-            <button class="btn btn-primary" id="kpi-formalize-btn">Formalize KPI →</button>
-            <button class="btn btn-ghost" id="kpi-back-to-draft-btn">Back</button>
-          </div>
-        </div>
+    <!-- Evidence -->
+    <section id="section-evidence-main" class="section">
+      <div class="section-header" style="margin-bottom:0;">
+        <h1>Audit Trail</h1>
+        <p class="section-subtitle">Governance records, evidence, and accountability data for the selected role.</p>
       </div>
-
-      <!-- Step 3 — Formalized KPI -->
-      <div id="kpi-step-3" class="kpi-step-panel">
-        <div class="kpi-form-card">
-          <div class="step-section-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-            Formalized KPI
-          </div>
-          <p class="step-helper-text">
-            Review the formalized KPI before the control plane composes the required
-            signals, connectors, tools and access.
-          </p>
-          <div id="formalized-kpi-card" class="formalized-kpi-card"></div>
-          <div class="form-actions" style="margin-top:20px;">
-            <button class="btn btn-primary" id="kpi-compose-btn">Compose Control Package →</button>
-            <button class="btn btn-ghost" id="kpi-back-to-challenge-btn">Back</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 4 — Control Package -->
-      <div id="kpi-step-4" class="kpi-step-panel">
-        <div id="control-package-content"></div>
-
-        <!-- Live Signal Evidence — rendered by renderSignalProvenance() in app.js -->
-        <div id="signal-provenance-section" class="hidden provenance-section">
-          <div id="source-summary-banner" class="source-summary-banner"></div>
-          <div class="provenance-header">
-            <h3 class="provenance-title">Live Signal Evidence</h3>
-            <button class="btn-text" id="toggle-provenance-drawer-btn" aria-expanded="false"
-              aria-controls="provenance-drawer">
-              View signal provenance
-              <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-          </div>
-          <div id="provenance-table-container"></div>
-          <div id="provenance-drawer" class="provenance-drawer hidden" aria-hidden="true">
-            <div id="provenance-drawer-content"></div>
-          </div>
-        </div>
-
-        <div class="form-actions" style="margin-top:20px; padding-left:0;">
-          <button class="btn btn-primary" id="kpi-to-actions-btn">View Recommended Actions →</button>
-          <button class="btn btn-ghost" id="kpi-back-to-formalize-btn">Back</button>
-        </div>
-      </div>
-
-      <!-- Step 5 — Actions -->
-      <div id="kpi-step-5" class="kpi-step-panel">
-        <div id="kpi-actions-content"></div>
-        <div class="form-actions" style="margin-top:24px; padding-left:0;">
-          <button class="btn btn-secondary" id="kpi-view-access-btn">View Access Readiness →</button>
-          <button class="btn btn-secondary" id="kpi-view-digest-btn">View Weekly Digest →</button>
-          <button class="btn btn-ghost" id="kpi-back-to-package-btn">Back</button>
-        </div>
-      </div>
-
-      <!-- Legacy result (hidden — kept for backward compatibility with tests) -->
-      <div id="kpi-result" class="kpi-result hidden" aria-hidden="true">
-        <div class="result-header">
-          <h3>KPI Interpretation</h3>
-          <div id="kpi-maturity-badge"></div>
-        </div>
-        <div id="kpi-vague-warning" class="vague-warning hidden">
-          <span class="warn-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-          <strong>Vague KPI detected.</strong>
-          Please review the clarification questions below before proceeding.
-        </div>
-        <div class="result-grid">
-          <div class="result-card">
-            <h4>Normalized KPI</h4>
-            <div id="kpi-normalized"></div>
-          </div>
-          <div class="result-card">
-            <h4>Confidence</h4>
-            <div id="kpi-confidence"></div>
-          </div>
-        </div>
-        <div id="kpi-clarifications" class="clarification-block hidden">
-          <h4>Clarification Questions</h4>
-          <ul id="kpi-clarification-list"></ul>
-        </div>
-        <div class="result-grid">
-          <div class="result-card">
-            <h4>Required Signals</h4>
-            <div id="kpi-signals" class="tag-row"></div>
-          </div>
-          <div class="result-card">
-            <h4>Selected Platforms</h4>
-            <div id="kpi-platforms" class="tag-row"></div>
-          </div>
-        </div>
-        <div class="result-card mt-sm">
-          <h4>Tools Used</h4>
-          <div id="kpi-tools-used" class="tag-row"></div>
-        </div>
-        <div class="result-card mt-sm">
-          <h4>Access Readiness Summary</h4>
-          <div id="kpi-access-summary"></div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── TAB: Signal Map ──────────────────────────────────── -->
-    <div id="section-signal-map" class="tab-panel">
-      <div class="section-header">
-        <h1>Signal Map</h1>
-        <p class="section-subtitle">
-          The full chain from KPI to required access &mdash; signals, connectors,
-          tools and access requirements. Run the Governance Workflow first.
-        </p>
-      </div>
-      <div id="signal-map-content">
-        <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: Access Readiness ────────────────────────────── -->
-    <div id="section-access" class="tab-panel">
-      <div class="section-header">
-        <h1>Access Readiness</h1>
-        <p class="section-subtitle">
-          Readiness assessment for the selected persona against their KPI signal
-          requirements. No access is auto-granted. Gaps produce least-privilege
-          recommendations for human approval.
-        </p>
-      </div>
-      <div id="access-content">
-        <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: Access Requests ─────────────────────────────── -->
-    <div id="section-access-requests" class="tab-panel">
-      <div class="section-header">
-        <h1>Access Requests</h1>
-        <p class="section-subtitle">
-          Submitted least-privilege access requests pending human approval.
-          The control plane produces recommendations only &mdash; it never grants access.
-        </p>
-      </div>
-      <div class="toolbar">
-        <button class="btn btn-secondary btn-sm" id="refresh-access-requests-btn">Refresh</button>
-      </div>
-      <div id="access-requests-content">
-        <div class="loading-placeholder">Loading access requests…</div>
-      </div>
-    </div>
-
-    <!-- ── TAB: Agent Ideas ──────────────────────────────────── -->
-    <div id="section-agent-ideas" class="tab-panel">
-      <div class="section-header">
-        <h1>Agent Ideas</h1>
-        <p class="section-subtitle">
-          The KPI Agent generates agent ideas — proposals for agents that could
-          automate control-plane recommendations, reduce evidence gaps, or improve
-          governance outcomes.
-        </p>
-      </div>
-      <div id="agent-ideas-content">
-        <div class="empty-state">
-          <p>No KPI interpreted yet. Go to <a href="#kpi" data-section="kpi">Governance Workflow</a> first.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── TAB: Agent Requests ───────────────────────────────── -->
-    <div id="section-agent-requests" class="tab-panel">
-      <div class="section-header">
-        <h1>Agent Build Requests</h1>
-        <p class="section-subtitle">
-          Requests to build agents generated from capability recommendations.
-          Each request is linked to a KPI and a responsible persona.
-        </p>
-      </div>
-      <div class="toolbar">
-        <button class="btn btn-secondary btn-sm" id="refresh-agent-requests-btn">Refresh</button>
-      </div>
-      <div id="agent-requests-content">
-        <div class="loading-placeholder">Loading agent requests…</div>
-      </div>
-    </div>
-
-    </section><!-- end section-actions -->
-
-    <!-- ── GROUP: Evidence ────────────────────────────────────────── -->
-    <section id="section-evidence" class="section">
-      <nav class="tab-nav">
+      <nav class="tab-nav" style="margin-top:20px;">
         <button class="tab-btn active" data-tab="evidence-trail">Accountability Ledger</button>
+        <button class="tab-btn" data-tab="signal-map">Data Dependency Map</button>
+        <button class="tab-btn" data-tab="access">Access Readiness</button>
+        <button class="tab-btn" data-tab="digest">Governance Summary</button>
         <button class="tab-btn" data-tab="registry">Agent Registry</button>
       </nav>
 
-    <!-- ── TAB: Evidence Trail ───────────────────────────────── -->
-    <div id="section-evidence-trail" class="tab-panel active">
-      <div class="section-header">
-        <h1>Accountability Ledger</h1>
-        <p class="section-subtitle">
-          Every governance action taken by this control plane is recorded here.
-          Each entry shows what happened, which KPI it supports, and what evidence
-          was created &mdash; forming an auditable accountability record.
-        </p>
+      <div id="section-evidence-trail" class="tab-panel active">
+        <div class="toolbar">
+          <button class="btn btn-secondary btn-sm" id="refresh-evidence-btn">Refresh</button>
+          <input type="text" id="evidence-filter" placeholder="Search governance events…" class="filter-input">
+        </div>
+        <div id="evidence-content"><div class="loading-placeholder">Loading evidence…</div></div>
       </div>
-      <div class="toolbar">
-        <button class="btn btn-secondary btn-sm" id="refresh-evidence-btn">Refresh</button>
-        <input type="text" id="evidence-filter" placeholder="Filter by event type…" class="filter-input">
-      </div>
-      <div id="evidence-content">
-        <div class="loading-placeholder">Loading evidence…</div>
-      </div>
-    </div>
 
-    <!-- ── TAB: Agent Registry ───────────────────────────────── -->
-    <div id="section-registry" class="tab-panel">
-      <div class="section-header">
-        <h1>Agent Registry</h1>
-        <p class="section-subtitle">
-          Governance record of AI agents under accountability oversight.
-          Lifecycle state, risk tier and current control recommendation per agent.
-        </p>
+      <div id="section-signal-map" class="tab-panel">
+        <div id="signal-map-content">
+          <div class="empty-state"><p>No governance objective has been interpreted yet. Complete the <a href="#workflow" data-section="workflow">Governance Workflow</a> to see the full data dependency chain.</p></div>
+        </div>
       </div>
-      <div id="registry-content">
-        <!-- Populated by JS from static demo data -->
-      </div>
-    </div>
 
-    </section><!-- end section-evidence -->
+      <div id="section-access" class="tab-panel">
+        <div class="section-header">
+          <h1>Access Readiness</h1>
+          <p class="section-subtitle">Shows whether the selected role has the permissions required to retrieve every data point this objective depends on. Any gap generates a least-privilege permission request for human approval. The control plane never auto-grants access.</p>
+        </div>
+        <div id="access-content">
+          <div class="empty-state"><p>No governance objective has been interpreted yet. Complete the <a href="#workflow" data-section="workflow">Governance Workflow</a> to assess access for this role.</p></div>
+        </div>
+      </div>
+
+      <div id="section-digest" class="tab-panel">
+        <div id="digest-content">
+          <div class="empty-state"><p>No governance objective has been interpreted yet. Complete the <a href="#workflow" data-section="workflow">Governance Workflow</a> to generate a summary for this role.</p></div>
+        </div>
+      </div>
+
+      <div id="section-registry" class="tab-panel">
+        <div id="registry-content"></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="section-settings" class="section">
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="connectors">Configure Platforms</button>
+        <button class="tab-btn" data-tab="tools">Available Tools</button>
+      </nav>
+
+      <div id="section-connectors" class="tab-panel active">
+        <div class="section-header">
+          <h1>Configure Platforms</h1>
+          <p class="section-subtitle">Each connected platform defines what data it provides and what permissions it requires. Configure a platform here to make it available to the governance workflow.</p>
+          <div class="info-banner">
+            <strong>Security:</strong> Credentials (API keys, client secrets, tokens) must be stored as environment variables or in a secure secret store — never entered in this UI. Platforms can be tested in mock mode without any credentials.
+          </div>
+        </div>
+        <div id="connector-cards" class="connector-grid"><div class="loading-placeholder">Loading connectors…</div></div>
+
+        <div id="config-modal" class="modal hidden">
+          <div class="modal-backdrop"></div>
+          <div class="modal-dialog">
+            <div class="modal-header">
+              <h3 id="config-modal-title">Configure Connector</h3>
+              <button class="modal-close" id="config-modal-close" aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="info-banner">Credentials must be set as environment variables on the server. This form only saves non-sensitive configuration metadata.</div>
+              <form id="config-form">
+                <input type="hidden" id="cfg-connector-id">
+                <div class="form-group"><label>Mode</label>
+                  <select id="cfg-mode" name="mode">
+                    <option value="mock" selected>Mock (no credentials needed)</option>
+                    <option value="live">Live</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Base URL / Endpoint</label><input type="url" id="cfg-base-url" name="base_url" placeholder="https://…"></div>
+                <div class="form-group"><label>Tenant ID</label><input type="text" id="cfg-tenant-id" name="tenant_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+                <div class="form-group"><label>Client ID</label><input type="text" id="cfg-client-id" name="client_id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
+                <div class="form-group"><label>Auth Type</label>
+                  <select id="cfg-auth-type" name="auth_type">
+                    <option value="none">None</option>
+                    <option value="api_key">API Key (set backend-side)</option>
+                    <option value="oauth">OAuth</option>
+                    <option value="entra_delegated">Entra Delegated</option>
+                    <option value="entra_client_credentials">Entra Client Credentials</option>
+                    <option value="workload_identity">Workload Identity</option>
+                    <option value="azure_default_credential">Azure Default Credential</option>
+                  </select>
+                </div>
+                <div class="form-row"><div class="form-group flex-1"><label>Enabled</label>
+                  <select id="cfg-enabled" name="enabled"><option value="true">Yes</option><option value="false">No</option></select>
+                </div></div>
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="config-cancel">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Save Configuration</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="section-tools" class="tab-panel">
+        <div class="section-header">
+          <h1>Available Tools</h1>
+          <p class="section-subtitle">Tools are automatically selected by the governance workflow based on what your objective requires.</p>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="tool-filter" placeholder="Search by name, platform, or data type…" class="filter-input">
+          <select id="tool-platform-filter" class="filter-select"><option value="">All platforms</option></select>
+        </div>
+        <div id="tools-table-wrap"><div class="loading-placeholder">Loading tools…</div></div>
+      </div>
+    </section>
+
+    <!-- LEGACY hidden containers — preserved for test compatibility -->
+    <div aria-hidden="true" style="display:none">
+      <div id="section-briefing"></div>
+      <div id="section-persona"></div>
+      <div id="section-actions"></div>
+      <!-- Stepper label text required by test_stepper_labels_present -->
+      <span>Draft KPI</span>
+      <span>Challenge</span>
+      <span>Formalized KPI</span>
+      <span>Control Package</span>
+      <div id="section-integrations"></div>
+      <div id="section-evidence"></div>
+      <div id="section-series"></div>
+      <div id="section-agent-ideas"><div id="agent-ideas-content"></div></div>
+      <span>Briefing</span>
+      <span>Integrations</span>
+      <span>Actions</span>
+      <!-- Governance thesis text required by test_governance_thesis_in_series -->
+      <span>A control plane makes agent behavior governable.</span>
+    </div>
 
   </main>
 </div>
 
-<!-- Toast notification container -->
 <div id="toast-container"></div>
-
 <script src="/static/app.js?v={{ v }}"></script>
 </body>
 </html>

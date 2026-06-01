@@ -112,6 +112,10 @@ for connector_cls in ALL_CONNECTORS:
 from control_plane.connectors.azure_live import get_azure_connector as _get_azure_connector
 registry.register(_get_azure_connector())
 
+# Register Agent 365 connector via factory (picks live or mock based on env)
+from control_plane.connectors.agent365_live import get_agent365_connector as _get_agent365_connector
+registry.register(_get_agent365_connector())
+
 kpi_agent = KPIAgent(registry)
 access_agent = AccessReadinessAgent(registry)
 kpi_challenge_agent = KpiChallengeAgent()
