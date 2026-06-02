@@ -123,7 +123,7 @@ This first phase delivers:
 - `PlatformConnector` abstract interface
 - `ConnectorDefinition`, `ConnectorConfig`, `ControlPlaneTool` data models
 - `ToolRegistry` — registers all connectors, exposes tools to the KPI Agent
-- Mock connectors for all 7 platforms (same interface as future live connectors)
+- Mock connectors for all 8 platform connectors (same interface as future live connectors)
 - Signal model with `SignalSourceMetadata` (source, confidence, data quality)
 - Persona and KPI model skeletons
 - Configuration model (`ControlPlaneConfig`)
@@ -365,7 +365,7 @@ request an agent directly from the workflow.
 |------|---------|-------------|
 | 0:00 | **Accountability Series** | Show the 4-part maturity flow. Explain the governance chain. |
 | 0:30 | **Persona** | Select "Compliance Officer". Show default KPIs and relevant platforms. |
-| 1:00 | **Configure Platforms** | Show 7 connectors in mock mode. Explain mock = no credentials needed. |
+| 1:00 | **Configure Platforms** | Show 8 connectors in mock mode. Explain mock = no credentials needed. |
 | 1:30 | **Available Tools** | Show how connectors become tools for the KPI Agent. |
 | 1:45 | **KPI Workspace** | Enter "Reduce unauthorized data access by 80% this quarter". Run. |
 | 2:00 | **Signal & Tool Map** | Trace KPI → signals → platforms → tools → required access. |
@@ -617,7 +617,7 @@ Every `/api/kpi-agent/interpret` response now includes:
 
 ### Mock grants catalogue
 
-All 8 personas have deterministic grants across all 7 platforms. `null` means no grant:
+All 8 personas have deterministic grants across the core platforms. `null` means no grant:
 
 | Persona | Azure | M365 | Kubernetes | Foundry | Agent365 | ServiceNow | Salesforce |
 |---|---|---|---|---|---|---|---|

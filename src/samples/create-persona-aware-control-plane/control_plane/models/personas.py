@@ -73,7 +73,7 @@ PERSONA_CATALOGUE: Dict[str, Persona] = {
             "Accountable for evidence, controls, policy adherence and audit readiness "
             "of AI agents and their data access."
         ),
-        relevant_platforms=["azure", "microsoft365", "agent365", "servicenow"],
+        relevant_platforms=["azure", "microsoft365", "agent365", "a365", "servicenow"],
         default_kpis=[
             KPI(
                 kpi_id="comp_01",
@@ -151,7 +151,7 @@ PERSONA_CATALOGUE: Dict[str, Persona] = {
             "Accountable for technology strategy, architecture quality, platform leverage, "
             "innovation readiness and strategic technology debt across agentic workloads."
         ),
-        relevant_platforms=["azure", "kubernetes", "foundry", "agent365"],
+        relevant_platforms=["azure", "kubernetes", "foundry", "agent365", "a365"],
         default_kpis=[
             KPI(
                 kpi_id="cto_01",
@@ -190,7 +190,7 @@ PERSONA_CATALOGUE: Dict[str, Persona] = {
             "Accountable for daily platform operations, reliability, incidents, "
             "deployments and capacity for agent infrastructure."
         ),
-        relevant_platforms=["azure", "kubernetes", "microsoft365", "agent365", "servicenow"],
+        relevant_platforms=["azure", "kubernetes", "microsoft365", "agent365", "a365", "servicenow"],
         default_kpis=[
             KPI(
                 kpi_id="itm_01",
@@ -229,7 +229,7 @@ PERSONA_CATALOGUE: Dict[str, Persona] = {
             "Accountable for security posture, identity, access controls, "
             "data exposure risk and threat reduction across AI agent deployments."
         ),
-        relevant_platforms=["azure", "microsoft365", "servicenow", "agent365"],
+        relevant_platforms=["azure", "microsoft365", "servicenow", "agent365", "a365"],
         default_kpis=[
             KPI(
                 kpi_id="sec_01",
@@ -307,7 +307,7 @@ PERSONA_CATALOGUE: Dict[str, Persona] = {
             "Accountable for product adoption, roadmap delivery, quality "
             "and user value for agent-enabled product capabilities."
         ),
-        relevant_platforms=["foundry", "agent365", "servicenow"],
+        relevant_platforms=["foundry", "agent365", "a365", "servicenow"],
         default_kpis=[
             KPI(
                 kpi_id="po_01",

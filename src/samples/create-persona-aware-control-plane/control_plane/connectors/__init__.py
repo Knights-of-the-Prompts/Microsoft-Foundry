@@ -5,6 +5,8 @@ CONTROL_PLANE_AZURE_LIVE=true, in which case AzureLiveConnector is used.
 """
 from __future__ import annotations
 
+from control_plane.connectors.a365 import A365MockConnector
+from control_plane.connectors.a365_live import A365LiveConnector, get_a365_connector
 from control_plane.connectors.agent365 import Agent365MockConnector
 from control_plane.connectors.agent365_live import Agent365LiveConnector, get_agent365_connector
 from control_plane.connectors.azure import AzureMockConnector
@@ -25,18 +27,23 @@ ALL_CONNECTORS = [
     KubernetesMockConnector,
     FoundryMockConnector,
     Agent365MockConnector,
+    A365MockConnector,
     ServiceNowMockConnector,
     SalesforceMockConnector,
 ]
 
 __all__ = [
     "ALL_CONNECTORS",
+    "A365LiveConnector",
+    "A365MockConnector",
     "AzureLiveConnector",
     "AzureMockConnector",
     "FoundryMockConnector",
     "KubernetesMockConnector",
     "Microsoft365MockConnector",
     "Agent365MockConnector",
+    "get_a365_connector",
+    "get_agent365_connector",
     "ServiceNowMockConnector",
     "SalesforceMockConnector",
     "get_azure_connector",

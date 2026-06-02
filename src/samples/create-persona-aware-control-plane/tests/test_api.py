@@ -98,9 +98,9 @@ class TestListConnectors:
         resp = client.get("/api/connectors")
         assert resp.status_code == 200
 
-    def test_returns_7_connectors(self, client: TestClient) -> None:
+    def test_returns_8_connectors(self, client: TestClient) -> None:
         resp = client.get("/api/connectors")
-        assert len(resp.json()) == 7
+        assert len(resp.json()) == 8
 
     def test_connector_has_health_key(self, client: TestClient) -> None:
         resp = client.get("/api/connectors")

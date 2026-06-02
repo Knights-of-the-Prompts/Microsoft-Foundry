@@ -107,6 +107,27 @@ platforms:
       - agent_activity
       - ownership_data
 
+  a365:
+    name: A365
+    description: >
+      Alias connector for Microsoft Agent 365 API. Provides the same
+      agent registry, activity, and ownership signals with platform id `a365`.
+    phase1_mode: mock
+    real_connectable: true
+    live_sdk: microsoft-graph (httpx)
+    auth_type: entra_client_credentials
+    base_url: https://graph.microsoft.com/beta
+    required_graph_permissions:
+      - AgentRegistration.Read.All
+    required_env_vars:
+      - A365_TENANT_ID
+      - A365_CLIENT_ID
+      - A365_CLIENT_SECRET_REF
+    supported_signal_types:
+      - agent_registrations
+      - agent_activity
+      - ownership_data
+
   servicenow:
     name: ServiceNow
     description: >

@@ -7,6 +7,7 @@ Run locally (mock mode — no credentials required)::
 
 Environment variables (all optional for mock mode):
     CONTROL_PLANE_MODE=mock|live|hybrid   (default: mock)
+    CONTROL_PLANE_A365_LIVE=true|false    (A365 live connector toggle)
     See .env.example for platform-specific credentials.
 
 API overview
@@ -115,6 +116,10 @@ registry.register(_get_azure_connector())
 # Register Agent 365 connector via factory (picks live or mock based on env)
 from control_plane.connectors.agent365_live import get_agent365_connector as _get_agent365_connector
 registry.register(_get_agent365_connector())
+
+# Register A365 connector via factory (alias for Agent 365 APIs)
+from control_plane.connectors.a365_live import get_a365_connector as _get_a365_connector
+registry.register(_get_a365_connector())
 
 kpi_agent = KPIAgent(registry)
 access_agent = AccessReadinessAgent(registry)
