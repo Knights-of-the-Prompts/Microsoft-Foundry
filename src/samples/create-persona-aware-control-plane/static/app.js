@@ -54,23 +54,28 @@
 
   // ── Section → tab mapping (supports old deep-link IDs) ──────────────
   const SECTION_MAP = {
-    briefing:          { parent: 'briefing',      tab: 'persona' },
-    persona:           { parent: 'briefing',      tab: 'persona' },
-    series:            { parent: 'briefing',      tab: 'persona' },
-    digest:            { parent: 'briefing',      tab: 'digest' },
-    integrations:      { parent: 'integrations',  tab: 'connectors' },
-    connectors:        { parent: 'integrations',  tab: 'connectors' },
-    tools:             { parent: 'integrations',  tab: 'tools' },
-    actions:           { parent: 'actions',       tab: 'kpi' },
-    kpi:               { parent: 'actions',       tab: 'kpi' },
-    'signal-map':      { parent: 'actions',       tab: 'signal-map' },
-    access:            { parent: 'actions',       tab: 'access' },
-    'access-requests': { parent: 'actions',       tab: 'access-requests' },
-    'agent-ideas':     { parent: 'actions',       tab: 'kpi' },
-    'agent-requests':  { parent: 'actions',       tab: 'agent-requests' },
-    evidence:          { parent: 'evidence',      tab: 'evidence-trail' },
-    'evidence-trail':  { parent: 'evidence',      tab: 'evidence-trail' },
-    registry:          { parent: 'evidence',      tab: 'registry' },
+    overview:          { parent: 'overview',       tab: null },
+    briefing:          { parent: 'overview',       tab: null },
+    persona:           { parent: 'overview',       tab: null },
+    series:            { parent: 'overview',       tab: null },
+    workflow:          { parent: 'workflow',       tab: 'kpi' },
+    actions:           { parent: 'workflow',       tab: 'kpi' },
+    kpi:               { parent: 'workflow',       tab: 'kpi' },
+    'agent-ideas':     { parent: 'workflow',       tab: 'kpi' },
+    decisions:         { parent: 'decisions',      tab: 'access-requests' },
+    'access-requests': { parent: 'decisions',      tab: 'access-requests' },
+    'agent-requests':  { parent: 'decisions',      tab: 'agent-requests' },
+    'evidence-main':   { parent: 'evidence-main',  tab: 'evidence-trail' },
+    evidence:          { parent: 'evidence-main',  tab: 'evidence-trail' },
+    'evidence-trail':  { parent: 'evidence-main',  tab: 'evidence-trail' },
+    'signal-map':      { parent: 'evidence-main',  tab: 'signal-map' },
+    access:            { parent: 'evidence-main',  tab: 'access' },
+    digest:            { parent: 'evidence-main',  tab: 'digest' },
+    registry:          { parent: 'evidence-main',  tab: 'registry' },
+    settings:          { parent: 'settings',       tab: 'connectors' },
+    integrations:      { parent: 'settings',       tab: 'connectors' },
+    connectors:        { parent: 'settings',       tab: 'connectors' },
+    tools:             { parent: 'settings',       tab: 'tools' },
   };
 
   // ── Navigation ───────────────────────────────────────────────────────
@@ -90,7 +95,7 @@
         lazyLoad(tabId);
       });
     });
-    const hash = location.hash.replace('#', '') || 'persona';
+    const hash = location.hash.replace('#', '') || 'overview';
     navigateTo(hash);
   }
 
@@ -107,10 +112,10 @@
     const navLink = document.querySelector(`.nav-item[data-section="${parent}"]`);
     if (navLink) navLink.classList.add('active');
 
-    activateTab(parent, tab);
+    if (tab) activateTab(parent, tab);
     history.replaceState(null, '', `#${sectionId}`);
     document.getElementById('main').scrollTop = 0;
-    lazyLoad(tab);
+    lazyLoad(tab || parent);
   }
 
   function activateTab(parentSection, tabId) {
@@ -126,6 +131,7 @@
 
   function lazyLoad(tabId) {
     switch (tabId) {
+      case 'overview':         loadOverview(); break;
       case 'persona':          loadPersonas(); break;
       case 'kpi':              resetKpiStepper(); break;
       case 'connectors':       loadConnectors(); break;
@@ -247,6 +253,15 @@
       .replace(/"/g, '&quot;');
   }
 
+  /** Convert snake_case or camelCase IDs to Title Case for display */
+  function fmtId(id) {
+    if (!id) return '';
+    return String(id)
+      .replace(/_/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
   function sensitivityBadge(level) {
     const map = {
       none:       ['badge-ready',   'None'],
@@ -257,6 +272,11 @@
     };
     const [cls, label] = map[(level || '').toLowerCase()] || ['badge-unknown', level];
     return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  // ── Section: Overview ─────────────────────────────────────────────────
+  function loadOverview() {
+    loadPersonas();
   }
 
   // ── Section: Persona ─────────────────────────────────────────────────
@@ -417,7 +437,7 @@
         </div>
         <div class="sc-desc">${esc(c.description || '')}</div>
         <div class="sc-contract">
-          <div class="sc-contract-label">Signal Contract</div>
+          <div class="sc-contract-label">Provided Signals</div>
           <div class="connector-signals">
             ${(c.supported_signal_types || []).map(s =>
               `<span class="tag">${esc(s)}</span>`
@@ -427,7 +447,7 @@
         <details class="disclosure">
           <summary>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-            Connection Details
+            Technical Setup
           </summary>
           <div class="disclosure-body">
             <div class="connector-meta">
@@ -447,8 +467,8 @@
           </div>
         </details>
         <div class="connector-actions" style="margin-top:12px;">
-          <button class="btn btn-secondary btn-sm connector-configure-btn" data-id="${esc(c.id)}">Configure</button>
-          <button class="btn btn-ghost btn-sm connector-test-btn" data-id="${esc(c.id)}">Health Check</button>
+          <button class="btn btn-secondary btn-sm connector-configure-btn" data-id="${esc(c.id)}">Edit Settings</button>
+          <button class="btn btn-ghost btn-sm connector-test-btn" data-id="${esc(c.id)}">Test Connection</button>
         </div>
       </div>
       `;
@@ -466,7 +486,7 @@
     const c = connectors.find(x => x.id === connectorId);
     if (!c) return;
     document.getElementById('cfg-connector-id').value = connectorId;
-    document.getElementById('config-modal-title').textContent = `Configure — ${c.name}`;
+    document.getElementById('config-modal-title').textContent = `Connection Settings — ${c.name}`;
     document.getElementById('cfg-mode').value = c.mode || 'mock';
     document.getElementById('cfg-base-url').value = c.base_url || '';
     document.getElementById('config-modal').classList.remove('hidden');
@@ -629,7 +649,7 @@
     if (draft) draft.value = '';
     // Reset challenge button state
     const btn = document.getElementById('kpi-challenge-btn');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'Challenge KPI →'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Assess this objective →'; }
     setKpiStep(1);
   }
 
@@ -688,7 +708,7 @@
     }
     const btn = document.getElementById('kpi-challenge-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Challenging…';
+    btn.innerHTML = '<span class="spinner"></span> Assessing…';
     try {
       const data = await API.post('/api/kpi-agent/challenge', {
         persona_id: State.persona.id,
@@ -698,22 +718,22 @@
       KpiStepper.challengeData = data;
       renderChallengeStep(data);
       setKpiStep(2);
-      toast('KPI challenged — review the assessment below.', 'success');
+      toast('Objective assessed — review the assessment below.', 'success');
     } catch (err) {
       toast(`Challenge failed: ${err.message}`, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'Challenge KPI →';
+      btn.innerHTML = 'Assess this objective →';
     }
   });
 
   function renderChallengeStep(data) {
     // Maturity row
     const maturityMap = {
-      vague:            ['badge-missing', 'Vague — insufficient for control plane use'],
-      usable:           ['badge-partial', 'Usable — address the questions below to strengthen it'],
-      well_articulated: ['badge-ready', 'Well Articulated — ready for formalization'],
-      control_ready:    ['badge-ready', 'Control Ready'],
+      vague:            ['badge-missing', 'Needs refinement — too broad for governance use'],
+      usable:           ['badge-partial', 'Workable — answer the questions below to sharpen this objective'],
+      well_articulated: ['badge-ready', 'Well defined — ready to confirm as a governance objective'],
+      control_ready:    ['badge-ready', 'Governance ready'],
     };
     const [cls, label] = maturityMap[(data.maturity_level || '').toLowerCase()] || ['badge-unknown', data.maturity_level];
     const conf = Math.round((data.confidence_score || 0) * 100);
@@ -727,7 +747,7 @@
     const missingEl = document.getElementById('challenge-missing');
     if (missing.length) {
       missingEl.classList.remove('hidden');
-      missingEl.innerHTML = `<strong>Missing fields</strong> ${missing.map(f => `<span class="tag">${esc(f)}</span>`).join(' ')}`;
+      missingEl.innerHTML = `<strong>Missing information</strong> ${missing.map(f => `<span class="tag">${esc(f)}</span>`).join(' ')}`;
     } else {
       missingEl.classList.add('hidden');
     }
@@ -738,7 +758,7 @@
     if (suggested.title || suggested.outcome_statement) {
       suggestedEl.classList.remove('hidden');
       suggestedEl.innerHTML = `
-        <strong>Suggested formalized KPI</strong>
+        <strong>Suggested governance objective</strong>
         <p>${esc(suggested.outcome_statement || suggested.title || '')}</p>
       `;
     } else {
@@ -752,7 +772,7 @@
       <div class="challenge-question-item">
         <label for="cq-${i}">${esc(q)}</label>
         <input type="text" id="cq-${i}" data-question-index="${i}"
-          placeholder="Your answer (optional)" autocomplete="off">
+          placeholder="Optional — skip if not applicable" autocomplete="off">
       </div>
     `).join('');
   }
@@ -781,7 +801,7 @@
 
     const btn = document.getElementById('kpi-formalize-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Formalizing…';
+    btn.innerHTML = '<span class="spinner"></span> Confirming…';
     try {
       const data = await API.post('/api/kpi-agent/formalize', {
         session_id: KpiStepper.sessionId,
@@ -792,12 +812,12 @@
       KpiStepper.formalizedKpi = data.formalized_kpi;
       renderFormalizedKpiCard(data.formalized_kpi, data.maturity_level, data.confidence_score);
       setKpiStep(3);
-      toast('KPI formalized.', 'success');
+      toast('Objective confirmed.', 'success');
     } catch (err) {
       toast(`Formalization failed: ${err.message}`, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'Formalize KPI →';
+      btn.innerHTML = 'Confirm Objective →';
     }
   });
 
@@ -805,10 +825,10 @@
     const conf = Math.round((confidence || kpi?.confidence_score || 0) * 100);
     const confColor = conf >= 75 ? 'var(--green)' : conf >= 45 ? 'var(--amber)' : 'var(--red)';
     const maturityMap = {
-      vague:            ['badge-missing', 'Vague'],
-      usable:           ['badge-partial', 'Usable'],
-      well_articulated: ['badge-ready', 'Well Articulated'],
-      control_ready:    ['badge-ready', 'Control Ready'],
+      vague:            ['badge-missing', 'Needs Refinement'],
+      usable:           ['badge-partial', 'Workable'],
+      well_articulated: ['badge-ready', 'Well Defined'],
+      control_ready:    ['badge-ready', 'Governance Ready'],
     };
     const [mCls, mLabel] = maturityMap[(maturity || '').toLowerCase()] || ['badge-unknown', maturity];
     const successCriteria = kpi?.success_criteria || [];
@@ -831,7 +851,7 @@
         </div>` : ''}
       ${tradeoffs.length ? `
         <div class="fkpi-list-section" style="margin-top:10px;">
-          <div class="fkpi-list-section-label">Trade-offs</div>
+          <div class="fkpi-list-section-label">Governance Trade-offs</div>
           <ul>${tradeoffs.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
         </div>` : ''}
       <div class="fkpi-confidence">
@@ -853,7 +873,7 @@
       const data = await API.post('/api/kpi-agent/control-package', {
         persona_id: State.persona.id,
         formalized_kpi: KpiStepper.formalizedKpi,
-        mode: 'mock',
+        mode: 'hybrid',
       });
       KpiStepper.controlPackage = data.control_package;
 
@@ -861,7 +881,7 @@
       const legacy = await API.post('/api/kpi-agent/interpret', {
         persona_id: State.persona.id,
         kpi: KpiStepper.formalizedKpi.title || null,
-        mode: 'mock',
+        mode: 'hybrid',
       });
       State.kpiResult = legacy;
       State.accessResult = {
@@ -877,12 +897,12 @@
 
       renderControlPackage(data.control_package);
       setKpiStep(4);
-      toast('Control package composed.', 'success');
+      toast('Governance requirements built.', 'success');
     } catch (err) {
       toast(`Composition failed: ${err.message}`, 'error');
     } finally {
       btn.disabled = false;
-      btn.innerHTML = 'Compose Control Package →';
+      btn.innerHTML = 'Build Governance Requirements →';
     }
   });
 
@@ -909,7 +929,7 @@
         <div class="control-package-column">
           <div class="control-column-title">
             <span class="col-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-            What you will get
+            What this provides
           </div>
           <ul class="control-item-list">
             ${whatYouGet.map(item => `<li>${esc(item)}</li>`).join('')}
@@ -918,7 +938,7 @@
         <div class="control-package-column">
           <div class="control-column-title">
             <span class="col-icon" style="color:var(--amber)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span>
-            What you need
+            What still needs to be configured
           </div>
           <ul class="control-item-list">
             ${whatYouNeed.map(item => `<li>${esc(item)}</li>`).join('')}
@@ -929,7 +949,7 @@
       <!-- Connector readiness -->
       <div class="cp-details-section">
         <div class="cp-details-title" onclick="this.nextElementSibling.classList.toggle('expanded')">
-          Connector Readiness
+          Platform Connection Status
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="cp-details-body">
@@ -937,8 +957,8 @@
             <div class="cp-readiness-row">
               <span class="cp-readiness-name">${esc(plat)}</span>
               ${info.available
-                ? `<span class="badge badge-ready">${info.tool_count} tool(s) available</span>`
-                : `<span class="badge badge-missing">Not configured</span>`}
+                ? `<span class="badge badge-ready">${info.tool_count} tool(s) ready</span>`
+                : `<span class="badge badge-missing">Not yet connected</span>`}
             </div>
           `).join('') || '<div class="text-dim text-small">No connector data.</div>'}
         </div>
@@ -954,13 +974,13 @@
           ${readyConnectors.length ? readyConnectors.map(c => `
             <div class="cp-readiness-row">
               <span class="cp-readiness-name">${esc(c)}</span>
-              <span class="badge badge-ready">Access available</span>
+              <span class="badge badge-ready">Access confirmed</span>
             </div>
           `).join('') : ''}
           ${missingConnectors.length ? missingConnectors.map(c => `
             <div class="cp-readiness-row">
               <span class="cp-readiness-name">${esc(c)}</span>
-              <span class="badge badge-missing">Access missing</span>
+              <span class="badge badge-missing">Access not granted</span>
             </div>
           `).join('') : ''}
           ${!readyConnectors.length && !missingConnectors.length
@@ -971,17 +991,17 @@
       <!-- Required signals/tools/evidence behind view details -->
       <div class="cp-details-section">
         <div class="cp-details-title" onclick="this.nextElementSibling.classList.toggle('expanded')">
-          View Details — Signals, Tools &amp; Evidence
+          Technical Details — Data Sources &amp; Requirements
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="cp-details-body">
           <div class="gap-meta-grid" style="font-size:12px;margin-top:8px;">
             <div>
-              <div class="gap-meta-label">Required Signals</div>
+              <div class="gap-meta-label">Data Requirements</div>
               <div class="tag-row mt-sm">${tags(pkg.required_signals, 'tag-accent')}</div>
             </div>
             <div>
-              <div class="gap-meta-label">Required Connectors</div>
+              <div class="gap-meta-label">Required Platforms</div>
               <div class="tag-row mt-sm">${tags(pkg.required_connectors)}</div>
             </div>
             <div>
@@ -989,7 +1009,7 @@
               <div class="tag-row mt-sm">${tags((pkg.required_tools || []).slice(0, 8))}</div>
             </div>
             <div>
-              <div class="gap-meta-label">Required Evidence</div>
+              <div class="gap-meta-label">Evidence Standards</div>
               <ul style="margin:6px 0 0 16px;font-size:12px;color:var(--text-2);line-height:1.7;">
                 ${(pkg.required_evidence || []).map(e => `<li>${esc(e)}</li>`).join('')}
               </ul>
@@ -997,7 +1017,7 @@
           </div>
           ${pkg.limitations?.length ? `
             <div style="margin-top:12px;">
-              <div class="gap-meta-label" style="color:var(--amber)">Limitations / Evidence Gaps</div>
+              <div class="gap-meta-label" style="color:var(--amber)">Known Gaps &amp; Coverage Limitations</div>
               <ul style="margin:6px 0 0 16px;font-size:12px;color:var(--amber);line-height:1.7;">
                 ${pkg.limitations.map(l => `<li>${esc(l)}</li>`).join('')}
               </ul>
@@ -1005,6 +1025,147 @@
         </div>
       </div>
     `;
+
+    // Render live signal provenance section if provenance data is present
+    renderSignalProvenance(pkg.signal_provenance || [], pkg.source_summary || {});
+  }
+
+  // ---------------------------------------------------------------------------
+  // Live Signal Provenance rendering
+  // ---------------------------------------------------------------------------
+
+  function renderSignalProvenance(provenance, sourceSummary) {
+    const section = document.getElementById('signal-provenance-section');
+    if (!section) return;
+
+    if (!provenance || provenance.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    section.classList.remove('hidden');
+    renderSourceSummaryBanner(sourceSummary);
+    renderProvenanceTable(provenance);
+    renderProvenanceDrawer(provenance);
+
+    // Wire up the drawer toggle
+    const toggleBtn = document.getElementById('toggle-provenance-drawer-btn');
+    const drawer = document.getElementById('provenance-drawer');
+    if (toggleBtn && drawer) {
+      toggleBtn.onclick = () => {
+        const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        toggleBtn.setAttribute('aria-expanded', String(!expanded));
+        drawer.classList.toggle('hidden', expanded);
+        drawer.setAttribute('aria-hidden', String(expanded));
+      };
+    }
+  }
+
+  function renderSourceSummaryBanner(summary) {
+    const el = document.getElementById('source-summary-banner');
+    if (!el) return;
+
+    const live = summary.live_signals || 0;
+    const mock = summary.mock_signals || 0;
+    const errors = summary.error_signals || 0;
+    const readiness = summary.readiness || 'not_ready';
+
+    let cls = 'banner-mock';
+    let icon = '';
+    let text = '';
+
+    if (readiness === 'ready' && live > 0) {
+      cls = 'banner-live';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+      text = `${live} live data point${live !== 1 ? 's' : ''} retrieved from real platform connections — all data verified as current`;
+    } else if (readiness === 'partially_ready') {
+      cls = 'banner-partial';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      text = `${live} live data point${live !== 1 ? 's' : ''}, ${mock} from scenario defaults — partial live coverage. Review before making access decisions.`;
+      if (errors > 0) text += ` ${errors} connection error${errors !== 1 ? 's' : ''}.`;
+    } else if (errors > 0 && live === 0) {
+      cls = 'banner-error';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+      text = `${errors} platform connection error${errors !== 1 ? 's' : ''} — check platform configuration. Recommendations may not reflect current system state.`;
+    } else {
+      cls = 'banner-mock';
+      icon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>';
+      text = `${mock} scenario default${mock !== 1 ? 's' : ''} — no live platform connections are active. Recommendations are based on scenario data, not real system state.`;
+    }
+
+    el.className = `source-summary-banner ${cls}`;
+    el.innerHTML = `${icon}<span>${esc(text)}</span>`;
+  }
+
+  function renderProvenanceTable(provenance) {
+    const container = document.getElementById('provenance-table-container');
+    if (!container) return;
+
+    const rows = provenance.map(p => {
+      const badgeCls = `source-badge source-badge-${p.source_mode || 'mock'}`;
+      const badgeLabel = (p.source_mode || 'mock').toUpperCase();
+      const usedBadge = p.used_in_composition
+        ? '<span class="badge badge-ready" style="font-size:10px;">used</span>'
+        : '<span class="badge badge-missing" style="font-size:10px;">not used</span>';
+      const confPct = Math.round((p.confidence || 0) * 100);
+      const ts = p.retrieved_at ? new Date(p.retrieved_at).toLocaleTimeString() : '—';
+
+      return `<tr>
+        <td class="td-signal">${esc(p.signal_name || '—')}</td>
+        <td>${esc(p.platform_id || '—')}</td>
+        <td><span class="${badgeCls}">${esc(badgeLabel)}</span></td>
+        <td class="td-mono">${esc(p.tool_name || '—')}</td>
+        <td>${confPct}%</td>
+        <td>${usedBadge}</td>
+        <td style="color:var(--text-3);font-size:11px;">${ts}</td>
+      </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <table class="provenance-table" aria-label="Signal provenance">
+        <thead>
+          <tr>
+            <th>Signal</th>
+            <th>Platform</th>
+            <th>Source</th>
+            <th>Tool</th>
+            <th>Confidence</th>
+            <th>Used</th>
+            <th>Retrieved</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function renderProvenanceDrawer(provenance) {
+    const drawer = document.getElementById('provenance-drawer-content');
+    if (!drawer) return;
+
+    const items = provenance.map(p => {
+      const badgeCls = `source-badge source-badge-${p.source_mode || 'mock'}`;
+      const errorHtml = p.error
+        ? `<div class="provenance-drawer-error">${esc(p.error)}</div>` : '';
+      const endpointHtml = p.endpoint
+        ? `<div class="provenance-drawer-endpoint">${esc(p.endpoint)}</div>` : '';
+      const identityHtml = p.identity_summary
+        ? `<div class="provenance-drawer-identity">Identity: ${esc(p.identity_summary)}</div>` : '';
+      const queryHtml = p.query_summary
+        ? `<div class="provenance-drawer-query">${esc(p.query_summary)}</div>` : '';
+
+      return `<div class="provenance-drawer-item">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="${badgeCls}">${esc((p.source_mode || 'mock').toUpperCase())}</span>
+          <span class="provenance-drawer-tool">${esc(p.tool_name || '—')}</span>
+        </div>
+        ${queryHtml}
+        ${endpointHtml}
+        ${identityHtml}
+        ${errorHtml}
+      </div>`;
+    }).join('');
+
+    drawer.innerHTML = items || '<div class="text-dim text-small">No provenance data.</div>';
   }
 
   document.getElementById('kpi-back-to-formalize-btn').addEventListener('click', () => setKpiStep(3));
@@ -1016,11 +1177,28 @@
     setKpiStep(5);
   });
 
+  function _sourceModePill(sourceSummary) {
+    const s = sourceSummary || {};
+    const readiness = s.readiness || 'not_ready';
+    const live = s.live_signals || 0;
+    const err  = s.error_signals || 0;
+    // "Live" only when every tracked signal is live and there are no errors or missing connectors
+    if (readiness === 'ready' && live > 0 && err === 0) {
+      return '<span class="source-mode-pill pill-live" title="All signals were retrieved from live APIs">Live</span>';
+    }
+    // "Hybrid" when at least one live signal exists but some failed or connectors are mock-only
+    if (live > 0) {
+      return '<span class="source-mode-pill pill-hybrid" title="Mix of live and mock data — not all connectors have a live integration configured">Hybrid</span>';
+    }
+    return '<span class="source-mode-pill pill-mock" title="No live signals — recommendations are based on scenario data">Mock</span>';
+  }
+
   function renderKpiActions(pkg) {
     const actions = pkg.recommended_actions || [];
     const agentIdeas = pkg.agent_ideas || [];
+    const pill = _sourceModePill(pkg.source_summary);
     document.getElementById('kpi-actions-content').innerHTML = `
-      <h3 style="font-size:14px;font-weight:700;margin-bottom:18px;">Recommended Actions</h3>
+      <div class="section-heading-row"><h3>Required Actions</h3>${pill}</div>
       <div class="action-cards">
         ${actions.map(a => `
           <div class="action-card">
@@ -1038,7 +1216,7 @@
         `).join('')}
       </div>
       ${agentIdeas.length ? `
-        <h3 style="font-size:14px;font-weight:700;margin:28px 0 14px;">Agent Ideas</h3>
+        <div class="section-heading-row" style="margin-top:28px;"><h3>Candidate Agents</h3>${pill}</div>
         <div class="idea-cards">
           ${agentIdeas.map(idea => `
             <div class="idea-card">
@@ -1051,7 +1229,7 @@
               <div class="idea-card-footer">
                 <button class="btn btn-primary btn-sm idea-request-btn"
                   data-idea="${esc(encodeURIComponent(JSON.stringify({ id: idea.id, title: idea.title })))}">
-                  Request this agent
+                  Request this agent be built
                 </button>
               </div>
             </div>
@@ -1199,7 +1377,7 @@
             <div class="chain-line"></div>
           </div>
           <div class="chain-body">
-            <div class="chain-body-title">Required Signals (${signals.length})</div>
+            <div class="chain-body-title">Data Requirements (${signals.length})</div>
             <div class="chain-body-content tag-row">${tags(signals, 'tag-accent')}</div>
           </div>
         </div>
@@ -1210,7 +1388,7 @@
             <div class="chain-line"></div>
           </div>
           <div class="chain-body">
-            <div class="chain-body-title">Platform Connectors (${platforms.length})</div>
+            <div class="chain-body-title">Source Platforms (${platforms.length})</div>
             <div class="chain-body-content tag-row">${tags(platforms)}</div>
           </div>
         </div>
@@ -1221,7 +1399,7 @@
             <div class="chain-line"></div>
           </div>
           <div class="chain-body">
-            <div class="chain-body-title">Tools Used (${toolsUsed.length})</div>
+            <div class="chain-body-title">Tools Used to Gather Data (${toolsUsed.length})</div>
             <div class="chain-body-content tag-row">${tags(toolsUsed)}</div>
           </div>
         </div>
@@ -1231,7 +1409,7 @@
             <div class="chain-dot" style="background:${gaps.length > 0 ? 'var(--red)' : 'var(--green)'}"></div>
           </div>
           <div class="chain-body" style="border-color:${gaps.length > 0 ? 'var(--red)' : 'var(--green)'};">
-            <div class="chain-body-title">Required Access</div>
+            <div class="chain-body-title">Required Permissions</div>
             <div class="chain-body-content">
               ${overallAccessBadge(r.access_readiness_summary?.overall_status || 'unknown')}
               ${gaps.length > 0
@@ -1270,7 +1448,7 @@
       <!-- Overview -->
       <div class="access-overview">
         <div>
-          <div class="access-overview-label">Overall Access Status</div>
+          <div class="access-overview-label">Current Access Status</div>
           <div class="access-status-large mt-sm">
             ${overallAccessBadge(summary.overall_status || 'unknown')}
           </div>
@@ -1278,29 +1456,29 @@
         <div class="access-stats" style="margin-left:auto;">
           <div class="access-stat">
             <div class="access-stat-num">${checks.length}</div>
-            <div class="access-stat-label">Signals Checked</div>
+            <div class="access-stat-label">Permissions Checked</div>
           </div>
           <div class="access-stat">
             <div class="access-stat-num" style="color:${gaps.length > 0 ? 'var(--red)' : 'var(--green)'}">${gaps.length}</div>
-            <div class="access-stat-label">Access Gaps</div>
+            <div class="access-stat-label">Missing Permissions</div>
           </div>
           <div class="access-stat">
             <div class="access-stat-num" style="color:${recommendations.length > 0 ? 'var(--amber)' : 'var(--green)'}">${recommendations.length}</div>
-            <div class="access-stat-label">Requests Recommended</div>
+            <div class="access-stat-label">Requests to Submit</div>
           </div>
         </div>
       </div>
 
       ${gaps.length > 0 ? `
         <div class="warn-banner">
-          This KPI requires signals that are not available with <strong>${esc(persona.name || 'this persona')}</strong>'s current access.
-          Review the access gaps below and request the minimum permissions required.
+          This objective requires data that <strong>${esc(persona.name || 'this role')}</strong> does not currently have access to.
+          Review the missing permissions below and submit least-privilege requests for the designated approver to action.
         </div>
       ` : '<div class="info-banner">All required access is available for this persona and KPI.</div>'}
 
       <!-- Per-signal checks -->
       <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:12px;">
-        Access Check Results
+        Permission Verification Results
       </h3>
       <div class="access-check-list" id="access-check-list">
         ${checks.map(check => renderAccessCheckItem(check)).join('')}
@@ -1309,7 +1487,7 @@
       ${gaps.length > 0 ? `
         <hr class="divider">
         <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:12px;">
-          Access Gaps
+          Missing Permissions
         </h3>
         ${gaps.map(gap => renderGapCard(gap, recommendations)).join('')}
       ` : ''}
@@ -1317,11 +1495,11 @@
       ${recommendations.length > 0 ? `
         <hr class="divider">
         <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:12px;">
-          Recommended Access Requests
+          Suggested Permission Requests
         </h3>
         <div class="info-banner">
           The control plane never auto-grants access.
-          The following are least-privilege request recommendations for human review and approval.
+          Each item below is a least-privilege recommendation. The designated approver must review and action each request before any access is granted.
         </div>
         ${recommendations.map(req => renderAccessRequestTemplate(req)).join('')}
       ` : ''}
@@ -1368,36 +1546,36 @@
     return `
       <div class="gap-card">
         <div class="gap-card-header">
-          <span class="badge badge-missing">Access Gap</span>
+          <span class="badge badge-missing">Missing Permission</span>
           <span style="font-weight:700;font-size:13px;">${esc(gap.platform_id)}</span>
         </div>
         <div class="gap-meta-grid">
           <div>
-            <div class="gap-meta-label">Description</div>
+            <div class="gap-meta-label">What's Missing</div>
             <div class="gap-meta-value">${esc(gap.description)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Business Impact</div>
+            <div class="gap-meta-label">Impact if Not Resolved</div>
             <div class="gap-meta-value">${esc(gap.business_impact)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Risk if Granted</div>
+            <div class="gap-meta-label">Risk of Granting Access</div>
             <div class="gap-meta-value">${esc(gap.risk_if_granted)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Risk if Not Granted</div>
+            <div class="gap-meta-label">Risk of Declining Access</div>
             <div class="gap-meta-value">${esc(gap.risk_if_not_granted)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Least-Privilege Recommendation</div>
+            <div class="gap-meta-label">Recommended Permission Level</div>
             <div class="gap-meta-value">${esc(gap.least_privilege_recommendation)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Recommended Approver</div>
+            <div class="gap-meta-label">Who Should Approve</div>
             <div class="gap-meta-value">${esc(gap.recommended_approver)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Recommended Duration</div>
+            <div class="gap-meta-label">Suggested Access Duration</div>
             <div class="gap-meta-value">${esc(gap.recommended_duration)}</div>
           </div>
         </div>
@@ -1406,7 +1584,7 @@
             Request Access →
           </button>` : ''}
           <button class="btn btn-ghost btn-sm" onclick="window.navigateTo('signal-map')">
-            View Signal Map
+            View Data Dependency Map
           </button>
         </div>
       </div>
@@ -1417,24 +1595,24 @@
     return `
       <div class="card mb-sm">
         <div class="card-title">
-          <span class="badge badge-draft">Draft Request</span>
+          <span class="badge badge-draft">Pending Submission</span>
           ${esc(req.platform_id)} — ${esc(req.requested_role)}
         </div>
         <div class="gap-meta-grid" style="font-size:12px;">
           <div>
-            <div class="gap-meta-label">Persona</div>
-            <div class="gap-meta-value">${esc(req.persona_id)}</div>
+            <div class="gap-meta-label">Role</div>
+            <div class="gap-meta-value">${esc(fmtId(req.persona_id))}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Requested Scope</div>
+            <div class="gap-meta-label">Permission Scope</div>
             <div class="gap-meta-value"><code>${esc(req.requested_scope)}</code></div>
           </div>
           <div>
-            <div class="gap-meta-label">Justification</div>
+            <div class="gap-meta-label">Business Justification</div>
             <div class="gap-meta-value">${esc(req.justification)}</div>
           </div>
           <div>
-            <div class="gap-meta-label">Business Outcome</div>
+            <div class="gap-meta-label">Expected Outcome</div>
             <div class="gap-meta-value">${esc(req.business_outcome)}</div>
           </div>
           <div>
@@ -1492,7 +1670,7 @@
   function renderAccessRequestQueue(requests) {
     const content = document.getElementById('access-requests-content');
     if (!requests.length) {
-      content.innerHTML = '<div class="queue-empty">No access requests yet. Use the Access Readiness panel to request access.</div>';
+      content.innerHTML = '<div class="queue-empty">No access requests have been submitted yet. Complete the Governance Workflow to identify missing permissions and generate requests for the designated approver to review.</div>';
       return;
     }
     content.innerHTML = `
@@ -1500,21 +1678,21 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Platform</th>
-              <th>Persona</th>
-              <th>Role Requested</th>
-              <th>Scope</th>
-              <th>KPI</th>
+              <th>Source Platform</th>
+              <th>Role</th>
+              <th>Permission Level</th>
+              <th>Access Scope</th>
+              <th>Objective</th>
               <th>Status</th>
-              <th>Approver</th>
-              <th>Created</th>
+              <th>Approving Role</th>
+              <th>Submitted</th>
             </tr>
           </thead>
           <tbody>
             ${requests.map(req => `
               <tr>
                 <td><span class="tag">${esc(req.platform_id)}</span></td>
-                <td>${esc(req.persona_id)}</td>
+                <td>${esc(fmtId(req.persona_id))}</td>
                 <td>${esc(req.requested_role)}</td>
                 <td><code>${esc(req.requested_scope)}</code></td>
                 <td class="text-small">${esc(req.kpi_id)}</td>
@@ -1561,7 +1739,7 @@
     content.innerHTML = `
       <div class="digest-header">
         <div>
-          <div class="digest-title">Weekly Control Briefing</div>
+          <div class="digest-title">Governance Summary</div>
           <div class="digest-meta">
             <span class="text-small">Persona: <strong>${esc(State.persona?.name || '—')}</strong></span>
             ${modeBadge(r.source_mode_summary ? Object.keys(r.source_mode_summary)[0] : 'mock')}
@@ -1578,7 +1756,7 @@
 
         ${digest.top_risks?.length ? `
           <div class="digest-card">
-            <div class="digest-card-title">Top Risks</div>
+            <div class="digest-card-title">Identified Risks</div>
             <ul class="digest-card-list">
               ${digest.top_risks.map(r => `<li>${esc(r)}</li>`).join('')}
             </ul>
@@ -1586,7 +1764,7 @@
 
         ${digest.top_opportunities?.length ? `
           <div class="digest-card">
-            <div class="digest-card-title">Top Opportunities</div>
+            <div class="digest-card-title">Identified Opportunities</div>
             <ul class="digest-card-list">
               ${digest.top_opportunities.map(o => `<li>${esc(o)}</li>`).join('')}
             </ul>
@@ -1594,7 +1772,7 @@
 
         ${actions.length ? `
           <div class="digest-card">
-            <div class="digest-card-title">Recommended Actions</div>
+            <div class="digest-card-title">Required Actions</div>
             <ul class="digest-card-list">
               ${actions.map(a => `<li>${esc(typeof a === 'string' ? a : a.action || JSON.stringify(a))}</li>`).join('')}
             </ul>
@@ -1602,7 +1780,7 @@
 
         ${digest.evidence_gaps?.length ? `
           <div class="digest-card">
-            <div class="digest-card-title" style="color:var(--amber)">Evidence Gaps</div>
+            <div class="digest-card-title" style="color:var(--amber)">Coverage Gaps</div>
             <ul class="digest-card-list">
               ${digest.evidence_gaps.map(g => `<li style="color:var(--amber)">${esc(g)}</li>`).join('')}
             </ul>
@@ -1610,14 +1788,14 @@
 
         ${digest.kpis_tracked?.length ? `
           <div class="digest-card">
-            <div class="digest-card-title">KPIs Tracked</div>
+            <div class="digest-card-title">Objectives Tracked</div>
             <ul class="digest-card-list">
               ${digest.kpis_tracked.map(k => `<li>${esc(typeof k === 'string' ? k : k.metric || k.title || JSON.stringify(k))}</li>`).join('')}
             </ul>
           </div>` : ''}
 
         <div class="digest-card">
-          <div class="digest-card-title">Access Readiness Summary</div>
+          <div class="digest-card-title">Access Status</div>
           <div class="digest-card-content">
             <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
               ${overallAccessBadge(summary.overall_status || 'unknown')}
@@ -1638,7 +1816,7 @@
 
         ${digest.connectors_used?.length ? `
           <div class="digest-card">
-            <div class="digest-card-title">Connectors Used</div>
+            <div class="digest-card-title">Platforms Used</div>
             <div class="tag-row">${tags(digest.connectors_used)}</div>
           </div>` : ''}
       </div>
@@ -1683,7 +1861,7 @@
           </div>
         </div>
         <div class="idea-card-section">
-          <strong>Problem</strong>
+          <strong>Governance Problem</strong>
           ${esc(idea.problem_statement || idea.description || '—')}
         </div>
         <div class="idea-card-section">
@@ -1699,7 +1877,7 @@
         </div>
         ${idea.required_tools?.length ? `
           <div class="idea-card-section">
-            <strong>Required Tools</strong>
+            <strong>Tools Needed</strong>
             <div class="tag-row">${tags(idea.required_tools)}</div>
           </div>` : ''}
         ${idea.governance_notes ? `
@@ -1713,7 +1891,7 @@
           </div>
           <button class="btn btn-primary btn-sm request-agent-btn"
             data-idea="${esc(encodeURIComponent(JSON.stringify({ id: idea.id, title: idea.title })))}">
-            Request this agent
+            Request this agent be built
           </button>
         </div>
       </div>
@@ -1755,7 +1933,7 @@
   function renderAgentRequestQueue(requests) {
     const content = document.getElementById('agent-requests-content');
     if (!requests.length) {
-      content.innerHTML = '<div class="queue-empty">No agent requests yet. Use Agent Ideas to request an agent.</div>';
+      content.innerHTML = '<div class="queue-empty">No agent build requests have been submitted yet. Complete the Governance Workflow to see candidate agents, then submit a build request for approval.</div>';
       return;
     }
     content.innerHTML = `
@@ -1763,8 +1941,8 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Agent Idea</th>
-              <th>Requested By</th>
+              <th>Proposed Agent</th>
+              <th>Requested By Role</th>
               <th>KPI</th>
               <th>Status</th>
               <th>Rationale</th>
@@ -1806,26 +1984,26 @@
   function renderEvidenceTrail(events) {
     const content = document.getElementById('evidence-content');
     if (!events.length) {
-      content.innerHTML = '<div class="queue-empty">No governance events recorded yet. Run the Governance Workflow to begin building the accountability record.</div>';
+      content.innerHTML = '<div class="queue-empty">No governance events have been recorded yet. Complete the Governance Workflow to begin building the accountability record for this role.</div>';
       return;
     }
 
     const EVENT_LABELS = {
-      kpi_interpreted:              'KPI Interpreted',
-      signals_selected:             'Signals Selected',
-      tools_used:                   'Tools Invoked',
-      insights_generated:           'Control Insights Generated',
-      agent_ideas_generated:        'Capability Recommendations Produced',
+      kpi_interpreted:              'Governance Objective Interpreted',
+      signals_selected:             'Data Requirements Determined',
+      tools_used:                   'Tools Used to Gather Data',
+      insights_generated:           'Governance Insights Generated',
+      agent_ideas_generated:        'Candidate Agents Identified',
       agent_request_submitted:      'Agent Build Request Submitted',
-      access_checked:               'Access Readiness Checked',
-      access_gap_detected:          'Access Gap Detected',
-      access_request_recommended:   'Access Request Recommended',
-      connector_access_insufficient:'Insufficient Connector Access',
-      access_request_submitted:     'Access Request Submitted',
-      connector_configured:         'Connector Configured',
-      connector_health_check:       'Connector Health Check',
-      connector_enabled:            'Connector Enabled',
-      connector_disabled:           'Connector Disabled',
+      access_checked:               'Access Permissions Verified',
+      access_gap_detected:          'Missing Permission Detected',
+      access_request_recommended:   'Permission Request Recommended',
+      connector_access_insufficient:'Insufficient Platform Access',
+      access_request_submitted:     'Permission Request Submitted',
+      connector_configured:         'Platform Connection Updated',
+      connector_health_check:       'Platform Connection Verified',
+      connector_enabled:            'Platform Connection Enabled',
+      connector_disabled:           'Platform Connection Disabled',
     };
 
     const EVENT_COLORS = {
@@ -1848,29 +2026,29 @@
       const p = ev.payload || {};
       switch (ev.event_type) {
         case 'kpi_interpreted':
-          return `KPI "${p.kpi_id || p.kpi || '—'}" interpreted for ${p.persona_id || ev.persona_id || 'persona'}.`;
+          return `Governance objective "${p.kpi_id || p.kpi || '—'}" interpreted for ${p.persona_id || ev.persona_id || 'role'}.`;
         case 'signals_selected':
-          return `${(p.signals || []).length || 'Multiple'} signal requirement(s) determined for this KPI.`;
+          return `${(p.signals || []).length || 'Multiple'} data requirement(s) determined for this objective.`;
         case 'tools_used':
-          return `${(p.tools || []).length || 'Multiple'} tool(s) invoked from the Tool Registry to gather signals.`;
+          return `${(p.tools || []).length || 'Multiple'} tool(s) used to gather data from connected platforms.`;
         case 'insights_generated':
-          return `Control insights produced — ${(p.insights || []).length || ''} recommendation(s) available.`;
+          return `Governance insights produced — ${(p.insights || []).length || ''} recommendation(s) available.`;
         case 'agent_ideas_generated':
-          return `${(p.ideas || []).length || ''} agent capability recommendation(s) generated from control signals.`;
+          return `${(p.ideas || []).length || ''} candidate agent(s) identified from governance signals.`;
         case 'agent_request_submitted':
           return `Agent build request submitted: "${p.agent_idea_id || '—'}".`;
         case 'access_checked':
-          return `Access readiness assessed for ${p.persona_id || ev.persona_id || 'persona'} on ${p.connector_id || 'connector'}.`;
+          return `Access permissions verified for ${p.persona_id || ev.persona_id || 'role'} on ${p.connector_id || 'platform'}.`;
         case 'access_gap_detected':
-          return `Access gap on ${p.platform_id || p.connector_id || 'platform'} — this KPI signal is unavailable without additional permissions.`;
+          return `Missing permission on ${p.platform_id || p.connector_id || 'platform'} — this data point cannot be retrieved without additional access. Submit a permission request for the designated approver.`;
         case 'access_request_recommended':
-          return `Least-privilege access request recommended for ${p.platform_id || 'platform'}. Human approval required.`;
+          return `Least-privilege permission request recommended for ${p.platform_id || 'platform'}. Human approval required before any access is granted.`;
         case 'connector_configured':
-          return `Connector "${p.connector_id || ''}" mode updated to ${p.mode || 'mock'}.`;
+          return `Platform connection "${p.connector_id || ''}" updated to ${p.mode || 'mock'} mode.`;
         case 'connector_health_check':
-          return `Health check completed for connector "${p.connector_id || ''}" — status: ${p.health?.status || 'checked'}.`;
+          return `Platform connection verified for "${p.connector_id || ''}" — status: ${p.health?.status || 'checked'}.`;
         case 'connector_enabled':
-          return `Connector "${p.connector_id || ''}" enabled in the Tool Registry.`;
+          return `Platform connection "${p.connector_id || ''}" enabled and available to the governance workflow.`;
         default:
           return ev.event_type.replace(/_/g, ' ');
       }
@@ -1878,7 +2056,7 @@
 
     const reverse = [...events].reverse();
     content.innerHTML = `
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:0 20px;">
+      <div style="border-top:1px solid var(--border);">
         ${reverse.map((ev, idx) => {
           const color = EVENT_COLORS[ev.event_type] || 'var(--text-3)';
           const label = EVENT_LABELS[ev.event_type] || ev.event_type.replace(/_/g, ' ');
@@ -1895,7 +2073,7 @@
                 <div class="ledger-event-label">${esc(label)}</div>
                 <div class="ledger-narrative">${esc(narrative)}</div>
                 <div class="ledger-meta">
-                  ${ev.persona_id ? `Persona: ${esc(ev.persona_id)} · ` : ''}${ev.kpi_id ? `KPI: ${esc(ev.kpi_id)} · ` : ''}${ts}
+                  ${ev.persona_id ? `${esc(fmtId(ev.persona_id))} &middot; ` : ''}${ts}
                 </div>
               </div>
             </div>
@@ -2013,7 +2191,7 @@
                 <span class="badge ${evCls}">${evLabel}</span>
               </div>
               <div>
-                <div class="registry-col-label">Control Recommendation</div>
+                <div class="registry-col-label">Governance Recommendation</div>
                 <div class="registry-recommendation">${esc(agent.recommendation)}</div>
               </div>
             </div>

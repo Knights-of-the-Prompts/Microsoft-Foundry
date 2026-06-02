@@ -152,6 +152,9 @@ class ControlPackage:
     evidence_events: List[str]
     limitations: List[str]
     confidence_score: float
+    # Provenance: per-signal execution records and aggregate source summary
+    signal_provenance: List[Dict[str, Any]] = field(default_factory=list)
+    source_summary: Dict[str, Any] = field(default_factory=dict)
     created_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
@@ -175,5 +178,7 @@ class ControlPackage:
             "evidence_events": self.evidence_events,
             "limitations": self.limitations,
             "confidence_score": self.confidence_score,
+            "signal_provenance": self.signal_provenance,
+            "source_summary": self.source_summary,
             "created_at": self.created_at,
         }

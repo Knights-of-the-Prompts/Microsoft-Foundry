@@ -623,9 +623,9 @@ class TestDesignSystem:
         )
 
     def test_css_uses_deep_blue_accent(self, client: TestClient) -> None:
-        """Deep governance blue (#1d4ed8) must be the primary accent."""
+        """Deep governance blue (indigo-800 #3730a3) must be the primary accent."""
         resp = client.get("/static/style.css")
-        assert "#1d4ed8" in resp.text
+        assert "#3730a3" in resp.text
 
     def test_css_no_dark_root_background(self, client: TestClient) -> None:
         """Old dark mode root background (#0f172a) must not be --bg."""
