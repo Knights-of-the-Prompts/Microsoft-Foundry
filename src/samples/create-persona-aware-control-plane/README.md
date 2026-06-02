@@ -210,17 +210,24 @@ The backend serves the single-page UI at `/`. The API is documented at `/docs`.
 
 Overview (role selection + governance status)
 
-![Control Plane overview](media/control-plane-overview.png)
+![Control Plane overview](../../../media/control-plane-overview.png)
 
 KPI assessment and refinement (step 2)
 
-![KPI challenge step](media/control-plane-kpi-challenge.png)
+![KPI challenge step](../../../media/control-plane-kpi-challenge.png)
 
 Composed governance requirements (step 4)
 
-![Control package requirements](media/control-plane-requirements.png)
+![Control package requirements](../../../media/control-plane-requirements.png)
 
+If you scroll down to the technical details you can review the data/API requirements and the required Platforms:
+
+![alt text](../../../media/kpi-workspace-tech.png)
 ---
+
+You can also review the Live Data Evidence to check live connections:
+
+![Live Data Evidence](../../../media/live-data-evidence.png)
 
 ## KPI refinement workflow
 

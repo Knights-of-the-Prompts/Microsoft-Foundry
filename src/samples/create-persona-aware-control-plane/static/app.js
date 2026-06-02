@@ -455,6 +455,10 @@
                 <span class="connector-meta-label">Authentication</span>
                 <span>${esc(authLabel)}</span>
               </div>
+              <div class="connector-meta-row">
+                <span class="connector-meta-label">Live proof</span>
+                <span id="live-proof-${esc(c.id)}" class="text-dim">Not checked yet</span>
+              </div>
               ${lastChecked ? `<div class="connector-meta-row">
                 <span class="connector-meta-label">Last checked</span>
                 <span>${esc(lastChecked)}</span>
@@ -463,6 +467,9 @@
                 <span class="connector-meta-label" style="color:var(--red)">Error</span>
                 <span style="color:var(--red)">${esc(c.error_message)}</span>
               </div>` : ''}
+            </div>
+            <div style="margin-top:10px;">
+              <button class="btn btn-ghost btn-sm connector-live-proof-btn" data-id="${esc(c.id)}">Check Live Proof</button>
             </div>
           </div>
         </details>
@@ -480,6 +487,52 @@
     grid.querySelectorAll('.connector-test-btn').forEach(btn => {
       btn.addEventListener('click', () => testConnector(btn.getAttribute('data-id')));
     });
+    grid.querySelectorAll('.connector-live-proof-btn').forEach(btn => {
+      btn.addEventListener('click', () => checkLiveProof(btn.getAttribute('data-id')));
+    });
+
+    // Auto-populate proof for the two demo-critical connectors.
+    connectors
+      .filter(c => c.id === 'azure' || c.id === 'agent365')
+      .forEach(c => { void checkLiveProof(c.id, { silent: true }); });
+  }
+
+  function _stageBadge(ok, label) {
+    const cls = ok ? 'badge-ready' : 'badge-unknown';
+    const text = ok ? `${label}: yes` : `${label}: no`;
+    return `<span class="badge ${cls}" style="margin-right:6px;">${text}</span>`;
+  }
+
+  async function checkLiveProof(connectorId, options = {}) {
+    const silent = !!options.silent;
+    const target = document.getElementById(`live-proof-${connectorId}`);
+    if (!target) return;
+
+    target.innerHTML = '<span class="text-dim">Checking…</span>';
+    try {
+      const data = await API.get(`/api/connectors/${encodeURIComponent(connectorId)}/auth-status`);
+      const stages = data.stages || {};
+      target.innerHTML = [
+        _stageBadge(!!stages.configured, 'configured'),
+        _stageBadge(!!stages.authenticated, 'authenticated'),
+        _stageBadge(!!stages.authorized, 'authorized'),
+        _stageBadge(!!stages.live_data_received, 'live data'),
+      ].join('');
+
+      if (data.error) {
+        target.innerHTML += `<div class="text-small" style="color:var(--red);margin-top:6px;">${esc(data.error)}</div>`;
+      } else if (data.identity_summary) {
+        target.innerHTML += `<div class="text-small text-dim" style="margin-top:6px;">${esc(data.identity_summary)}</div>`;
+      }
+
+      if (!silent) {
+        const live = stages.live_data_received ? 'live data confirmed' : 'not live yet';
+        toast(`${connectorId}: ${live}`, stages.live_data_received ? 'success' : 'info');
+      }
+    } catch (err) {
+      target.innerHTML = `<span style="color:var(--red)">${esc(err.message)}</span>`;
+      if (!silent) toast(`Live proof check failed: ${err.message}`, 'error');
+    }
   }
 
   function openConfigModal(connectorId, connectors) {
