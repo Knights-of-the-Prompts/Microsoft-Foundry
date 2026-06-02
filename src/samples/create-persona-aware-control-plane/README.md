@@ -206,6 +206,20 @@ After starting the backend, open **[http://localhost:8000](http://localhost:8000
 
 The backend serves the single-page UI at `/`. The API is documented at `/docs`.
 
+### Demo screenshots
+
+Overview (role selection + governance status)
+
+![Control Plane overview](media/control-plane-overview.png)
+
+KPI assessment and refinement (step 2)
+
+![KPI challenge step](media/control-plane-kpi-challenge.png)
+
+Composed governance requirements (step 4)
+
+![Control package requirements](media/control-plane-requirements.png)
+
 ---
 
 ## KPI refinement workflow
