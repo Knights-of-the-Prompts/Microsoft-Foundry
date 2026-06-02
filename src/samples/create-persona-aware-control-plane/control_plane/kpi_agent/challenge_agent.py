@@ -17,9 +17,10 @@ Design rules:
 """
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from control_plane.models.kpi_refinement import (
     ChallengeSessionStatus,
@@ -29,9 +30,145 @@ from control_plane.models.kpi_refinement import (
 )
 from control_plane.stores import evidence_store
 
+if TYPE_CHECKING:
+    from control_plane.kpi_agent.llm_client import LlmClient
+
+logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
-# Persona-specific challenge question banks
+# Persona descriptions — used in LLM system prompts
+# ---------------------------------------------------------------------------
+
+_PERSONA_DESCRIPTIONS: Dict[str, str] = {
+    "cfo": "Chief Financial Officer — responsible for AI investment ROI, cost governance and value attribution.",
+    "cto": "Chief Technology Officer — responsible for architecture quality, platform adoption and technical strategy.",
+    "compliance_officer": "Compliance Officer — responsible for regulatory adherence, audit readiness and evidence coverage.",
+    "it_manager": "IT Manager — responsible for operational stability, incident management and platform reliability.",
+    "security_officer": "Security Officer — responsible for data protection, access governance and risk reduction.",
+    "business_owner": "Business Owner — responsible for measurable business outcomes, revenue and customer impact.",
+    "product_owner": "Product Owner — responsible for feature delivery, adoption metrics and user value.",
+    "service_owner": "Service Owner — responsible for SLA attainment, escalation reduction and service quality.",
+}
+
+# ---------------------------------------------------------------------------
+# JSON schemas for structured LLM output
+# ---------------------------------------------------------------------------
+
+_CHALLENGE_RESPONSE_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "challenge_questions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "4-6 targeted governance questions to improve the KPI.",
+        },
+        "suggested_formalized_kpi": {
+            "type": "object",
+            "description": "A suggested formalized KPI structure with all governance fields.",
+        },
+        "missing_fields": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "List of governance fields still missing from the draft KPI.",
+        },
+        "confidence_score": {
+            "type": "number",
+            "description": "Confidence score between 0.0 and 1.0 reflecting KPI completeness.",
+        },
+    },
+    "required": ["challenge_questions", "suggested_formalized_kpi", "missing_fields", "confidence_score"],
+}
+
+_FORMALIZE_RESPONSE_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "outcome_statement": {"type": "string"},
+        "metric": {"type": "string"},
+        "target": {"type": "string"},
+        "timeframe": {"type": "string"},
+        "scope": {"type": "string"},
+        "included_entities": {"type": "array", "items": {"type": "string"}},
+        "excluded_entities": {"type": "array", "items": {"type": "string"}},
+        "tradeoffs": {"type": "array", "items": {"type": "string"}},
+        "evidence_standard": {"type": "string"},
+        "risk_tolerance": {"type": "string"},
+        "success_criteria": {"type": "array", "items": {"type": "string"}},
+        "confidence_score": {"type": "number"},
+    },
+    "required": [
+        "title", "outcome_statement", "metric", "target", "timeframe", "scope",
+        "included_entities", "excluded_entities", "tradeoffs", "evidence_standard",
+        "risk_tolerance", "success_criteria", "confidence_score",
+    ],
+}
+
+
+# ---------------------------------------------------------------------------
+# LLM prompt helpers
+# ---------------------------------------------------------------------------
+
+def _build_challenge_system_prompt(persona_id: str) -> str:
+    persona_desc = _PERSONA_DESCRIPTIONS.get(persona_id, f"Business persona: {persona_id}")
+    return (
+        "You are a KPI governance advisor helping an enterprise persona turn a vague "
+        "draft KPI into a governance-grade, control-ready KPI.\n\n"
+        f"Persona: {persona_desc}\n\n"
+        "Your task:\n"
+        "1. Generate 4-6 targeted challenge questions that uncover governance gaps in the draft KPI.\n"
+        "2. Suggest a formalized KPI structure with all fields filled.\n"
+        "3. Identify which governance fields are still missing (metric, target, timeframe, scope, "
+        "evidence_standard, risk_tolerance).\n"
+        "4. Assign a confidence score between 0.0 and 1.0 reflecting KPI completeness.\n\n"
+        "The suggested_formalized_kpi must contain: title, outcome_statement, metric, target, "
+        "timeframe, scope, included_entities, excluded_entities, tradeoffs, evidence_standard, "
+        "risk_tolerance, success_criteria, confidence_score.\n\n"
+        "Respond strictly in JSON matching the provided schema. No markdown, no prose outside JSON."
+    )
+
+
+def _build_challenge_user_prompt(
+    draft_kpi: str,
+    maturity: str,
+    missing_fields: List[str],
+) -> str:
+    return (
+        f"Draft KPI: {draft_kpi}\n"
+        f"Assessed maturity: {maturity}\n"
+        f"Missing governance fields: {', '.join(missing_fields) if missing_fields else 'none identified yet'}\n\n"
+        "Generate challenge questions, a suggested formalized KPI, and a confidence score."
+    )
+
+
+def _build_formalize_system_prompt(persona_id: str) -> str:
+    persona_desc = _PERSONA_DESCRIPTIONS.get(persona_id, f"Business persona: {persona_id}")
+    return (
+        "You are a KPI governance advisor finalizing a governance-grade KPI based on user answers.\n\n"
+        f"Persona: {persona_desc}\n\n"
+        "Your task: Incorporate the user's answers into the draft KPI and produce a complete, "
+        "governance-grade formalized KPI with all required fields.\n\n"
+        "The output must be a JSON object with: title, outcome_statement, metric, target, timeframe, "
+        "scope, included_entities (list), excluded_entities (list), tradeoffs (list), "
+        "evidence_standard, risk_tolerance, success_criteria (list), confidence_score (0.0–1.0).\n\n"
+        "Respond strictly in JSON matching the provided schema. No markdown, no prose outside JSON."
+    )
+
+
+def _build_formalize_user_prompt(
+    draft_kpi: str,
+    answers: Dict[str, str],
+    maturity: str,
+) -> str:
+    answers_text = "\n".join(f"  - {k}: {v}" for k, v in answers.items()) if answers else "  (none)"
+    return (
+        f"Draft KPI: {draft_kpi}\n"
+        f"Maturity after enrichment: {maturity}\n"
+        f"User answers:\n{answers_text}\n\n"
+        "Produce a complete formalized KPI incorporating all of the above."
+    )
+
+
 # ---------------------------------------------------------------------------
 
 _CHALLENGE_QUESTIONS: Dict[str, List[str]] = {
@@ -381,7 +518,16 @@ def _identify_missing_fields(kpi_text: str, answers: Dict[str, str]) -> List[str
 
 
 class KpiChallengeAgent:
-    """Challenges a draft KPI and produces a formalized version."""
+    """Challenges a draft KPI and produces a formalized version.
+
+    When an ``LlmClient`` is provided and ``CONTROL_PLANE_KPI_LLM_ENABLED=true``,
+    challenge questions and KPI formalization are generated by the LLM.  On any
+    failure (unavailable endpoint, parse error, etc.) the agent falls back to the
+    deterministic static templates transparently.
+    """
+
+    def __init__(self, llm_client: Optional["LlmClient"] = None) -> None:
+        self._llm = llm_client
 
     def challenge(
         self,
@@ -394,10 +540,23 @@ class KpiChallengeAgent:
         """
         session_id = str(uuid.uuid4())
         maturity = _classify_maturity(draft_kpi)
-        questions = _CHALLENGE_QUESTIONS.get(persona_id, _DEFAULT_CHALLENGE_QUESTIONS)
         missing = _identify_missing_fields(draft_kpi, {})
-        suggested = _SUGGESTED_KPI_TEMPLATES.get(persona_id, {})
-        confidence = _score_maturity(maturity)
+
+        # ------------------------------------------------------------------
+        # Try LLM-driven challenge (graceful fallback to static on any failure)
+        # ------------------------------------------------------------------
+        llm_result = self._try_llm_challenge(persona_id, draft_kpi, maturity, missing)
+
+        if llm_result is not None:
+            questions = llm_result.get("challenge_questions") or []
+            suggested = llm_result.get("suggested_formalized_kpi") or {}
+            missing = llm_result.get("missing_fields", missing)
+            confidence = float(llm_result.get("confidence_score") or _score_maturity(maturity))
+            logger.debug("KpiChallengeAgent.challenge: LLM path used for persona=%s", persona_id)
+        else:
+            questions = _CHALLENGE_QUESTIONS.get(persona_id, _DEFAULT_CHALLENGE_QUESTIONS)
+            suggested = _SUGGESTED_KPI_TEMPLATES.get(persona_id, {})
+            confidence = _score_maturity(maturity)
 
         evidence_store.add_event(
             "kpi_challenge_started",
@@ -442,26 +601,11 @@ class KpiChallengeAgent:
 
         Evidence events written: kpi_formalized.
         """
-        template = _SUGGESTED_KPI_TEMPLATES.get(persona_id, {})
-
-        # Merge answers into template fields
-        outcome = answers.get("business_outcome", template.get("outcome_statement", draft_kpi))
-        metric = answers.get("metric", template.get("metric", "Define a measurable metric"))
-        target = answers.get("target", template.get("target", "Define a target value"))
-        timeframe = answers.get("timeframe", template.get("timeframe", "Not specified"))
-        scope = answers.get("scope", template.get("scope", "All relevant systems"))
-        evidence_std = answers.get(
-            "evidence_standard",
-            template.get("evidence_standard", "Evidence events required for every relevant action"),
-        )
-
         # Re-assess maturity with answers applied
         enriched_kpi = f"{draft_kpi} {' '.join(answers.values())}"
         maturity = _classify_maturity(enriched_kpi)
-        if answers:
-            # Having answers always moves the needle at least to usable
-            if maturity == KpiMaturityLevel.VAGUE:
-                maturity = KpiMaturityLevel.USABLE
+        if answers and maturity == KpiMaturityLevel.VAGUE:
+            maturity = KpiMaturityLevel.USABLE
 
         remaining_missing = _identify_missing_fields(draft_kpi, answers)
         if not remaining_missing:
@@ -471,23 +615,59 @@ class KpiChallengeAgent:
         if answers:
             confidence = min(0.95, confidence + 0.1 * len(answers))
 
-        formalized = FormalizedKpi(
-            id=str(uuid.uuid4()),
-            persona_id=persona_id,
-            title=template.get("title", draft_kpi),
-            outcome_statement=outcome,
-            metric=metric,
-            target=target,
-            timeframe=timeframe,
-            scope=scope,
-            included_entities=template.get("included_entities", []),
-            excluded_entities=template.get("excluded_entities", []),
-            tradeoffs=template.get("tradeoffs", []),
-            evidence_standard=evidence_std,
-            risk_tolerance=template.get("risk_tolerance", answers.get("risk_tolerance", "Medium")),
-            success_criteria=template.get("success_criteria", [target]),
-            confidence_score=round(confidence, 2),
-        )
+        # ------------------------------------------------------------------
+        # Try LLM-driven formalization (graceful fallback to static on any failure)
+        # ------------------------------------------------------------------
+        llm_result = self._try_llm_formalize(persona_id, draft_kpi, answers, maturity)
+
+        if llm_result is not None:
+            logger.debug("KpiChallengeAgent.formalize: LLM path used for persona=%s", persona_id)
+            confidence = float(llm_result.get("confidence_score") or confidence)
+            formalized = FormalizedKpi(
+                id=str(uuid.uuid4()),
+                persona_id=persona_id,
+                title=llm_result.get("title", draft_kpi),
+                outcome_statement=llm_result.get("outcome_statement", draft_kpi),
+                metric=llm_result.get("metric", "Define a measurable metric"),
+                target=llm_result.get("target", "Define a target value"),
+                timeframe=llm_result.get("timeframe", "Not specified"),
+                scope=llm_result.get("scope", "All relevant systems"),
+                included_entities=llm_result.get("included_entities") or [],
+                excluded_entities=llm_result.get("excluded_entities") or [],
+                tradeoffs=llm_result.get("tradeoffs") or [],
+                evidence_standard=llm_result.get("evidence_standard", "Evidence events required"),
+                risk_tolerance=llm_result.get("risk_tolerance", "Medium"),
+                success_criteria=llm_result.get("success_criteria") or [],
+                confidence_score=round(confidence, 2),
+            )
+        else:
+            template = _SUGGESTED_KPI_TEMPLATES.get(persona_id, {})
+            outcome = answers.get("business_outcome", template.get("outcome_statement", draft_kpi))
+            metric = answers.get("metric", template.get("metric", "Define a measurable metric"))
+            target = answers.get("target", template.get("target", "Define a target value"))
+            timeframe = answers.get("timeframe", template.get("timeframe", "Not specified"))
+            scope = answers.get("scope", template.get("scope", "All relevant systems"))
+            evidence_std = answers.get(
+                "evidence_standard",
+                template.get("evidence_standard", "Evidence events required for every relevant action"),
+            )
+            formalized = FormalizedKpi(
+                id=str(uuid.uuid4()),
+                persona_id=persona_id,
+                title=template.get("title", draft_kpi),
+                outcome_statement=outcome,
+                metric=metric,
+                target=target,
+                timeframe=timeframe,
+                scope=scope,
+                included_entities=template.get("included_entities", []),
+                excluded_entities=template.get("excluded_entities", []),
+                tradeoffs=template.get("tradeoffs", []),
+                evidence_standard=evidence_std,
+                risk_tolerance=template.get("risk_tolerance", answers.get("risk_tolerance", "Medium")),
+                success_criteria=template.get("success_criteria", [target]),
+                confidence_score=round(confidence, 2),
+            )
 
         evidence_store.add_event(
             "kpi_formalized",
@@ -507,3 +687,62 @@ class KpiChallengeAgent:
             "confidence_score": round(confidence, 2),
             "remaining_questions": _CHALLENGE_QUESTIONS.get(persona_id, [])[:2] if remaining_missing else [],
         }
+
+    # ------------------------------------------------------------------
+    # Private LLM helpers
+    # ------------------------------------------------------------------
+
+    def _try_llm_challenge(
+        self,
+        persona_id: str,
+        draft_kpi: str,
+        maturity: KpiMaturityLevel,
+        missing_fields: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        """Attempt an LLM-driven challenge.  Returns None on any failure."""
+        if self._llm is None or not self._llm.is_available():
+            return None
+        messages = [
+            {"role": "system", "content": _build_challenge_system_prompt(persona_id)},
+            {"role": "user", "content": _build_challenge_user_prompt(
+                draft_kpi, maturity.value, missing_fields
+            )},
+        ]
+        result = self._llm.chat_complete(messages, json_schema=_CHALLENGE_RESPONSE_SCHEMA)
+        if result is None:
+            return None
+        # Validate minimal required keys exist
+        if "challenge_questions" not in result or "suggested_formalized_kpi" not in result:
+            logger.warning("LLM challenge response missing required keys — falling back to static")
+            return None
+        return result
+
+    def _try_llm_formalize(
+        self,
+        persona_id: str,
+        draft_kpi: str,
+        answers: Dict[str, str],
+        maturity: KpiMaturityLevel,
+    ) -> Optional[Dict[str, Any]]:
+        """Attempt an LLM-driven formalization.  Returns None on any failure."""
+        if self._llm is None or not self._llm.is_available():
+            return None
+        messages = [
+            {"role": "system", "content": _build_formalize_system_prompt(persona_id)},
+            {"role": "user", "content": _build_formalize_user_prompt(
+                draft_kpi, answers, maturity.value
+            )},
+        ]
+        result = self._llm.chat_complete(
+            messages,
+            json_schema=_FORMALIZE_RESPONSE_SCHEMA,
+            max_tokens=1500,
+        )
+        if result is None:
+            return None
+        # Validate minimal required keys exist
+        required = {"title", "outcome_statement", "metric", "target"}
+        if not required.issubset(result.keys()):
+            logger.warning("LLM formalize response missing required keys — falling back to static")
+            return None
+        return result

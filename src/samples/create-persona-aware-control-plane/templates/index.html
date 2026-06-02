@@ -124,6 +124,24 @@
               <p id="pd-accountability" class="accountability-text"></p>
             </div>
           </div>
+
+          <!-- Agent Landscape card — visible for personas with agent365 in relevant_platforms -->
+          <div id="agent-landscape-section" class="agent-landscape hidden">
+            <div class="agent-landscape-header">
+              <div class="agent-landscape-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Agent Landscape
+              </div>
+              <span id="agent-landscape-source-badge"></span>
+            </div>
+            <div id="agent-landscape-content" class="agent-landscape-stats">
+              <div class="loading-placeholder">Loading agent registry…</div>
+            </div>
+            <div class="agent-landscape-footer">
+              <a href="#registry" data-section="registry" class="btn btn-ghost btn-sm">View full Agent Registry →</a>
+            </div>
+          </div>
+
           <button class="btn btn-primary mt-lg" id="pd-proceed-btn">
             Begin Governance Workflow
           </button>

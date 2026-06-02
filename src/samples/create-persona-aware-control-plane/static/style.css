@@ -994,6 +994,24 @@ body {
 
 /* ── Agent registry ──────────────────────────────────────────── */
 .registry-cards { display: flex; flex-direction: column; gap: 10px; }
+.registry-source-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+.registry-source-banner .source-badge { cursor: pointer; }
+.registry-source-banner .registry-framing { flex: 1; font-style: italic; }
+.registry-unowned .registry-name::after {
+  content: ' ⚠';
+  color: var(--amber);
+}
 .registry-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -1005,6 +1023,13 @@ body {
   align-items: center;
   box-shadow: var(--shadow-sm);
 }
+.registry-card.col-highlight-evidence_coverage_pct .registry-col-evidence { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-risk_tier .registry-col-risk { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-template_used .registry-col-template { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-lifecycle_stage .registry-col-lifecycle { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-last_active .registry-col-activity { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-interactions_7d .registry-col-activity { color: var(--text); font-weight: 600; }
+.registry-card.col-highlight-owner .registry-col-owner { color: var(--text); font-weight: 600; }
 .registry-name { font-weight: 600; font-size: 13px; }
 .registry-owner { font-size: 11px; color: var(--text-3); }
 .registry-col-label {
@@ -1016,6 +1041,59 @@ body {
   margin-bottom: 4px;
 }
 .registry-recommendation { font-size: 12px; color: var(--text-2); font-style: italic; }
+
+/* ── Agent Landscape card (Status > persona detail) ──────────── */
+.agent-landscape {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px 12px;
+  margin-top: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.agent-landscape-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.agent-landscape-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.agent-landscape-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 12px;
+}
+.agent-landscape-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agent-landscape-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+.agent-landscape-stat-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.agent-landscape-stat-value.warn { color: var(--amber); }
+.agent-landscape-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
 
 /* ── Modal ───────────────────────────────────────────────────── */
 .modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }

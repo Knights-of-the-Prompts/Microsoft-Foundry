@@ -41,6 +41,13 @@ from typing import Any, Dict, List, Optional
 
 import time
 
+# Load .env before any config / connector imports so env vars are available.
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv(Path(__file__).parent / ".env", override=False)
+except ImportError:
+    pass  # python-dotenv not installed — rely on system env vars
+
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -116,9 +123,14 @@ registry.register(_get_azure_connector())
 from control_plane.connectors.agent365_live import get_agent365_connector as _get_agent365_connector
 registry.register(_get_agent365_connector())
 
+# Register A365 connector via factory (alias for Agent 365, separate platform ID)
+from control_plane.connectors.a365_live import get_a365_connector as _get_a365_connector
+registry.register(_get_a365_connector())
+
 kpi_agent = KPIAgent(registry)
 access_agent = AccessReadinessAgent(registry)
-kpi_challenge_agent = KpiChallengeAgent()
+from control_plane.kpi_agent.llm_client import LlmClient as _LlmClient
+kpi_challenge_agent = KpiChallengeAgent(llm_client=_LlmClient())
 control_composition_agent = ControlCompositionAgent(kpi_agent, registry, access_agent)
 
 # In-memory store for access requests (similar pattern to agent request_store)
@@ -747,3 +759,104 @@ def create_access_request(body: AccessRequestCreate) -> Dict[str, Any]:
 def list_access_requests() -> List[Dict[str, Any]]:
     """Return all submitted access requests."""
     return list(_access_requests)
+
+
+# ---------------------------------------------------------------------------
+# Agent Registry (A365)
+# ---------------------------------------------------------------------------
+
+# Columns highlighted per persona when rendering the agent registry in the UI.
+_AGENT_REGISTRY_PERSONA_FRAMING: Dict[str, Dict[str, Any]] = {
+    "compliance_officer": {
+        "highlight_columns": ["evidence_coverage_pct", "risk_tier"],
+        "framing": "Focus on evidence coverage gaps and unowned agents — both represent audit risk.",
+    },
+    "cto": {
+        "highlight_columns": ["template_used", "lifecycle_stage"],
+        "framing": "Review template reuse and lifecycle stage — architecture consistency across deployments.",
+    },
+    "security_officer": {
+        "highlight_columns": ["risk_tier", "owner"],
+        "framing": "Prioritise high-risk agents and unowned agents — both represent potential access control gaps.",
+    },
+    "it_manager": {
+        "highlight_columns": ["last_active", "interactions_7d"],
+        "framing": "Operational health: track activity volume and recency to detect stale or overloaded agents.",
+    },
+    "product_owner": {
+        "highlight_columns": ["interactions_7d", "lifecycle_stage"],
+        "framing": "Adoption metrics and lifecycle progression — identify agents ready for production promotion.",
+    },
+    "cfo": {
+        "highlight_columns": ["interactions_7d", "evidence_coverage_pct"],
+        "framing": "Value signals: activity volume and evidence coverage determine cost-attribution confidence.",
+    },
+}
+
+_AGENT_REGISTRY_DEFAULT_FRAMING = {
+    "highlight_columns": ["risk_tier", "evidence_coverage_pct"],
+    "framing": "Agent inventory from Microsoft Agent 365.",
+}
+
+
+@app.get("/api/agents", tags=["Agents"], summary="List registered agents from A365 connector")
+def list_agents(
+    persona_id: Optional[str] = Query(default=None),
+) -> Dict[str, Any]:
+    """Return agent registry data from the A365 connector.
+
+    Combines list_agent_registrations, get_agent_activity and
+    get_ownership_coverage into a single governance-ready response.
+
+    Optional ``persona_id`` adds a ``persona_framing`` block that tells the UI
+    which columns to highlight and what contextual message to display.
+    """
+    try:
+        connector = _get_connector("a365")
+    except HTTPException:
+        # Fall back to agent365 connector if a365 is not registered
+        connector = _get_connector("agent365")
+
+    defn = connector.get_definition()
+    source_mode = defn.mode.value
+
+    agents_result = connector.execute_tool("list_agent_registrations", {})
+    coverage_result = connector.execute_tool("get_ownership_coverage", {})
+
+    agents = agents_result.get("agents", [])
+    coverage_pct = coverage_result.get("coverage_pct", 0.0)
+    unowned_agents = coverage_result.get("unowned_agents", [])
+    owned_count = coverage_result.get("owned_count", len([a for a in agents if a.get("owner")]))
+    total_agents = coverage_result.get("total_agents", len(agents))
+
+    from datetime import datetime, timezone
+    persona_framing = _AGENT_REGISTRY_PERSONA_FRAMING.get(
+        persona_id or "", _AGENT_REGISTRY_DEFAULT_FRAMING
+    )
+
+    evidence_store.add_event(
+        "agent_registry_viewed",
+        {
+            "connector_id": defn.id,
+            "source_mode": source_mode,
+            "total_agents": total_agents,
+            "persona_id": persona_id,
+        },
+        persona_id=persona_id,
+        source_mode=source_mode,
+    )
+
+    return {
+        "agents": agents,
+        "ownership_summary": {
+            "total_agents": total_agents,
+            "owned_count": owned_count,
+            "coverage_pct": coverage_pct,
+            "unowned_agents": unowned_agents,
+        },
+        "source_mode": source_mode,
+        "connector_id": defn.id,
+        "connector_name": defn.name,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "persona_framing": persona_framing,
+    }

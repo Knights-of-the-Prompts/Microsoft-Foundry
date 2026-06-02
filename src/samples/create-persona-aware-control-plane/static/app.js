@@ -2,7 +2,7 @@
 /**
  * Universal Control Plane — Frontend Application
  * Consumes the FastAPI backend. All data comes from backend APIs.
- * No hardcoded mock data except the static Demo Agent Registry.
+ * No hardcoded mock data — all data comes from the backend API.
  */
 (function () {
   'use strict';
@@ -361,6 +361,9 @@
 
     // Populate KPI examples
     populateKpiExamples();
+
+    // Load Agent Landscape card if this persona uses agent365
+    loadAgentLandscape(State.persona);
   }
 
   function showPersonaDetail(p, accountability) {
@@ -2147,60 +2150,74 @@
 
   document.getElementById('refresh-evidence-btn').addEventListener('click', loadEvidence);
 
-  // ── Section: Demo Agent Registry ─────────────────────────────────────
-  const DEMO_AGENTS = [
-    {
-      name: 'Invoice Recovery Agent',
-      owner: 'CFO / Finance',
-      lifecycle: 'Production',
-      risk_tier: 'medium',
-      value: 'Recovers overdue invoices via automated payment reminders.',
-      cost: '~£0.04/invocation',
-      evidence_coverage: 'high',
-      recommendation: 'Maintain current access. Quarterly cost review recommended.',
-    },
-    {
-      name: 'Refund Approval Agent',
-      owner: 'Business Owner',
-      lifecycle: 'Production',
-      risk_tier: 'high',
-      value: 'Reduces refund processing time from 5 days to 4 hours.',
-      cost: '~£0.09/invocation',
-      evidence_coverage: 'medium',
-      recommendation: 'Governance review required: high-risk financial decisions with partial evidence coverage.',
-    },
-    {
-      name: 'Customer Support Triage Agent',
-      owner: 'Service Owner',
-      lifecycle: 'Staging',
-      risk_tier: 'low',
-      value: 'Routes support tickets to the correct team with 92% accuracy.',
-      cost: '~£0.02/invocation',
-      evidence_coverage: 'high',
-      recommendation: 'Promote to production. Evidence coverage is sufficient for accountability.',
-    },
-    {
-      name: 'Policy Research Agent',
-      owner: 'Compliance Officer',
-      lifecycle: 'Development',
-      risk_tier: 'medium',
-      value: 'Summarises regulatory changes and flags policy breaches.',
-      cost: '~£0.06/invocation',
-      evidence_coverage: 'low',
-      recommendation: 'Block promotion. Evidence coverage is insufficient. Add audit logging.',
-    },
-    {
-      name: 'Shadow Analyst Agent',
-      owner: 'CTO',
-      lifecycle: 'Retired',
-      risk_tier: 'high',
-      value: 'Used for internal R&D telemetry analysis. Replaced by Foundry.',
-      cost: '—',
-      evidence_coverage: 'none',
-      recommendation: 'Decommissioned. Ensure all data retained for compliance period.',
-    },
-  ];
+  // ── Section: Agent Landscape (Status dashboard compact card) ─────────
+  const _A365_PERSONAS = new Set([
+    'cfo', 'it_manager', 'compliance_officer', 'security_officer', 'product_owner',
+  ]);
 
+  async function loadAgentLandscape(persona) {
+    const section = document.getElementById('agent-landscape-section');
+    if (!section) return;
+
+    const platforms = (persona && persona.relevant_platforms) || [];
+    const hasA365 = platforms.includes('agent365') || platforms.includes('a365')
+      || _A365_PERSONAS.has(persona && persona.id);
+
+    if (!hasA365) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    section.classList.remove('hidden');
+    const content = document.getElementById('agent-landscape-content');
+    content.innerHTML = '<div class="loading-placeholder"><span class="spinner"></span></div>';
+
+    try {
+      const pid = persona ? persona.id : '';
+      const data = await API.get(`/api/agents?persona_id=${encodeURIComponent(pid)}`);
+      renderAgentLandscape(data);
+    } catch (err) {
+      content.innerHTML = `<div class="warn-banner">Could not load agent registry: ${esc(err.message)}</div>`;
+    }
+  }
+
+  function renderAgentLandscape(data) {
+    const content = document.getElementById('agent-landscape-content');
+    const badgeEl = document.getElementById('agent-landscape-source-badge');
+    const summary = data.ownership_summary || {};
+    const sourceMode = (data.source_mode || 'mock').toLowerCase();
+    const unowned = (summary.unowned_agents || []).length;
+    const coverage = summary.coverage_pct != null ? Math.round(summary.coverage_pct) : '—';
+    const total = summary.total_agents || (data.agents || []).length;
+
+    // Source badge
+    const badgeCls = sourceMode === 'live' ? 'source-badge source-badge-live' : 'source-badge source-badge-mock';
+    const badgeLabel = sourceMode === 'live' ? 'LIVE — Microsoft Graph' : 'MOCK — A365 Connector';
+    if (badgeEl) {
+      badgeEl.innerHTML = `<span class="${badgeCls}" title="Click to configure A365 connector"
+        style="cursor:pointer" onclick="(function(){const e=new MouseEvent('click');document.querySelector('[data-section=connectors]').dispatchEvent(e);})()">
+        ${esc(badgeLabel)}</span>`;
+    }
+
+    // Stats
+    content.innerHTML = `
+      <div class="agent-landscape-stat">
+        <div class="agent-landscape-stat-value">${esc(String(total))}</div>
+        <div class="agent-landscape-stat-label">Registered Agents</div>
+      </div>
+      <div class="agent-landscape-stat">
+        <div class="agent-landscape-stat-value${coverage < 100 ? ' warn' : ''}">${esc(String(coverage))}%</div>
+        <div class="agent-landscape-stat-label">Ownership Coverage</div>
+      </div>
+      ${unowned > 0 ? `
+      <div class="agent-landscape-stat">
+        <div class="agent-landscape-stat-value warn">${esc(String(unowned))}</div>
+        <div class="agent-landscape-stat-label">Unowned${unowned === 1 ? ' Agent' : ' Agents'}</div>
+      </div>` : ''}
+    `;
+  }
+
+  // ── Section: Demo Agent Registry (now live from /api/agents) ─────────
   const LIFECYCLE_BADGE = {
     Production:  ['badge-live',    'Production'],
     Staging:     ['badge-partial', 'Staging'],
@@ -2215,43 +2232,96 @@
     none:   ['badge-error',   'None'],
   };
 
-  function renderRegistry() {
+  function _evidenceLevelFromPct(pct) {
+    if (pct == null) return 'none';
+    if (pct >= 80) return 'high';
+    if (pct >= 50) return 'medium';
+    if (pct > 0)   return 'low';
+    return 'none';
+  }
+
+  async function renderRegistry() {
     const content = document.getElementById('registry-content');
-    if (content.querySelector('.registry-cards')) return; // already rendered
+    content.innerHTML = '<div class="loading-placeholder"><span class="spinner"></span> Loading agent registry…</div>';
+
+    const pid = (State.persona && State.persona.id) || '';
+    try {
+      const data = await API.get(`/api/agents?persona_id=${encodeURIComponent(pid)}`);
+      _renderRegistryData(content, data);
+    } catch (err) {
+      content.innerHTML = `<div class="warn-banner">Failed to load agent registry: ${esc(err.message)}</div>`;
+    }
+  }
+
+  function _renderRegistryData(content, data) {
+    const agents = data.agents || [];
+    const sourceMode = (data.source_mode || 'mock').toLowerCase();
+    const framing = data.persona_framing || {};
+    const highlightCols = new Set(framing.highlight_columns || []);
+    const summary = data.ownership_summary || {};
+    const connectorName = data.connector_name || 'Agent 365';
+
+    const badgeCls = sourceMode === 'live' ? 'source-badge source-badge-live' : 'source-badge source-badge-mock';
+    const badgeLabel = sourceMode === 'live' ? `LIVE — ${connectorName}` : `MOCK — ${connectorName}`;
+
+    const colHighlightClasses = [...highlightCols].map(c => `col-highlight-${c}`).join(' ');
 
     content.innerHTML = `
+      <div class="registry-source-banner">
+        <span class="${badgeCls}" style="cursor:pointer" title="Click to configure the A365 connector"
+          onclick="navigateTo('connectors')">${esc(badgeLabel)}</span>
+        <span class="registry-framing">${esc(framing.framing || '')}</span>
+        <button class="btn btn-ghost btn-sm" id="registry-refresh-btn">Refresh</button>
+      </div>
       <div class="registry-cards">
-        ${DEMO_AGENTS.map(agent => {
-          const [lcCls, lcLabel] = LIFECYCLE_BADGE[agent.lifecycle] || ['badge-unknown', agent.lifecycle];
-          const [evCls, evLabel] = EVIDENCE_BADGE[agent.evidence_coverage] || ['badge-unknown', agent.evidence_coverage];
+        ${agents.map(agent => {
+          const lifecycle = agent.lifecycle_stage || 'Unknown';
+          const [lcCls, lcLabel] = LIFECYCLE_BADGE[lifecycle] || ['badge-unknown', lifecycle];
+          const evLevel = _evidenceLevelFromPct(agent.evidence_coverage_pct);
+          const [evCls, evLabel] = EVIDENCE_BADGE[evLevel] || ['badge-unknown', evLevel];
+          const isUnowned = !agent.owner;
+          const ownerDisplay = isUnowned
+            ? '<span style="color:var(--amber);font-weight:600">⚠ Unowned</span>'
+            : esc(agent.owner);
+          const activityDisplay = agent.interactions_7d != null
+            ? `${agent.interactions_7d.toLocaleString()} interactions (7d)`
+            : '—';
+          const evPctDisplay = agent.evidence_coverage_pct != null
+            ? `${agent.evidence_coverage_pct}%`
+            : '—';
+
           return `
-            <div class="registry-card">
+            <div class="registry-card ${colHighlightClasses}${isUnowned ? ' registry-unowned' : ''}">
               <div>
                 <div class="registry-col-label">Agent</div>
-                <div class="registry-name">${esc(agent.name)}</div>
-                <div class="registry-owner">${esc(agent.owner)}</div>
+                <div class="registry-name">${esc(agent.display_name || agent.agent_id)}</div>
+                <div class="registry-owner registry-col-owner">${ownerDisplay}</div>
               </div>
-              <div>
+              <div class="registry-col-lifecycle">
                 <div class="registry-col-label">Lifecycle</div>
                 <span class="badge ${lcCls}">${lcLabel}</span>
               </div>
-              <div>
+              <div class="registry-col-risk">
                 <div class="registry-col-label">Risk Tier</div>
-                ${riskBadge(agent.risk_tier)}
+                ${riskBadge(agent.risk_tier || 'low')}
               </div>
-              <div>
+              <div class="registry-col-evidence">
                 <div class="registry-col-label">Evidence Coverage</div>
                 <span class="badge ${evCls}">${evLabel}</span>
+                <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${evPctDisplay}</div>
               </div>
-              <div>
-                <div class="registry-col-label">Governance Recommendation</div>
-                <div class="registry-recommendation">${esc(agent.recommendation)}</div>
+              <div class="registry-col-activity">
+                <div class="registry-col-label">Activity</div>
+                <div style="font-size:12px;color:var(--text-2);">${esc(activityDisplay)}</div>
+                <div class="registry-recommendation">${esc(agent.governance_recommendation || '')}</div>
               </div>
             </div>
           `;
         }).join('')}
       </div>
     `;
+
+    document.getElementById('registry-refresh-btn').addEventListener('click', renderRegistry);
   }
 
   // ── Boot ──────────────────────────────────────────────────────────────

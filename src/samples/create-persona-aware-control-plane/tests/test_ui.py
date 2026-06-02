@@ -256,10 +256,10 @@ class TestHtmlStructure:
 
 
 class TestConnectorAPI:
-    def test_connectors_api_returns_7(self, client: TestClient) -> None:
+    def test_connectors_api_returns_8(self, client: TestClient) -> None:
         resp = client.get("/api/connectors")
         assert resp.status_code == 200
-        assert len(resp.json()) == 7
+        assert len(resp.json()) == 8
 
     def test_connector_has_mode_field(self, client: TestClient) -> None:
         resp = client.get("/api/connectors")

@@ -568,7 +568,7 @@ class TestExistingEndpointsRegression:
     def test_list_connectors(self, client: TestClient) -> None:
         resp = client.get("/api/connectors")
         assert resp.status_code == 200
-        assert len(resp.json()) == 7
+        assert len(resp.json()) == 8
 
     def test_list_tools(self, client: TestClient) -> None:
         resp = client.get("/api/tools")
