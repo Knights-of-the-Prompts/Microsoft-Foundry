@@ -1,4 +1,6 @@
-# Persona-Aware Universal Control Plane for Accountable Agents
+<div align="center">
+    <img src="../../../media/repo-banner.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
+</div>
 
 > **Accountable Agents series — Part 4 of 4**
 >
