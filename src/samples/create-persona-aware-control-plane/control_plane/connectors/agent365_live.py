@@ -25,6 +25,7 @@ Design:
 from __future__ import annotations
 
 import os
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -289,12 +290,13 @@ class Agent365LiveConnector(PlatformConnector):
         except Exception as exc:
             return {"error": f"Graph auth failed: {exc}", "source_mode": "error"}
 
-        if tool_name == "list_copilot_agents":
+        # Support both live tool names and mock-compatible aliases
+        if tool_name in ("list_copilot_agents", "list_agent_registrations"):
             return self._tool_list_agents(token)
-        if tool_name == "get_copilot_usage_summary":
+        if tool_name in ("get_copilot_usage_summary",):
             period = payload.get("period", "D7")
             return self._tool_usage_summary(token, period)
-        if tool_name == "get_agent_ownership_gaps":
+        if tool_name in ("get_agent_ownership_gaps", "get_ownership_coverage"):
             return self._tool_ownership_gaps(token)
 
         return {"error": f"Unknown tool '{tool_name}'", "source_mode": "error"}
@@ -303,22 +305,122 @@ class Agent365LiveConnector(PlatformConnector):
     # Private: individual API call implementations
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Shared: fetch and normalize agent app registrations
+    # ------------------------------------------------------------------
+
+    def _fetch_apps_as_agents(self, token: str, top: int = 50) -> List[Dict[str, Any]]:
+        """Fetch agent app registrations from Graph and normalize to UI schema.
+
+        Retrieves Copilot Studio agents (tagged AIAgentBuilder) and Azure AI
+        Foundry agent blueprints from /v1.0/applications, then normalizes each
+        record to the shared agent registry schema expected by the UI.
+        """
+        data = _graph_get(
+            "/v1.0/applications"
+            "?$select=id,displayName,tags,createdDateTime"
+            "&$expand=owners($select=id,displayName,userPrincipalName,mail)"
+            "&$top=200",
+            token,
+        )
+        apps = data.get("value", [])
+
+        agents: List[Dict[str, Any]] = []
+        for app in apps:
+            if len(agents) >= top:
+                break
+
+            odata_type = app.get("@odata.type", "")
+            tags = app.get("tags", [])
+
+            is_blueprint = "agentIdentityBlueprint" in odata_type
+            is_copilot_studio = "AIAgentBuilder" in tags
+
+            if not (is_blueprint or is_copilot_studio):
+                continue
+
+            raw_name = app.get("displayName") or ""
+
+            if is_blueprint:
+                # Strip "-AgentIdentityBlueprint" suffix and project prefix
+                name_no_suffix = re.sub(r"-AgentIdentityBlueprint(?:-[0-9a-f]+)?$", "", raw_name)
+                m = re.search(r"-project-(.+?)(?:-[0-9a-f]{5,})?$", name_no_suffix)
+                if m:
+                    clean_name = m.group(1)
+                else:
+                    parts = name_no_suffix.split("-")
+                    clean_name = "-".join(parts[-3:]) if len(parts) > 3 else name_no_suffix
+                template = "Azure AI Foundry"
+                lifecycle = "Staging"
+                risk_tier = "medium"
+            else:
+                clean_name = re.sub(r"\s*\(Microsoft Copilot Studio\)\s*$", "", raw_name).strip()
+                template = "Microsoft Copilot Studio"
+                lifecycle = "Production"
+                risk_tier = "high"
+
+            # Find first human owner (skip service principals / system accounts)
+            human_owner: Optional[str] = None
+            for o in app.get("owners", []):
+                otype = o.get("@odata.type", "")
+                upn = o.get("userPrincipalName") or o.get("mail") or ""
+                display = o.get("displayName", "")
+                is_user = "user" in otype.lower() or (
+                    upn
+                    and "@" in upn
+                    and "power virtual" not in display.lower()
+                    and "service" not in display.lower()
+                )
+                if is_user:
+                    human_owner = upn or display
+                    break
+
+            created = (app.get("createdDateTime") or "")[:10] or None
+
+            if human_owner is None:
+                rec = "Assign a human owner — unowned agents represent governance risk."
+            elif lifecycle == "Production":
+                rec = "Review agent scope and permissions quarterly."
+            else:
+                rec = "No immediate action required."
+
+            agents.append({
+                "agent_id": app.get("id", ""),
+                "display_name": clean_name or raw_name,
+                "owner": human_owner,
+                "lifecycle_stage": lifecycle,
+                "risk_tier": risk_tier,
+                "template_used": template,
+                "last_active": created,
+                "interactions_7d": None,
+                "evidence_coverage_pct": None,
+                "governance_recommendation": rec,
+            })
+
+        return agents
+
     def _fetch_agent_registrations(
         self, token: str, identity: str, signal_requirements: List[str]
     ) -> List[Dict[str, Any]]:
-        """Call Graph /beta/copilot/agents and return registration + ownership signals."""
+        """Fetch agent registrations from Graph and return normalized signals."""
         signals: List[Dict[str, Any]] = []
-        endpoint = f"{_GRAPH_BASE}/beta/copilot/agents?$select=id,displayName,publisherName,createdDateTime&$top=20"
+        endpoint = (
+            f"{_GRAPH_BASE}/v1.0/applications"
+            "?$filter=tags/any(t:t+eq+%27AIAgentBuilder%27)"
+        )
         retrieved_at = datetime.now(timezone.utc).isoformat()
 
         try:
-            data = _graph_get("/beta/copilot/agents?$select=id,displayName,publisherName,createdDateTime&$top=20", token)
-            agents = data.get("value", [])
+            agents = self._fetch_apps_as_agents(token, top=50)
             total = len(agents)
-            unowned = [a for a in agents if not a.get("publisherName")]
+            unowned = [a for a in agents if not a.get("owner")]
 
             safe_preview = [
-                {"id": a.get("id", "")[:8] + "…", "displayName": a.get("displayName"), "publisherName": a.get("publisherName")}
+                {
+                    "agent_id": a["agent_id"][:8] + "…",
+                    "display_name": a["display_name"],
+                    "owner": a["owner"],
+                }
                 for a in agents[:5]
             ]
 
@@ -337,7 +439,10 @@ class Agent365LiveConnector(PlatformConnector):
                 signals.append({
                     "signal_type": "agent_registrations",
                     "platform_id": _PLATFORM_ID,
-                    "title": f"{total} Copilot agent(s) registered in tenant — {len(unowned)} without publisher info",
+                    "title": (
+                        f"{total} Copilot agent(s) registered in tenant — "
+                        f"{len(unowned)} without human owner"
+                    ),
                     "value": {
                         "severity": "medium" if unowned else "low",
                         "total_agents": total,
@@ -348,11 +453,14 @@ class Agent365LiveConnector(PlatformConnector):
                 })
 
             if "ownership_data" in signal_requirements:
-                coverage = round((1 - len(unowned) / max(total, 1)) * 100, 1)
+                coverage = round((total - len(unowned)) / max(total, 1) * 100, 1)
                 signals.append({
                     "signal_type": "ownership_data",
                     "platform_id": _PLATFORM_ID,
-                    "title": f"Ownership coverage: {coverage}% ({total - len(unowned)} of {total} agents have publisher info)",
+                    "title": (
+                        f"Ownership coverage: {coverage}% "
+                        f"({total - len(unowned)} of {total} agents have human owner)"
+                    ),
                     "value": {
                         "severity": "medium" if coverage < 90 else "low",
                         "coverage_pct": coverage,
@@ -443,21 +551,8 @@ class Agent365LiveConnector(PlatformConnector):
 
     def _tool_list_agents(self, token: str) -> Dict[str, Any]:
         try:
-            data = _graph_get("/beta/copilot/agents?$select=id,displayName,publisherName,createdDateTime&$top=50", token)
-            agents = data.get("value", [])
-            return {
-                "agents": [
-                    {
-                        "id": a.get("id", "")[:8] + "…",
-                        "displayName": a.get("displayName"),
-                        "publisherName": a.get("publisherName"),
-                        "createdDateTime": a.get("createdDateTime"),
-                    }
-                    for a in agents
-                ],
-                "total": len(agents),
-                "source_mode": "live",
-            }
+            agents = self._fetch_apps_as_agents(token, top=50)
+            return {"agents": agents, "total": len(agents), "source_mode": "live"}
         except Exception as exc:
             return {"error": str(exc), "source_mode": "error"}
 
@@ -480,16 +575,18 @@ class Agent365LiveConnector(PlatformConnector):
 
     def _tool_ownership_gaps(self, token: str) -> Dict[str, Any]:
         try:
-            data = _graph_get("/beta/copilot/agents?$select=id,displayName,publisherName&$top=50", token)
-            agents = data.get("value", [])
-            unowned = [a for a in agents if not a.get("publisherName")]
-            coverage = round((1 - len(unowned) / max(len(agents), 1)) * 100, 1)
+            agents = self._fetch_apps_as_agents(token, top=50)
+            total = len(agents)
+            unowned = [a for a in agents if not a.get("owner")]
+            owned_count = total - len(unowned)
+            coverage = round(owned_count / max(total, 1) * 100, 1)
             return {
                 "coverage_pct": coverage,
-                "unowned_count": len(unowned),
+                "owned_count": owned_count,
+                "total_agents": total,
                 "unowned_agents": [
-                    {"id": a.get("id", "")[:8] + "…", "displayName": a.get("displayName")}
-                    for a in unowned
+                    {"agent_id": a["agent_id"][:8] + "…", "display_name": a["display_name"]}
+                    for a in unowned[:10]
                 ],
                 "source_mode": "live",
             }

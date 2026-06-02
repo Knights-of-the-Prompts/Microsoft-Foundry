@@ -229,6 +229,20 @@ You can also review the Live Data Evidence to check live connections:
 
 ![Live Data Evidence](../../../media/live-data-evidence.png)
 
+### Live A365 Agent Registry
+
+When `CONTROL_PLANE_AGENT365_LIVE=true` is set and `az login` is active, the **Agent Registry** tab
+in the Audit Trail shows real agent data from Microsoft Graph — including Copilot Studio agents and
+Azure AI Foundry blueprints registered in your tenant. The **LIVE** badge confirms the data source.
+
+Agents are normalized to a consistent governance schema with lifecycle stage, risk tier, ownership,
+and governance recommendations. Unowned agents are flagged prominently.
+
+![A365 Live Agent Registry — Audit Trail showing real tenant agents](../../../media/control-plane-a365-agent-registry.png)
+
+> **How to enable:** Set `CONTROL_PLANE_AGENT365_LIVE=true` in your `.env` file and ensure
+> `az login` is active with an account that has `Application.Read.All` permissions on the tenant.
+
 ## KPI refinement workflow
 
 The KPI page uses a five-step refinement workflow. The control plane does not

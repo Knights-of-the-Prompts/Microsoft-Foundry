@@ -517,3 +517,170 @@ class TestCfoRoiScenarioEndToEnd:
             "control_package_composed",
         ):
             assert expected in event_types, f"Missing evidence event: {expected}"
+
+
+# ---------------------------------------------------------------------------
+# 11. Generative KPI Challenge Agent — LLM path and fallback
+# ---------------------------------------------------------------------------
+
+
+class TestGenerativeChallengeAgent:
+    """Unit tests for the generative path in KpiChallengeAgent.
+
+    These tests inject a mock LlmClient directly into KpiChallengeAgent so they
+    run without any Azure credentials.
+    """
+
+    def _make_agent(self, llm_response):
+        """Return a KpiChallengeAgent with a mock LlmClient."""
+        from unittest.mock import MagicMock
+        from control_plane.kpi_agent.challenge_agent import KpiChallengeAgent
+
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = True
+        mock_llm.chat_complete.return_value = llm_response
+        return KpiChallengeAgent(llm_client=mock_llm)
+
+    # --- challenge() ---
+
+    def test_challenge_uses_llm_questions_when_available(self) -> None:
+        llm_response = {
+            "challenge_questions": ["LLM question 1?", "LLM question 2?"],
+            "suggested_formalized_kpi": {"title": "LLM-generated KPI"},
+            "missing_fields": ["timeframe"],
+            "confidence_score": 0.65,
+        }
+        agent = self._make_agent(llm_response)
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        assert session.challenge_questions == ["LLM question 1?", "LLM question 2?"]
+        assert session.suggested_formalized_kpi == {"title": "LLM-generated KPI"}
+        assert session.missing_fields == ["timeframe"]
+        assert session.confidence_score == 0.65
+
+    def test_challenge_falls_back_to_static_when_llm_returns_none(self) -> None:
+        from unittest.mock import MagicMock
+        from control_plane.kpi_agent.challenge_agent import KpiChallengeAgent, _CHALLENGE_QUESTIONS
+
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = True
+        mock_llm.chat_complete.return_value = None  # simulate failure
+        agent = KpiChallengeAgent(llm_client=mock_llm)
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        assert session.challenge_questions == _CHALLENGE_QUESTIONS["cfo"]
+
+    def test_challenge_falls_back_when_llm_response_missing_required_keys(self) -> None:
+        from control_plane.kpi_agent.challenge_agent import _CHALLENGE_QUESTIONS
+        # Missing 'suggested_formalized_kpi' key
+        agent = self._make_agent({"challenge_questions": ["q1?"]})
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        # Should fall back to static
+        assert session.challenge_questions == _CHALLENGE_QUESTIONS["cfo"]
+
+    def test_challenge_without_llm_client_uses_static(self) -> None:
+        from control_plane.kpi_agent.challenge_agent import KpiChallengeAgent, _CHALLENGE_QUESTIONS
+        agent = KpiChallengeAgent()
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        assert session.challenge_questions == _CHALLENGE_QUESTIONS["cfo"]
+
+    # --- formalize() ---
+
+    def test_formalize_uses_llm_result_when_available(self) -> None:
+        llm_response = {
+            "title": "LLM Title",
+            "outcome_statement": "LLM outcome",
+            "metric": "LLM metric",
+            "target": "100%",
+            "timeframe": "Monthly",
+            "scope": "All agents",
+            "included_entities": ["production agents"],
+            "excluded_entities": ["sandbox"],
+            "tradeoffs": ["some tradeoff"],
+            "evidence_standard": "LLM evidence standard",
+            "risk_tolerance": "Low",
+            "success_criteria": ["criterion 1"],
+            "confidence_score": 0.92,
+        }
+        agent = self._make_agent(llm_response)
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        result = agent.formalize(
+            session_id=session.id,
+            persona_id="cfo",
+            draft_kpi="Agent ROI > 3x",
+            answers={"business_outcome": "Demonstrate 3x ROI"},
+        )
+        kpi = result["formalized_kpi"]
+        assert kpi["title"] == "LLM Title"
+        assert kpi["outcome_statement"] == "LLM outcome"
+        assert kpi["confidence_score"] == 0.92
+
+    def test_formalize_falls_back_when_llm_returns_none(self) -> None:
+        from unittest.mock import MagicMock
+        from control_plane.kpi_agent.challenge_agent import KpiChallengeAgent, _SUGGESTED_KPI_TEMPLATES
+
+        mock_llm = MagicMock()
+        mock_llm.is_available.return_value = True
+        mock_llm.chat_complete.return_value = None  # simulate failure
+        agent = KpiChallengeAgent(llm_client=mock_llm)
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        result = agent.formalize(
+            session_id=session.id,
+            persona_id="cfo",
+            draft_kpi="Agent ROI > 3x",
+            answers={"business_outcome": "Demonstrate 3x ROI"},
+        )
+        kpi = result["formalized_kpi"]
+        # Fall back title should match static template
+        assert kpi["title"] == _SUGGESTED_KPI_TEMPLATES["cfo"]["title"]
+
+    def test_formalize_without_llm_client_uses_static(self) -> None:
+        from control_plane.kpi_agent.challenge_agent import KpiChallengeAgent, _SUGGESTED_KPI_TEMPLATES
+        agent = KpiChallengeAgent()
+        session = agent.challenge("cfo", "Agent ROI > 3x")
+        result = agent.formalize(
+            session_id=session.id,
+            persona_id="cfo",
+            draft_kpi="Agent ROI > 3x",
+            answers={"business_outcome": "Demonstrate 3x ROI"},
+        )
+        kpi = result["formalized_kpi"]
+        assert kpi["title"] == _SUGGESTED_KPI_TEMPLATES["cfo"]["title"]
+
+    # --- LlmClient.is_available() ---
+
+    def test_llm_client_not_available_when_env_not_set(self) -> None:
+        import os
+        from control_plane.kpi_agent.llm_client import LlmClient
+        os.environ.pop("CONTROL_PLANE_KPI_LLM_ENABLED", None)
+        os.environ.pop("FOUNDRY_PROJECT_ENDPOINT", None)
+        client = LlmClient()
+        assert client.is_available() is False
+
+    def test_llm_client_not_available_when_only_enabled_flag_set(self) -> None:
+        import os
+        from control_plane.kpi_agent.llm_client import LlmClient
+        os.environ["CONTROL_PLANE_KPI_LLM_ENABLED"] = "true"
+        os.environ.pop("FOUNDRY_PROJECT_ENDPOINT", None)
+        try:
+            assert LlmClient().is_available() is False
+        finally:
+            os.environ.pop("CONTROL_PLANE_KPI_LLM_ENABLED", None)
+
+    def test_llm_client_available_when_both_set(self) -> None:
+        import os
+        from control_plane.kpi_agent.llm_client import LlmClient
+        os.environ["CONTROL_PLANE_KPI_LLM_ENABLED"] = "true"
+        os.environ["FOUNDRY_PROJECT_ENDPOINT"] = "https://fake.endpoint/"
+        try:
+            assert LlmClient().is_available() is True
+        finally:
+            os.environ.pop("CONTROL_PLANE_KPI_LLM_ENABLED", None)
+            os.environ.pop("FOUNDRY_PROJECT_ENDPOINT", None)
+
+    def test_llm_client_chat_complete_returns_none_when_not_available(self) -> None:
+        import os
+        from control_plane.kpi_agent.llm_client import LlmClient
+        os.environ.pop("CONTROL_PLANE_KPI_LLM_ENABLED", None)
+        client = LlmClient()
+        result = client.chat_complete([{"role": "user", "content": "hello"}])
+        assert result is None
+

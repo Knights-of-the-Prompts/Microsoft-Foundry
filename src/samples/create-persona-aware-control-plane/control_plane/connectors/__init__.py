@@ -1,8 +1,3 @@
-"""Connector package — exports all connectors and ALL_CONNECTORS list.
-
-Azure connector is factory-driven: AzureMockConnector is used unless
-CONTROL_PLANE_AZURE_LIVE=true, in which case AzureLiveConnector is used.
-"""
 from __future__ import annotations
 
 from control_plane.connectors.a365 import A365MockConnector
@@ -21,6 +16,7 @@ from control_plane.connectors.servicenow import ServiceNowMockConnector
 # AzureMockConnector is included for tests; app.py overrides it via
 # get_azure_connector() which picks live vs mock based on CONTROL_PLANE_AZURE_LIVE.
 # Agent365MockConnector is similarly overridden by get_agent365_connector().
+# A365MockConnector is similarly overridden by get_a365_connector().
 ALL_CONNECTORS = [
     Microsoft365MockConnector,
     AzureMockConnector,
@@ -41,10 +37,14 @@ __all__ = [
     "FoundryMockConnector",
     "KubernetesMockConnector",
     "Microsoft365MockConnector",
+    "Agent365LiveConnector",
     "Agent365MockConnector",
     "get_a365_connector",
     "get_agent365_connector",
     "ServiceNowMockConnector",
     "SalesforceMockConnector",
+    "get_a365_connector",
     "get_azure_connector",
+    "get_agent365_connector",
 ]
+
