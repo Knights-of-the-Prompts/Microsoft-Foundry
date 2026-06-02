@@ -238,7 +238,7 @@ Azure AI Foundry blueprints registered in your tenant. The **LIVE** badge confir
 Agents are normalized to a consistent governance schema with lifecycle stage, risk tier, ownership,
 and governance recommendations. Unowned agents are flagged prominently.
 
-![A365 Live Agent Registry — Audit Trail showing real tenant agents](../../../media/control-plane-a365-agent-registry.png)
+![A365 Live Agent Registry — Audit Trail showing real tenant agents](../../../media/control-plane-a365-agent-registry-live.png)
 
 > **How to enable:** Set `CONTROL_PLANE_AGENT365_LIVE=true` in your `.env` file and ensure
 > `az login` is active with an account that has `Application.Read.All` permissions on the tenant.
