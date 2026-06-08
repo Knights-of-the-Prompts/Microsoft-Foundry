@@ -85,10 +85,9 @@ python agent-lifecycle-example.py
 
 ---
 
-<details>
-<summary><strong>Walkthrough — example output</strong></summary>
+## Walkthrough — example output
 
-The following output was produced against a real Azure resource group (`rg-kotp-temp`) containing a Microsoft Foundry deployment. No tags had been added to associate resources with the Contoso Sales Agent.
+The following output was produced against a real Azure resource group containing a Microsoft Foundry deployment. No tags had been added to associate resources with the Contoso Sales Agent.
 
 ### What the sample checked
 
