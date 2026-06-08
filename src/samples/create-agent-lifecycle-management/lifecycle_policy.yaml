@@ -1,0 +1,46 @@
+# Lifecycle policy for Accountable Agents
+#
+# Defines the gates and decision rules used to evaluate
+# an agent's lifecycle state. Logic is not yet implemented.
+
+current_state: operating
+
+metadata_gate:
+  # Required fields that must be present and non-empty in the agent profile.
+  required_fields:
+    - owner_email
+    - sponsor_email
+    - business_stream
+    - expected_outcome
+    - cost_center
+
+azure_resource_gate:
+  # At least one Azure resource must be associated with the agent.
+  require_at_least_one_resource: true
+  # All associated resources must carry these tags.
+  required_tags:
+    - agent_id
+    - owner
+    - sponsor
+    - business_stream
+    - cost_center
+    - environment
+
+observability_gate:
+  # Placeholder — requires real usage signals (not yet implemented).
+  # Scaling decisions must not be made without usage evidence.
+  enabled: false
+
+risk_gate:
+  # Fail the lifecycle gate if any high-impact Advisor finding exists.
+  fail_on_high_advisor_findings: true
+  # Warn (but do not fail) for medium-impact Advisor findings.
+  warn_on_medium_advisor_findings: true
+
+decision_rules:
+  # Maps gate outcomes to recommended lifecycle actions.
+  fail_metadata: remediate
+  fail_resource_tags: remediate
+  high_risk: restrict
+  no_resources: under_review
+  all_pass: operate

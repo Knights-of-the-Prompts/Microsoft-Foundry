@@ -1,0 +1,30 @@
+# Agent profile for the Contoso Sales Agent
+#
+# Configure this file before running the sample.
+# Replace all placeholder values with your actual Azure configuration.
+
+agent_id: "contoso-sales-agent-v1"
+display_name: "Contoso Sales Agent"
+
+# Accountability contacts - required for governance gates
+owner_email: "owner@example.com"         # TODO: replace with actual owner
+sponsor_email: "sponsor@example.com"     # TODO: replace with actual sponsor
+
+# Business context
+business_stream: "sales"
+expected_outcome: "Increase qualified pipeline conversion rate"
+cost_center: "CC-SALES-001"             # TODO: replace with actual cost center
+
+# Azure configuration
+environment: "development"               # development | staging | production
+azure_resource_group: "rg-contoso-agents-dev"  # TODO: replace with your resource group
+
+# Tags that must be present on every Azure resource associated with this agent.
+# Resources missing any of these tags will trigger a Remediate recommendation.
+required_resource_tags:
+  - agent_id
+  - owner
+  - sponsor
+  - business_stream
+  - cost_center
+  - environment
