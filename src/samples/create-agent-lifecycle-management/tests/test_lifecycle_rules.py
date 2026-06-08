@@ -153,3 +153,22 @@ def test_all_gates_pass_recommends_operate():
 
     assert package.recommended_action == "Operate"
     assert package.recommended_state == "operating"
+
+
+def test_medium_advisor_finding_still_operates():
+    """A medium-impact Advisor finding (warning only) should not block operation."""
+    profile = _make_profile()
+    resource = _make_resource()
+    finding = _make_advisor_finding(impact="Medium")
+    evidence = EvidenceBundle(
+        agent_id="test-agent",
+        resources=[resource],
+        advisor_findings=[finding],
+    )
+    package = evaluate_lifecycle(profile, evidence, BASE_POLICY)
+
+    assert package.recommended_action == "Operate"
+    assert package.recommended_state == "operating"
+    # The warning should still be visible in the explanation
+    gate_map = {g.gate_name: g for g in package.gate_results}
+    assert gate_map["risk_gate"].status == "warning"

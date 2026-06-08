@@ -1,30 +1,37 @@
-# Agent Lifecycle Management for Accountable Agents
+<div align="center">
+    <img src="../../../media/agent-lifecycle-banner.png" width="100%" alt="Microsoft Foundry workshop / lab / sample">
+</div>
 
-**Governed lifecycle gates for operating, remediating, scaling and retiring enterprise agents**
+**Governed lifecycle gates for operating, reviewing, remediating, restricting and retiring enterprise agents**
 
----
-
-## Series context
-
-This is **Part 5** in the Accountable Agents sample series:
-
-| Part | Sample | Focus |
-|------|--------|-------|
-| 1 | [Outcome-Aware Agents](../create-outcome-aware-agents/) | Value attribution |
-| 2 | [Cost Attribution for Agents](../create-cost-attribution-for-agents/) | Cost attribution |
-| 3 | [Agent Reporting](../create-agent-reporting/) | Consolidated agent reporting |
-| 4 | [Persona-Aware Control Plane](../create-persona-aware-control-plane/) | Role-based governance |
-| **5** | **Agent Lifecycle Management** | **Lifecycle gates and decisions** |
-
----
-
-## Core idea
+The earlier samples in this series created value, cost, reporting and control-plane signals for enterprise AI agents. This sample shows how those signals can influence the lifecycle state of the agent itself. It is intentionally minimal — no dashboards, no automation — and produces a single **Lifecycle Decision Package** as Markdown and JSON output.
 
 > A control plane becomes useful when its decisions change the lifecycle of the agents it governs.
 
-An agent that is approved to operate, consuming Azure resources, and influencing business outcomes should be subject to structured lifecycle governance — not just monitored.
+---
 
-This sample implements that governance as a **decision function**: given an agent profile, live Azure evidence, and a lifecycle policy, determine the agent's lifecycle state and the recommended action.
+## Series
+
+| Part | Sample | Core question |
+|------|--------|---------------|
+| 1 | [Value Attribution](../create-outcome-aware-agents/) | What value did the agent contribute? |
+| 2 | [Cost Attribution](../create-cost-attribution-for-agents/) | What did it cost to create that contribution? |
+| 3 | [Agent Reporting](../create-agent-reporting/) | Who needs to see the signals? |
+| 4 | [Control Plane](../create-persona-aware-control-plane/) | How do signals become governed decisions? |
+| **5** | **Agent Lifecycle Management** | **What happens to the agent next?** |
+
+---
+
+## How it works
+
+```
+Agent profile
++ Live Azure evidence
++ Lifecycle policy
+= Lifecycle Decision Package
+```
+
+Given an agent profile, live Azure CLI evidence and a lifecycle policy, the sample evaluates three gates and recommends a lifecycle action. No logic is hidden; the decision function is plain Python.
 
 ---
 
@@ -32,13 +39,11 @@ This sample implements that governance as a **decision function**: given an agen
 
 The sample evaluates whether an agent should:
 
-- **Operate** — continue running as-is; all gates pass
+- **Operate** — all gates pass; agent continues as-is
+- **Review** — no associated Azure resources found
 - **Remediate** — required metadata or resource tags are missing
-- **Scale** — usage and value signals justify expansion *(not yet implemented; requires real usage evidence)*
 - **Restrict** — high-risk Azure Advisor findings warrant action
-- **Retire** — agent is no longer needed or compliant *(manual decision outside this sample)*
-
-The lifecycle decision is produced as a structured **Lifecycle Decision Package** — a Markdown and JSON artefact that can be used in governance reviews or audit trails.
+- **Retire** — agent is no longer needed *(manual decision, outside this sample)*
 
 ---
 
@@ -66,11 +71,98 @@ After evaluation, the sample writes two files to `outputs/`:
 
 ## Run locally
 
+> **Before running:** update `agent_profile.yaml` with your Azure resource group and owner details, and tag at least one real Azure resource with `agent_id`, `agentName`, or `accountable_agents_demo: "true"`. Without a matching resource the sample will produce an honest `under_review` result and list collection warnings instead of fabricating data.
+
 ```bash
 cd src/samples/create-agent-lifecycle-management
 pip install -r requirements.txt
 python agent-lifecycle-example.py
 ```
+
+---
+
+## Walkthrough — example output
+
+The following output was produced against a real Azure resource group (`rg-kotp-temp`) containing a Microsoft Foundry deployment. No tags had been added to associate resources with the Contoso Sales Agent.
+
+### What the sample checked
+
+The sample ran three gates in sequence:
+
+| Gate | What was checked | Result |
+|------|-----------------|--------|
+| **Metadata gate** | Are `owner_email`, `sponsor_email`, `business_stream`, `expected_outcome` and `cost_center` set in `agent_profile.yaml`? | ✅ Pass — all fields present |
+| **Azure resource gate** | Does at least one resource in the resource group carry a tag matching `agent_id`, `agentName`, or `accountable_agents_demo='true'`? | ❌ Fail — no matching resources found |
+| **Risk gate** | Does Azure Advisor report any high or medium findings for this resource group? | ⚠️ Warning — 2 medium findings (Private Link, network access) |
+
+### How the decision was reached
+
+The decision rules are applied in priority order:
+
+1. Risk gate did **not** fail (medium findings only → warning, not fail) → no Restrict
+2. Metadata gate passed → no Remediate from metadata
+3. Azure resource gate **failed** with zero resources found → **Review**
+
+Because there were no associated resources, the sample cannot confirm the agent is operating correctly or that its Azure footprint is compliant. The recommended state is `under_review` until at least one resource is tagged.
+
+### Example Lifecycle Decision Package
+
+This is the `outputs/lifecycle-decision-package.md` file generated by the run:
+
+```markdown
+# Lifecycle Decision Package
+
+*Generated: 2026-06-08 13:09 UTC*
+
+## Agent
+
+- **Name:** Contoso Sales Agent
+- **Agent ID:** contoso-sales-agent-v1
+- **Owner:** douwe@capgeminilanding.onmicrosoft.com
+- **Sponsor:** admin@capgeminilanding.onmicrosoft.com
+
+## Decision
+
+- **Current state:** operating
+- **Recommended action:** Review
+- **Recommended state:** under_review
+
+## Gate Results
+
+| Gate | Status | Message |
+|---|---|---|
+| metadata_gate | pass | All required profile fields are present. |
+| azure_resource_gate | fail | No Azure resources were found that are associated with this agent. Tag at least one resource with agent_id, agentName, or accountable_agents_demo='true'. |
+| risk_gate | warning | 2 medium-impact Azure Advisor finding(s) noted. |
+
+## Required Actions
+
+- Associate at least one Azure resource with this agent by adding a matching tag (agent_id, agentName, or accountable_agents_demo='true')
+- Review medium-risk Advisor recommendation: Microsoft Foundry resources should use Azure Private Link
+- Review medium-risk Advisor recommendation: Microsoft Foundry resources should restrict network access
+
+## Explanation
+
+No Azure resources were found that are associated with this agent. Tag at least
+one resource with agent_id, agentName, or accountable_agents_demo='true'.
+2 medium-impact Azure Advisor finding(s) noted.
+1 Azure evidence collection warning(s) noted.
+```
+
+### How to move from Review to Operate
+
+Tag at least one existing Azure resource in the resource group to associate it with this agent:
+
+```bash
+az resource tag \
+  --ids <resource-id> \
+  --tags accountable_agents_demo=true
+
+# Then re-run:
+python agent-lifecycle-example.py
+```
+
+Once a resource is found and all required tags are present, and no high-risk Advisor findings exist, the recommended action will change to **Operate**.
 
 ---
 

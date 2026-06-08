@@ -155,7 +155,7 @@ def _determine_action(gate_results: list[GateResult]) -> str:
       2. Metadata gate fail -> Remediate
       3. Resource gate fail with no resources -> Review
       4. Resource gate fail (tag issues) -> Remediate
-      5. Any warning -> Remediate (conservative default)
+      5. Warnings only (no failures) -> Operate (warnings surface in explanation)
       6. All pass -> Operate
     """
     gate_map = {g.gate_name: g for g in gate_results}
@@ -175,10 +175,7 @@ def _determine_action(gate_results: list[GateResult]) -> str:
             return "Review"
         return "Remediate"
 
-    # Any warning is a soft signal to remediate before scaling
-    if any(g.status == "warning" for g in gate_results):
-        return "Remediate"
-
+    # Warnings alone do not block operation; they are surfaced in the explanation.
     return "Operate"
 
 

@@ -6,21 +6,16 @@
 agent_id: "contoso-sales-agent-v1"
 display_name: "Contoso Sales Agent"
 
-# Accountability contacts - required for governance gates
-owner_email: "owner@example.com"         # TODO: replace with actual owner
-sponsor_email: "sponsor@example.com"     # TODO: replace with actual sponsor
+owner_email: "douwe@capgeminilanding.onmicrosoft.com"
+sponsor_email: "admin@capgeminilanding.onmicrosoft.com"
 
-# Business context
 business_stream: "sales"
 expected_outcome: "Increase qualified pipeline conversion rate"
-cost_center: "CC-SALES-001"             # TODO: replace with actual cost center
+cost_center: "CC-SALES-001"
 
-# Azure configuration
-environment: "development"               # development | staging | production
-azure_resource_group: "rg-contoso-agents-dev"  # TODO: replace with your resource group
+environment: "development"
+azure_resource_group: "rg-kotp-temp"
 
-# Tags that must be present on every Azure resource associated with this agent.
-# Resources missing any of these tags will trigger a Remediate recommendation.
 required_resource_tags:
   - agent_id
   - owner

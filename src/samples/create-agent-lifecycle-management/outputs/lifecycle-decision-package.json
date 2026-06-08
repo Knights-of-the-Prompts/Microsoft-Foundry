@@ -1,0 +1,49 @@
+{
+  "agent_id": "contoso-sales-agent-v1",
+  "display_name": "Contoso Sales Agent",
+  "owner_email": "douwe@capgeminilanding.onmicrosoft.com",
+  "sponsor_email": "admin@capgeminilanding.onmicrosoft.com",
+  "current_state": "operating",
+  "recommended_action": "Review",
+  "recommended_state": "under_review",
+  "gate_results": [
+    {
+      "gate_name": "metadata_gate",
+      "status": "pass",
+      "message": "All required profile fields are present.",
+      "evidence": {}
+    },
+    {
+      "gate_name": "azure_resource_gate",
+      "status": "fail",
+      "message": "No Azure resources were found that are associated with this agent. Tag at least one resource with agent_id, agentName, or accountable_agents_demo='true'.",
+      "evidence": {
+        "resource_count": 0
+      }
+    },
+    {
+      "gate_name": "risk_gate",
+      "status": "warning",
+      "message": "2 medium-impact Azure Advisor finding(s) noted.",
+      "evidence": {
+        "medium_findings": [
+          {
+            "id": "f839ec6e-542f-18be-29ce-cb3ef8a179c6",
+            "description": "Microsoft Foundry resources should use Azure Private Link"
+          },
+          {
+            "id": "8a94ce7f-b3c6-e61b-7258-13ba5f7f6ac3",
+            "description": "Microsoft Foundry resources should restrict network access"
+          }
+        ]
+      }
+    }
+  ],
+  "required_actions": [
+    "Associate at least one Azure resource with this agent by adding a matching tag (agent_id, agentName, or accountable_agents_demo='true')",
+    "Review medium-risk Advisor recommendation: Microsoft Foundry resources should use Azure Private Link",
+    "Review medium-risk Advisor recommendation: Microsoft Foundry resources should restrict network access"
+  ],
+  "explanation": "No Azure resources were found that are associated with this agent. Tag at least one resource with agent_id, agentName, or accountable_agents_demo='true'. 2 medium-impact Azure Advisor finding(s) noted. 1 Azure evidence collection warning(s) noted.",
+  "generated_at": "2026-06-08T13:09:39.147388+00:00"
+}

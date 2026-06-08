@@ -1,7 +1,7 @@
 # Lifecycle policy for Accountable Agents
 #
 # Defines the gates and decision rules used to evaluate
-# an agent's lifecycle state. Logic is not yet implemented.
+# an agent's lifecycle state. See evaluate_lifecycle.py for implementation.
 
 current_state: operating
 
